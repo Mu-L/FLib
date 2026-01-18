@@ -62,7 +62,7 @@ namespace FLib.WorldCores
             Debug.Assert(hash != 0);
             Debug.Assert(hash != -1);
             (SharedComponents ??= new List<QuerySharedComponent>())
-                .Add(new QuerySharedComponent { ComponentId = ComponentRegistry.GetId<T>(), Hash = hash });
+                .Add(new QuerySharedComponent(ComponentRegistry.GetId<T>(), hash));
             return this;
         }
 

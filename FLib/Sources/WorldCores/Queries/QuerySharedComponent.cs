@@ -2,10 +2,16 @@
 
 namespace FLib.WorldCores
 {
-    public struct QuerySharedComponent
+    public readonly struct QuerySharedComponent
     {
-        public IncrementId ComponentId;
-        public int Hash;
+        public readonly IncrementId ComponentId;
+        public readonly int Hash;
+
+        public QuerySharedComponent(IncrementId componentId, int hash)
+        {
+            ComponentId = componentId;
+            Hash = hash;
+        }
 
         // 这里留一个优化点, 如果存在大量GetSharedComponent情况再来做.
         // 主要是优化改为unity entities那种实现方式, chunk存aos index, 防止额外的hash查找开销.

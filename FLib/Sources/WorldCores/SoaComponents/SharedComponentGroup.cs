@@ -34,18 +34,23 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="et"></param>
-        /// <param name="value"></param>
-        /// <returns>key</returns>
         public int Alloc(in Entity et, in T value)
         {
             var hash = value.GetHashCode();
+            Alloc(et, value, hash);
+            return hash;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Alloc(in Entity et, in T value, int hash)
+        {
             ref var r = ref Groups.GetOrAddValueRef(hash);
             if (r.RefCount == 0)
-                Components[r.Index = Alloc(et)] = value;
+                Components[r.Index = base.Alloc(et)] = value;
             ++r.RefCount;
             ++Version;
-            return hash;
         }
 
         /// <summary>

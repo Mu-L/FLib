@@ -102,4 +102,9 @@ public class TestWorldCore
         world.Dispose();
         Assert.Equal(2, GlobalSetting.ChunkAllocator.FreePagesCount);
     }
+
+    [Fact]
+    public void TestCode()
+    {
+    }
 }

@@ -18,6 +18,11 @@ namespace FLib.WorldCores
             set => List[componentId] = value;
         }
 
+        public ComponentSparseList(int[] source, bool isPooledArray) : this(isPooledArray ? ArrayPool<int>.Shared.Rent(source.Length) : new int[source.Length])
+        {
+            source.CopyTo(List, 0);
+        }
+
         public ComponentSparseList(IncrementId maxId, bool isPooledArray) : this(isPooledArray ? ArrayPool<int>.Shared.Rent(maxId.Raw) : new int[maxId.Raw])
         {
         }
@@ -82,6 +87,12 @@ namespace FLib.WorldCores
         {
             Debug.Assert(Has(componentId), "not found component");
             return List[componentId];
+        }
+
+        public void ValidateSet(IncrementId componentId, int value)
+        {
+            Debug.Assert(Has(componentId), "not found component");
+            List[componentId] = value;
         }
 
         public int GetAndClear(IncrementId componentId)

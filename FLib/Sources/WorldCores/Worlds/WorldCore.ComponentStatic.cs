@@ -46,8 +46,17 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void SetShared<T>(Entity et, in T val) where T : unmanaged
+        public void SetShared<T>(Entity et, in T val) where T : ISharedComponent
         {
+            ref readonly var eti = ref GetEntityInfo(et);
+            var compId = ComponentRegistry.GetId<T>();
+            var oldHash = eti.Chunk.GetSharedComponentHash(compId);
+            var newHash = val.GetHashCode();
+            if (oldHash == newHash) return;
+
+            var sharedGroup = ((SharedComponentGroup<T>)Soa.GetGroup<T>());
+            sharedGroup.Alloc(et, val, newHash);
+            eti.GetArchetype(this).SetSharedComponent(eti, new QuerySharedComponent(compId, newHash));
         }
 
         /// <summary>

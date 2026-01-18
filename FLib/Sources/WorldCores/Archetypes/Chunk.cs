@@ -1,6 +1,7 @@
 // ==================== qcbf@qq.com |2026-01-02 ====================
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,7 +37,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public int SharedComponentsKey;
+        public int AllSharedComponentsHash;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public QuerySharedComponent[] AllSharedComponents;
 
         void IObjectPoolActivatable.ObjectPoolActivate()
         {
@@ -46,8 +52,10 @@ namespace FLib.WorldCores
         void IObjectPoolDeactivatable.ObjectPoolDeactivatable()
         {
             GlobalSetting.ChunkAllocator.Free(ref Buffer);
+            Sparse.ResizeOnPool(default);
             Sparse = default;
-            Count = 0;
+            AllSharedComponents = null;
+            AllSharedComponentsHash = Count = 0;
             Previous = null;
         }
 
@@ -147,10 +155,28 @@ namespace FLib.WorldCores
         /// <summary>
         /// 这里默认外部传的组件id都是sharedComponent的
         /// </summary>
+        public int GetSharedComponentHash(IncrementId componentId)
+        {
+            Debug.Assert(HasSharedComponentHash(componentId));
+            return Sparse[componentId];
+        }
+
+        /// <summary>
+        /// 这里默认外部传的组件id都是sharedComponent的
+        /// </summary>
         /// <returns></returns>
         public bool HasSharedComponentHash(IncrementId componentId, int hash)
         {
             return Sparse.Length < componentId.Raw && Sparse[componentId] == hash;
+        }
+
+        /// <summary>
+        /// 这里默认外部传的组件id都是sharedComponent的
+        /// </summary>
+        /// <returns></returns>
+        public bool HasSharedComponentHash(IncrementId componentId)
+        {
+            return Sparse.Length < componentId.Raw && Sparse[componentId] != 0 && Sparse[componentId] != -1;
         }
     }
 }
