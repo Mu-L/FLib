@@ -9,7 +9,7 @@ namespace FLib.WorldCores
     public partial class WorldCore
     {
 <#
-    for (var i = 1; i <= 16; i++)
+    for (var i = 1; i <= 8; i++)
     {
         var genericParams = string.Join(", ", Enumerable.Range(1, i).Select(n => $"T{n}"));
         var genericWheres = string.Join(" ", Enumerable.Range(1, i).Select(n => $"where T{n} : unmanaged"));

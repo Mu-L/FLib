@@ -1,6 +1,7 @@
 // ==================== qcbf@qq.com | 2026-01-10 ====================
 
 using System;
+using System.Diagnostics;
 
 namespace FLib.WorldCores
 {
@@ -11,6 +12,8 @@ namespace FLib.WorldCores
     {
         public WorldCore World;
         public ISoaComponentGroupable[] Groups = Array.Empty<ISoaComponentGroupable>();
+
+        public ISoaComponentGroupable this[IncrementId componentId] => Groups[componentId];
 
         public SoaComponentGroupManager(WorldCore world)
         {

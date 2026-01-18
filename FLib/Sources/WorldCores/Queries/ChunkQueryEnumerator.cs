@@ -1,51 +1,53 @@
 // ==================== qcbf@qq.com | 2026-01-09 ====================
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
 namespace FLib.WorldCores
 {
-    public ref struct ChunkQueryEnumerator
+    public struct ChunkQueryEnumerator : IEnumerator<Chunk>
     {
-        public PooledList<Archetype> Archetypes;
-        private int _archetypeIndex;
-        public Chunk Current { get; set; }
+        private readonly QuerySharedComponent[] _sharedComponents;
+        private ArchetypeQueryEnumerator _archetypeEnumerator;
+        private HashSet<Chunk>.Enumerator _chunkEnumerator;
+        private bool _initialized;
+        public Chunk Current => _chunkEnumerator.Current;
+        object IEnumerator.Current => Current;
 
         /// <summary>
         /// 
         /// </summary>
-        public ChunkQueryEnumerator(WorldCore world, in QueryFilter filter)
+        public ChunkQueryEnumerator(in QueryFilter filter)
         {
-            Archetypes = new PooledList<Archetype>();
-            for (ushort i = 0; i < world.ArchetypeGroup.Count; i++)
-            {
-                var archetype = world.ArchetypeGroup[i];
-                if (filter.Match(archetype))
-                    Archetypes.Add(archetype);
-            }
-
-            Current = null;
-            _archetypeIndex = -1;
+            _sharedComponents = filter.SharedComponents;
+            _archetypeEnumerator = new ArchetypeQueryEnumerator(filter.Archetypes);
+            _chunkEnumerator = default;
+            _initialized = false;
         }
 
         /// <summary>
         /// 
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         public bool MoveNext()
         {
-            if (Current == null)
-                return NextArchetype();
-            Current = Current.Previous;
-            return Current != null || NextArchetype();
-        }
+            if (!_initialized)
+            {
+                _initialized = true;
+                if (!_archetypeEnumerator.MoveNext())
+                    return false;
+                _chunkEnumerator = _archetypeEnumerator.Current!.AllChunks.GetEnumerator();
+            }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        private bool NextArchetype()
-        {
-            // while (Archetypes.Count > ++_archetypeIndex && Archetypes[_archetypeIndex].Chunks?.Count > 0)
-            // {
-            //     Current = Archetypes[_archetypeIndex].Chunks;
-            //     return true;
-            // }
+            if (MoveNextChunk()) return true;
+
+            while (_archetypeEnumerator.MoveNext())
+            {
+                _chunkEnumerator = _archetypeEnumerator.Current!.AllChunks.GetEnumerator();
+                if (MoveNextChunk())
+                    return true;
+            }
 
             return false;
         }
@@ -55,7 +57,35 @@ namespace FLib.WorldCores
         /// </summary>
         public void Dispose()
         {
-            Archetypes.Dispose();
+            _chunkEnumerator.Dispose();
+            _archetypeEnumerator.Dispose();
+        }
+
+        public void Reset()
+        {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        private bool MoveNextChunk()
+        {
+            while (_chunkEnumerator.MoveNext())
+            {
+                var chunk = _chunkEnumerator.Current!;
+                for (var i = 0; i < _sharedComponents.Length; i++)
+                {
+                    var sharedComponent = _sharedComponents[i];
+                    if (!chunk.HasSharedComponentHash(sharedComponent.ComponentId, sharedComponent.Hash))
+                        goto ContinueWhile;
+                }
+
+                return true;
+                ContinueWhile: ;
+            }
+
+            return false;
         }
     }
 }

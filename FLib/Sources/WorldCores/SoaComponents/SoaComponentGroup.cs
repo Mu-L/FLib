@@ -58,11 +58,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Free(in Entity et, int key)
+        public virtual void Free(in Entity et, int hash)
         {
-            ComponentRegistry.GetInfo<T>().ComponentDestroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[key]), World, et);
-            Components[key] = default;
-            Frees.Push(key);
+            ComponentRegistry.GetInfo<T>().ComponentDestroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[hash]), World, et);
+            Components[hash] = default;
+            Frees.Push(hash);
             --Count;
         }
     }

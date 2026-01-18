@@ -10,6 +10,8 @@ namespace FLib.WorldCores
     {
         public int[] List;
 
+        public int Length => List.Length;
+
         public int this[IncrementId componentId]
         {
             get => Get(componentId);

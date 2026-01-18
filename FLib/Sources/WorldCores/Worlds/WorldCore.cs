@@ -77,6 +77,17 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
+        public QueryFilterBuilder CreateQuery() => new(this);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public QueryEnumerator Query(in QueryFilter filter = default) => new(this, filter);
+
+
+        /// <summary>
+        /// 
+        /// </summary>
         public void Dispose()
         {
             if (IsDisposed) return;

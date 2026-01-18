@@ -2,6 +2,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Linq;
 using FLib.WorldCores;
 
 namespace FLib.Tests;
@@ -57,14 +58,8 @@ public class TestWorldCore
         Assert.Equal("p1", world.GetStaMng<Player>(player1).Val.Name);
         Assert.Null(world.GetStaMng<Player>(player2).Val.Name);
 
-        // query
-        var results = new Queue<int>([5, 10, 100]);
-        world.Query<Team>((_, ref v1) => Assert.Equal(v1.Value, results.Dequeue()));
-        Assert.Empty(results);
-
-        results = new Queue<int>([5, 10]);
-        world.Query<Team>((_, ref v1) => Assert.Equal(v1.Value, results.Dequeue()), new QueryFilter().None<Enemy>());
-        Assert.Empty(results);
+        Assert.Equal([5, 10, 100], world.Query<Team>().Select(v => v.Item2.Val.Value));
+        Assert.Equal([5, 10], world.Query<Team>(world.CreateQuery().All<Team>().None<Enemy>()).Select(v => v.Item2.Val.Value));
 
         //entity
         Assert.Equal(["FLib.Tests.Player", "5", "FLib.Tests.Actor"], world.GetAllEntities(player1).Select(v => v.ToString()));

@@ -40,6 +40,10 @@
           <Generator>TextTemplatingFileGenerator</Generator>
           <LastGenOutput>WorldCore.Query.cs</LastGenOutput>
         </None>
+        <None Update="Sources\WorldCores\Utility.ttinclude">
+          <Generator>TextTemplatingFilePreprocessor</Generator>
+          <LastGenOutput>Utility.cs</LastGenOutput>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

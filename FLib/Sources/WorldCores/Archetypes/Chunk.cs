@@ -63,7 +63,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public ref T GetRef<T>(ushort entityIndex)
+        internal ref T GetRef<T>(ushort entityIndex)
         {
             return ref *Get<T>(entityIndex);
         }
@@ -72,7 +72,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public T* Get<T>(ushort entityIndex)
+        internal T* Get<T>(ushort entityIndex)
         {
             Debug.Assert(entityIndex < Count);
             Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<T>());
@@ -82,7 +82,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void* Get(ushort entityIndex, in ComponentMeta meta)
+        internal void* Get(ushort entityIndex, in ComponentMeta meta)
         {
             Debug.Assert(entityIndex < Count);
             return Buffer + Sparse[meta.Id] + meta.Size * entityIndex;
@@ -142,6 +142,15 @@ namespace FLib.WorldCores
             for (ushort i = 0; i < Count; i++)
                 list.Add(GetObj(i, meta));
             return list;
+        }
+
+        /// <summary>
+        /// 这里默认外部传的组件id都是sharedComponent的
+        /// </summary>
+        /// <returns></returns>
+        public bool HasSharedComponentHash(IncrementId componentId, int hash)
+        {
+            return Sparse.Length < componentId.Raw && Sparse[componentId] == hash;
         }
     }
 }

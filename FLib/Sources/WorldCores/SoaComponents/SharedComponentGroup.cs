@@ -11,9 +11,17 @@ namespace FLib.WorldCores
         public int RefCount;
     }
 
-    public class SharedComponentGroup<T> : SoaComponentGroup<T> where T : ISharedComponent
+    public interface ISharedComponentGroupable
+    {
+        public int Version { get; }
+        public int GetIndexFromHash(int hash);
+    }
+
+    public class SharedComponentGroup<T> : SoaComponentGroup<T>, ISharedComponentGroupable where T : ISharedComponent
     {
         public SlimDictionary<int, SharedComponentGroupRef> Groups = new();
+
+        public int Version { get; private set; }
 
         public override void EnsureCapacity(int capacity)
         {
@@ -28,7 +36,7 @@ namespace FLib.WorldCores
         /// </summary>
         /// <param name="et"></param>
         /// <param name="value"></param>
-        /// <returns></returns>
+        /// <returns>key</returns>
         public int Alloc(in Entity et, in T value)
         {
             var hash = value.GetHashCode();
@@ -36,6 +44,7 @@ namespace FLib.WorldCores
             if (r.RefCount == 0)
                 Components[r.Index = Alloc(et)] = value;
             ++r.RefCount;
+            ++Version;
             return hash;
         }
 
@@ -43,15 +52,26 @@ namespace FLib.WorldCores
         /// 
         /// </summary>
         /// <param name="et"></param>
-        /// <param name="key"></param>
-        public override void Free(in Entity et, int key)
+        /// <param name="hash"></param>
+        public override void Free(in Entity et, int hash)
         {
-            var idx = Groups.GetEntryIndex(key);
+            var idx = Groups.GetEntryIndex(hash);
             if (idx < 0) return;
             ref var r = ref Groups.GetEntryValue(idx);
             if (--r.RefCount > 0) return;
             base.Free(in et, r.Index);
-            Groups.Remove(key);
+            Groups.Remove(hash);
+            ++Version;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <returns></returns>
+        public int GetIndexFromHash(int hash)
+        {
+            throw new NotSupportedException("need component value");
         }
     }
 }

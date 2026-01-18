@@ -1,90 +1,77 @@
 // ==================== qcbf@qq.com | <#= DateTime.Now.ToString("yyyy-MM-dd") #> ====================
 <#@ template language="C#" #>
 <#@ import namespace="System.Linq" #>
+<#@ include file="../Utility.ttinclude"#>
 
-using System;
-using System.Diagnostics;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace FLib.WorldCores
 {
     public unsafe partial class WorldCore
     {
-#pragma warning disable CS0649
-        [ThreadStatic] private static QueryFilter _default;
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Query(Action<Entity> handler)
-        {
-            try
-            {
-                Query(handler, _default);
-            }
-            finally
-            {
-                _default.Clear();
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Query(Action<Entity> handler, QueryFilter filter)
-        {
-            using var query = new ChunkQueryEnumerator(this, filter);
-            while (query.MoveNext())
-            {
-                var chunk = query.Current;
-                var entity = chunk.GetEntity(0);
-                for (var i = 0; i < chunk.Count; i++)
-                    handler(*(entity + i));
-            }
-        }
-
 <#
-    for (var i = 1; i <= 16; i++)
+    for (var i = 1; i <= 8; i++)
     {
-        var genericParams = string.Join(", ", Enumerable.Range(1, i).Select(n => $"T{n}"));
-        var genericWheres = string.Join(" ", Enumerable.Range(1, i).Select(n => $"where T{n} : unmanaged"));
-        var allFilterMask = string.Join("\n            ", Enumerable.Range(1, i).Select(n => $"QueryFilter.Set(ref filter.AllMask, ComponentRegistry.GetId<T{n}>());"));
+        var genericParams = T(1, i, ", ", n => $"T{n}");
+        var genericWheres = T(1, i, " ", n => $"where T{n} : unmanaged");
+        var refComps = T(1, i, ", ", n => $"Ref<T{n}>");
 #>
 
-        public delegate void QueryHandler<<#= genericParams #>>(Entity et, <#= string.Join(", ", Enumerable.Range(1, i).Select(n => $"ref T{n} v{n}")) #>);
+        /// <summary>
+        /// 
+        /// </summary>
+        public QueryEnumerator<<#= genericParams #>> Query<<#= genericParams #>>(in QueryFilter filter = default) <#= genericWheres #> => new(this, filter);
 
         /// <summary>
         /// 
         /// </summary>
-        public void Query<<#= genericParams #>>(QueryHandler<<#= genericParams #>> handler) <#= genericWheres #>
+        public readonly struct QueryEnumerator<<#= genericParams #>> : IEnumerable<(Entity, <#= refComps #>)> <#= genericWheres #> 
         {
-            try
+            private readonly QueryFilter _filter;
+            public Enumerable GetEnumerator() => new(_filter);
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            IEnumerator<(Entity, <#= refComps #>)> IEnumerable<(Entity, <#= refComps #>)>.GetEnumerator() => GetEnumerator();
+            public QueryEnumerator(in WorldCore world, in QueryFilter filter)
             {
-                Query(handler, _default);
+                _filter = filter;
+                if (_filter.IsEmpty)
+                    _filter = new QueryFilterBuilder(world).Build();
             }
-            finally
+            public struct Enumerable : IEnumerator<(Entity, <#= refComps #>)>
             {
-                _default.Clear();
+                public ChunkQueryEnumerator ChunkEnumerator;
+                private int _index;
+                private int _count;
+                private Entity* _entity;
+                <#= T(1, i, "\n\t\t\t\t", n => $"private T{n}* _component{n};") #>
+                public (Entity, <#= refComps #>) Current => (*(_entity + _index), <#= T(1, i, ", ", n => $"new Ref<T{n}>(_component{n} + _index)") #>);
+                object IEnumerator.Current => Current;
+                public Enumerable(QueryFilter filter)
+                {
+                    ChunkEnumerator = new ChunkQueryEnumerator(filter);
+                    _count = _index = 0;
+                    _entity = null;
+                    <#= T(1, i, "\n\t\t\t\t\t", n => $"_component{n} = null;") #>
+                }
+                public bool MoveNext()
+                {
+                    if (++_index < _count)
+                        return true;
+                    if (!ChunkEnumerator.MoveNext())
+                        return false;
+
+                    var chunk = ChunkEnumerator.Current!;
+                    _index = 0;
+                    _count = chunk.Count;
+                    _entity = chunk.GetEntity(0);
+                    <#= T(1, i, "\n\t\t\t\t\t", n => $"_component{n} = chunk.Get<T{n}>(0);") #>
+                    return true;
+                }
+                public void Reset() { }
+                public void Dispose() => ChunkEnumerator.Dispose();
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Query<<#= genericParams #>>(QueryHandler<<#= genericParams #>> handler, QueryFilter filter) <#= genericWheres #>
-        {
-            <#= allFilterMask #>
-            using var query = new ChunkQueryEnumerator(this, filter);
-            while (query.MoveNext())
-            {
-                var chunk = query.Current;
-                var entity = chunk.GetEntity(0);
-                <#= string.Join("\n                ", Enumerable.Range(1, i).Select(n => $"var comp{n} = chunk.Get<T{n}>(0);")) #>
-                for (var i = 0; i < chunk.Count; i++)
-                    handler(*(entity + i), <#= string.Join(", ", Enumerable.Range(1, i).Select(n => $"ref *(comp{n} + i)")) #>);
-            }
-        }
-
 <#
     }
 #>

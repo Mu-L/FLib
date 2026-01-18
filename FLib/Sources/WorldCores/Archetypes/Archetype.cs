@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace FLib.WorldCores
@@ -44,11 +45,14 @@ namespace FLib.WorldCores
         /// </summary>
         public readonly IncrementId MaxComponentId;
 
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // public Chunk Chunks { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly HashSet<Chunk> AllChunks = new();
 
+        /// <summary>
+        /// 
+        /// </summary>
         public readonly Dictionary<int, Chunk> SharedChunks = new();
 
 
@@ -85,6 +89,8 @@ namespace FLib.WorldCores
                 newChunk.Previous = chunk;
                 newChunk.Sparse = Sparse;
                 chunk = SharedChunks[sharedComponentsKey] = newChunk;
+                var result = AllChunks.Add(newChunk);
+                Debug.Assert(result);
             }
 
             var chunkEntityIndex = chunk.Count++;
@@ -99,15 +105,22 @@ namespace FLib.WorldCores
         public void RemoveEntity(in EntityInfo eti)
         {
             var chunk = eti.Chunk;
-            if (--chunk.Count <= 0)
+            if (chunk.Count <= 1)
             {
-                SharedChunks.Remove(chunk.SharedComponentsKey);
+                if (chunk.Previous != null)
+                    SharedChunks[chunk.SharedComponentsKey] = chunk.Previous;
+                else
+                    SharedChunks.Remove(chunk.SharedComponentsKey);
+                AllChunks.Remove(chunk);
                 GlobalObjectPool<Chunk>.Release(chunk);
                 return;
             }
 
-            if (eti.IndexInChunk == chunk.Count)
+            if (eti.IndexInChunk + 1 == chunk.Count)
+            {
+                --chunk.Count;
                 return;
+            }
 
             var et = *chunk.GetEntity(eti.IndexInChunk);
             for (var i = 0; i < ComponentTypes.Length; i++)
@@ -124,7 +137,10 @@ namespace FLib.WorldCores
                 Unsafe.CopyBlock(chunk.Get(dstIndex, meta), chunk.Get(srcIndex, meta), meta.Size);
             }
 
-            *chunk.GetEntity(dstIndex) = *chunk.GetEntity(srcIndex);
+            var srcEt = chunk.GetEntity(srcIndex);
+            World.GetEntityInfo(*srcEt).IndexInChunk = dstIndex;
+            *chunk.GetEntity(dstIndex) = *srcEt;
+            --chunk.Count;
         }
 
         /// <summary>
@@ -140,17 +156,9 @@ namespace FLib.WorldCores
         /// </summary>
         public void Dispose()
         {
-            foreach (var kv in SharedChunks)
-            {
-                var chunk = kv.Value;
-                while (chunk != null)
-                {
-                    var temp = chunk;
-                    chunk = chunk.Previous;
-                    GlobalObjectPool<Chunk>.Release(temp);
-                }
-            }
-
+            foreach (var chunk in AllChunks)
+                GlobalObjectPool<Chunk>.Release(chunk);
+            AllChunks.Clear();
             SharedChunks.Clear();
         }
     }
