@@ -14,8 +14,6 @@ namespace FLib.WorldCores
     /// </summary>
     public static class ComponentRegistry
     {
-        [ThreadStatic] private static ulong[] _componentTypeMaskBuffer;
-        internal static ulong[] ComponentTypeMaskBuffer => _componentTypeMaskBuffer ??= new ulong[4];
         public static readonly Dictionary<Type, ComponentMeta> ComponentTypeMap = new(1024);
         public static ushort ComponentCount { get; private set; }
         private static ComponentInfo[] _componentInfos = new ComponentInfo[1024];
@@ -56,9 +54,9 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static Type GetType(in ComponentMeta meta)
+        public static Type GetType(in IncrementId id)
         {
-            return _componentInfos[meta.Id].Type;
+            return _componentInfos[id].Type;
         }
 
         /// <summary>
@@ -80,9 +78,9 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static ref readonly ComponentInfo GetInfo(in ComponentMeta meta)
+        public static ref readonly ComponentInfo GetInfo(in IncrementId id)
         {
-            return ref _componentInfos[meta.Id];
+            return ref _componentInfos[id];
         }
 
         /// <summary>
@@ -91,16 +89,13 @@ namespace FLib.WorldCores
         public static ComponentMeta Register(Type type, ushort size)
         {
             var id = new IncrementId(++ComponentCount);
-            var cType = new ComponentMeta(id, size);
+            var cType = new ComponentMeta(id, size, type);
             ComponentTypeMap[type] = cType;
 
             if (_componentInfos.Length <= id)
                 Array.Resize(ref _componentInfos, id + GlobalSetting.CapacityExpandSize);
-            _componentInfos[id] = new ComponentInfo(cType,type);
-
-            var maxBit = (int)Math.Ceiling(id.Raw / (float)BitArrayOperator.BitSize);
-            if (ComponentTypeMaskBuffer.Length < maxBit)
-                _componentTypeMaskBuffer = new ulong[MathEx.GetNextPowerOfTwo(maxBit)];
+            _componentInfos[id] = new ComponentInfo(cType, type);
+            StaticComponentMask.EnsureCapacity(id);
             return cType;
         }
 

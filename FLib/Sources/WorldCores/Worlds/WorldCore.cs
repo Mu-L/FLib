@@ -84,6 +84,13 @@ namespace FLib.WorldCores
         /// </summary>
         public QueryEnumerator Query(in QueryFilter filter = default) => new(this, filter);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public EntityBuilder CreateEntity()
+        {
+            return new EntityBuilder(this);
+        }
 
         /// <summary>
         /// 

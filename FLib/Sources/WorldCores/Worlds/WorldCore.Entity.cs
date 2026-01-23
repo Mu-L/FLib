@@ -35,14 +35,13 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public unsafe Entity CreateEntity(in EntityBuilder builder, bool initMemory = true)
+        public unsafe Entity CreateEntity(in EntityBuilder builder, int hash, bool initMemory = true)
         {
-            var hash = builder.ComputeHashCode();
             if (!ArchetypeGroup.ArchetypeMap.TryGetValue(hash, out var archetype))
             {
                 using var archetypeBuilder = new ArchetypeBuilder(1);
-                for (var i = 0; i < builder.ComponentTypes.Count; i++)
-                    archetypeBuilder.Add(builder.ComponentTypes[i]);
+                for (var i = 0; i < builder.ComponentDatas.Count; i++)
+                    archetypeBuilder.Add(builder.ComponentDatas[i].Meta);
                 archetype = ArchetypeGroup.Create(hash, archetypeBuilder);
             }
 
@@ -51,13 +50,19 @@ namespace FLib.WorldCores
             var indexInChunk = entityInfo.IndexInChunk;
             if (initMemory)
             {
-                ref readonly var components = ref builder.ComponentTypes;
-                for (var i = 0; i < components.Count; i++)
-                    chunk.ClearMemory(indexInChunk, components[i]);
+                ref readonly var datas = ref builder.ComponentDatas;
+                for (var i = 0; i < datas.Count; i++)
+                {
+                    if (!datas[i].IsShared)
+                        chunk.ClearMemory(indexInChunk, datas[i].Meta);
+                }
             }
 
-            foreach (var (meta, invoker) in builder.Invokers)
-                invoker(ref *(byte*)chunk.Get(indexInChunk, meta), this, et);
+            for (var i = 0; i < builder.ComponentDatas.Count; i++)
+            {
+                ref readonly var data = ref builder.ComponentDatas[i];
+                data.Invoker?.Invoke(ref *(byte*)chunk.Get(indexInChunk, data.Meta), this, et);
+            }
 
             return et;
         }

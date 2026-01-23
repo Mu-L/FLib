@@ -8,7 +8,7 @@ namespace FLib.WorldCores
 {
     public readonly struct ComponentInfo
     {
-        public readonly ComponentMeta Meta { get; }
+        public ComponentMeta Meta { get; }
         public readonly Type Type;
         public readonly ComponentInvoker.Delegate ComponentAwake;
         public readonly ComponentInvoker.Delegate ComponentStart;

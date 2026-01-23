@@ -12,7 +12,7 @@ namespace FLib.WorldCores
         public override string ToString() => $"{Id},{FIO.FormatSize(Size)},{GetTypeName(Type)}";
         public Type Type => ComponentRegistry.GetType(this);
 
-        internal ComponentMeta(IncrementId id, ushort size)
+        internal ComponentMeta(IncrementId id, ushort size, Type type)
         {
             Id = id;
             Size = size;
@@ -20,7 +20,6 @@ namespace FLib.WorldCores
 
         public static implicit operator Type(in ComponentMeta meta) => meta.Type;
         public static implicit operator IncrementId(in ComponentMeta meta) => meta.Id;
-        public static implicit operator ComponentMeta(in IncrementId id) => new(id, 0);
 
         /// <summary>
         ///

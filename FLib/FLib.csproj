@@ -69,9 +69,6 @@
       <Compile Update="Sources\WorldCores\World\WorldCore.CreateEntity.cs">
         <DependentUpon>WorldCore.CreateEntity.tt</DependentUpon>
       </Compile>
-      <Compile Update="Sources\WorldCores\Worlds\WorldCore.CreateEntity.cs">
-        <DependentUpon>WorldCore.CreateEntity.tt</DependentUpon>
-      </Compile>
       <Compile Update="Sources\WorldCores\Worlds\WorldCore.Query.cs">
         <DependentUpon>WorldCore.Query.tt</DependentUpon>
       </Compile>
