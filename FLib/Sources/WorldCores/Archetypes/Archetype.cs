@@ -63,21 +63,24 @@ namespace FLib.WorldCores
             World = world;
             Index = index;
             MaxComponentId = builder.MaxComponentId;
-            ComponentTypes = builder.ComponentTypes.ToArray();
             ComponentMask = new ulong[BitArrayOperator.GetBitsLength(MaxComponentId.Raw)];
             EntitiesPerChunk = (int)(GlobalSetting.ChunkAllocator.ChunkSize / (builder.ComponentsSize + sizeof(Entity)));
             Sparse = new ComponentSparseList(MaxComponentId, false);
             var offset = MathEx.AlignUp(EntitiesPerChunk * sizeof(Entity), GlobalSetting.ComponentAlign);
-            for (ushort i = 0; i < ComponentTypes.Length; i++)
+            using var tempComponents = new PooledList<ComponentMeta>();
+            for (ushort i = 0; i < builder.ComponentTypes.Count; i++)
             {
-                ref readonly var meta = ref ComponentTypes[i];
+                ref readonly var meta = ref builder.ComponentTypes[i];
+                BitArrayOperator.SetBit(ComponentMask, meta.Id, true);
                 if (!typeof(ISharedComponent).IsAssignableFrom(meta.Type))
                 {
                     Sparse[meta.Id] = offset;
-                    BitArrayOperator.SetBit(ComponentMask, meta.Id, true);
                     offset += MathEx.AlignUp(meta.Size * EntitiesPerChunk, GlobalSetting.ComponentAlign);
+                    tempComponents.Add(meta);
                 }
             }
+
+            ComponentTypes = tempComponents.ToArray();
         }
 
         /// <summary>
@@ -217,7 +220,7 @@ namespace FLib.WorldCores
                 newChunk.AllSharedComponentsHash = sharedHash;
                 newChunk.AllSharedComponents = sharedComponents.ToArray();
                 foreach (var sharedComponent in sharedComponents)
-                    newChunk.Sparse.ValidateSet(sharedComponent.ComponentId, sharedComponent.Hash);
+                    newChunk.Sparse.List[sharedComponent.ComponentId] = sharedComponent.Hash;
 
                 chunk = SharedChunks[sharedHash] = newChunk;
                 var result = AllChunks.Add(newChunk);

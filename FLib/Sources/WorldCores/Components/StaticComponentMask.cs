@@ -34,7 +34,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static void Clear() => Array.Clear(_buffer);
+        public static void Clear()
+        {
+            if (_buffer != null)
+                Array.Clear(_buffer);
+        }
 
         /// <summary>
         /// 

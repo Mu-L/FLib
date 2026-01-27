@@ -50,11 +50,9 @@ namespace FLib.WorldCores
             var indexInChunk = entityInfo.IndexInChunk;
             if (initMemory)
             {
-                ref readonly var datas = ref builder.ComponentDatas;
-                for (var i = 0; i < datas.Count; i++)
+                for (var i = 0; i < archetype.ComponentTypes.Length; i++)
                 {
-                    if (!datas[i].IsShared)
-                        chunk.ClearMemory(indexInChunk, datas[i].Meta);
+                    chunk.ClearMemory(indexInChunk, archetype.ComponentTypes[i]);
                 }
             }
 

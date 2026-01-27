@@ -48,7 +48,10 @@ namespace FLib.WorldCores
         {
             ref var r = ref Groups.GetOrAddValueRef(hash);
             if (r.RefCount == 0)
-                Components[r.Index = base.Alloc(et)] = value;
+            {
+                r.Index = base.Alloc(et);
+                Components[r.Index] = value;
+            }
             ++r.RefCount;
             ++Version;
         }

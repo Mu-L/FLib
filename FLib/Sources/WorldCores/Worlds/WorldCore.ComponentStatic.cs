@@ -50,11 +50,11 @@ namespace FLib.WorldCores
         {
             ref readonly var eti = ref GetEntityInfo(et);
             var compId = ComponentRegistry.GetId<T>();
-            var oldHash = eti.Chunk.GetSharedComponentHash(compId);
+            var oldHash = eti.Chunk.Sparse.List[compId];
             var newHash = val.GetHashCode();
             if (oldHash == newHash) return;
 
-            var sharedGroup = ((SharedComponentGroup<T>)Soa.GetGroup<T>());
+            var sharedGroup = Soa.GetSharedGroup<T>();
             sharedGroup.Alloc(et, val, newHash);
             eti.GetArchetype(this).SetSharedComponent(eti, new QuerySharedComponent(compId, newHash));
         }

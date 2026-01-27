@@ -176,7 +176,7 @@ namespace FLib.WorldCores
         /// <returns></returns>
         public bool HasSharedComponentHash(IncrementId componentId)
         {
-            return Sparse.Length < componentId.Raw && Sparse[componentId] != 0 && Sparse[componentId] != -1;
+            return Sparse.Length >= componentId.Raw && Sparse.List[componentId] != 0 && Sparse.List[componentId] != -1;
         }
     }
 }

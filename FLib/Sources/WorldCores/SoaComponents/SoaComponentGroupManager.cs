@@ -36,6 +36,19 @@ namespace FLib.WorldCores
         /// <summary>
         /// 获取动态组件组
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public SharedComponentGroup<T> GetSharedGroup<T>() where T : ISharedComponent
+        {
+            var id = ComponentRegistry.GetId<T>();
+            if (id >= Groups.Length)
+                Groups = new ISoaComponentGroupable[id + 1];
+            return (SharedComponentGroup<T>)(Groups[id] ??= new SharedComponentGroup<T>() { World = World });
+        }
+
+        /// <summary>
+        /// 获取动态组件组
+        /// </summary>
         /// <param name="componentType"></param>
         /// <returns></returns>
         public ISoaComponentGroupable GetGroup(Type componentType)
@@ -51,6 +64,26 @@ namespace FLib.WorldCores
             }
 
             return group;
+        }
+
+        /// <summary>
+        /// 获取动态组件组
+        /// </summary>
+        /// <param name="componentType"></param>
+        /// <returns></returns>
+        public ISharedComponentGroupable GetSharedGroup(Type componentType)
+        {
+            var id = ComponentRegistry.GetId(componentType);
+            if (id >= Groups.Length)
+                Groups = new ISoaComponentGroupable[id + 1];
+            ref var group = ref Groups[id];
+            if (group == null)
+            {
+                group = (ISoaComponentGroupable)TypeAssistant.New(typeof(SharedComponentGroup<>).MakeGenericType(componentType));
+                group.World = World;
+            }
+
+            return (ISharedComponentGroupable)group;
         }
     }
 }

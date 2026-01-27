@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace FLib.WorldCores
 {
-    public unsafe class MemoryAllocator
+    public sealed unsafe class MemoryAllocator
     {
         public readonly uint ChunkSize;
         public readonly uint ChunksPerPage;
@@ -39,7 +39,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual byte* Alloc()
+        public byte* Alloc()
         {
             if (_freePages.TryPop(out var ptr))
                 return (byte*)ptr;
@@ -64,7 +64,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Free(ref byte* ptr)
+        public void Free(ref byte* ptr)
         {
             Free(ptr);
             ptr = null;
@@ -73,7 +73,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Free(byte* ptr)
+        public void Free(byte* ptr)
         {
             Debug.Assert(ptr != null);
             _freePages.Push((IntPtr)ptr);
