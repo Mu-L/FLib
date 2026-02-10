@@ -27,7 +27,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public ComponentSparseList Sparse;
+        public int[] SparseComponentOffset;
 
         /// <summary>
         /// 
@@ -52,8 +52,8 @@ namespace FLib.WorldCores
         void IObjectPoolDeactivatable.ObjectPoolDeactivatable()
         {
             GlobalSetting.ChunkAllocator.Free(ref Buffer);
-            Sparse.ResizeOnPool(default);
-            Sparse = default;
+            ArrayPool<int>.Shared.Return(SparseComponentOffset);
+            SparseComponentOffset = null;
             AllSharedComponents = null;
             AllSharedComponentsHash = Count = 0;
             Previous = null;
@@ -66,6 +66,18 @@ namespace FLib.WorldCores
         {
             Debug.Assert(entityIndex < Count);
             return (Entity*)Buffer + entityIndex;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IList<Entity> GetAllEntities(IList<Entity> array = null)
+        {
+            array ??= new Entity[Count];
+            var count = Math.Min(array.Count, Count);
+            for (var i = 0; i < count; i++)
+                array[i] = *GetEntity(i);
+            return array;
         }
 
         /// <summary>
@@ -84,7 +96,7 @@ namespace FLib.WorldCores
         {
             Debug.Assert(entityIndex < Count);
             Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            return (T*)(Buffer + Sparse.Get<T>()) + entityIndex;
+            return (T*)(Buffer + SparseComponentOffset[ComponentRegistry.GetId<T>()]) + entityIndex;
         }
 
         /// <summary>
@@ -93,7 +105,7 @@ namespace FLib.WorldCores
         internal void* Get(ushort entityIndex, in ComponentMeta meta)
         {
             Debug.Assert(entityIndex < Count);
-            return Buffer + Sparse[meta.Id] + meta.Size * entityIndex;
+            return Buffer + SparseComponentOffset[meta.Id] + meta.Size * entityIndex;
         }
 
         /// <summary>
@@ -130,7 +142,7 @@ namespace FLib.WorldCores
         public void ClearMemory(ushort entityIndex, in ComponentMeta meta)
         {
             Debug.Assert(entityIndex < Count);
-            Unsafe.InitBlock(Buffer + Sparse[meta.Id] + meta.Size * entityIndex, 0, meta.Size);
+            Unsafe.InitBlock(Buffer + SparseComponentOffset[meta.Id] + meta.Size * entityIndex, 0, meta.Size);
         }
 
         /// <summary>
@@ -138,7 +150,7 @@ namespace FLib.WorldCores
         /// </summary>
         public Span<T> GetAll<T>() where T : unmanaged
         {
-            return new Span<T>(Buffer + Sparse[ComponentGenericMap<T>.Id], Count);
+            return new Span<T>(Buffer + SparseComponentOffset[ComponentGenericMap<T>.Id], Count);
         }
 
         /// <summary>
@@ -155,28 +167,28 @@ namespace FLib.WorldCores
         /// <summary>
         /// 这里默认外部传的组件id都是sharedComponent的
         /// </summary>
-        public int GetSharedComponentHash(IncrementId componentId)
+        public int GetSharedComponent(IncrementId componentId)
         {
-            Debug.Assert(HasSharedComponentHash(componentId));
-            return Sparse[componentId];
+            Debug.Assert(HasSharedComponent(componentId));
+            return SparseComponentOffset[componentId];
         }
 
         /// <summary>
         /// 这里默认外部传的组件id都是sharedComponent的
         /// </summary>
         /// <returns></returns>
-        public bool HasSharedComponentHash(IncrementId componentId, int hash)
+        public bool HasSharedComponent(IncrementId componentId, int hash)
         {
-            return Sparse.Length < componentId.Raw && Sparse[componentId] == hash;
+            return componentId.Raw <= SparseComponentOffset.Length && SparseComponentOffset[componentId] == hash;
         }
 
         /// <summary>
         /// 这里默认外部传的组件id都是sharedComponent的
         /// </summary>
         /// <returns></returns>
-        public bool HasSharedComponentHash(IncrementId componentId)
+        public bool HasSharedComponent(IncrementId componentId)
         {
-            return Sparse.Length >= componentId.Raw && Sparse.List[componentId] != 0 && Sparse.List[componentId] != -1;
+            return componentId.Raw <= SparseComponentOffset.Length && SparseComponentOffset[componentId] != 0;
         }
     }
 }

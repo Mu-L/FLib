@@ -15,7 +15,7 @@ namespace FLib.WorldCores
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Debug.Assert(dynIdx >= 0);
-            var compIdx = DynamicComponentSparse[dynIdx].Get<T>();
+            var compIdx = DynamicComponentSparse.GetRef(dynIdx)[ComponentRegistry.GetId<T>()];
             return ref Soa.GetGroup<T>().Components[compIdx];
         }
 
@@ -26,7 +26,7 @@ namespace FLib.WorldCores
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Debug.Assert(dynIdx >= 0);
-            var compIdx = DynamicComponentSparse[dynIdx].Get(type);
+            var compIdx = DynamicComponentSparse.GetRef(dynIdx)[ComponentRegistry.GetId(type)];
             return Soa.GetGroup(type).Components.GetValue(compIdx);
         }
 
@@ -58,8 +58,9 @@ namespace FLib.WorldCores
         {
             ref readonly var eti = ref GetEntityInfo(et);
             ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-            var id = ComponentRegistry.GetId<T>();
-            var compIdx = sparse.GetAndClear(id);
+            var id = ComponentRegistry.GetId<T>().Id;
+            var compIdx = sparse[id];
+            sparse[id] = -1;
             Soa.GetGroup<T>().Free(et, compIdx);
         }
 
@@ -70,8 +71,9 @@ namespace FLib.WorldCores
         {
             ref readonly var eti = ref GetEntityInfo(et);
             ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-            var id = ComponentRegistry.GetId(type);
-            var compIdx = sparse.GetAndClear(id);
+            var id = ComponentRegistry.GetId(type).Id;
+            var compIdx = sparse[id];
+            sparse[id] = -1;
             Soa.GetGroup(type).Free(et, compIdx);
         }
 
@@ -81,7 +83,10 @@ namespace FLib.WorldCores
         public bool HasDyn<T>(Entity et)
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            return eti.HasDynamicComponent && DynamicComponentSparse[eti.DynamicComponentSparseIndex].Has<T>();
+            if (!eti.HasDynamicComponent) return false;
+            var compId = ComponentRegistry.GetId<T>().Id;
+            ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
+            return compId < sparse.Count && sparse[compId] >= 0;
         }
 
         /// <summary>
@@ -90,7 +95,10 @@ namespace FLib.WorldCores
         public bool HasDyn(Entity et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            return eti.HasDynamicComponent && DynamicComponentSparse[eti.DynamicComponentSparseIndex].Has(ComponentRegistry.GetId(componentType));
+            if (!eti.HasDynamicComponent) return false;
+            var compId = ComponentRegistry.GetId(componentType).Id;
+            ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
+            return compId < sparse.Count && sparse[compId] >= 0;
         }
 
         /// <summary>
@@ -100,24 +108,31 @@ namespace FLib.WorldCores
         private int DynamicComponentIndex(Entity et, ISoaComponentGroupable group, IncrementId componentId)
         {
             ref var eti = ref GetEntityInfo(et);
-            int compIdx;
+            int denseIdx;
+            var compId = componentId.Id;
             if (eti.HasDynamicComponent)
             {
                 ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-                if (!sparse.TryGet(componentId, out compIdx))
+                if (sparse.Count >= compId || sparse[compId] < 0)
                 {
-                    sparse.ResizeOnPool(componentId);
-                    compIdx = sparse[componentId] = group.Alloc(et);
+                    sparse.Allocate(componentId.Raw);
+                    denseIdx = sparse[componentId] = group.Alloc(et);
+                }
+                else
+                {
+                    denseIdx = sparse[compId];
                 }
             }
             else
             {
-                compIdx = group.Alloc(et);
-                var sparseIndexes = new ComponentSparseList(componentId, true) { [componentId] = compIdx };
-                eti.DynamicComponentSparseIndex = DynamicComponentSparse.Add(sparseIndexes);
+                denseIdx = group.Alloc(et);
+                var sparse = new PooledList<int>(componentId.Raw);
+                sparse.Span.Fill(-1);
+                sparse[compId] = denseIdx;
+                eti.DynamicComponentSparseIndex = DynamicComponentSparse.Add(sparse);
             }
 
-            return compIdx;
+            return denseIdx;
         }
     }
 }

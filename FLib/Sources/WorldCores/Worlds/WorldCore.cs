@@ -25,7 +25,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public FixedIndexList<ComponentSparseList> DynamicComponentSparse;
+        public FixedIndexList<PooledList<int>> DynamicComponentSparse;
 
         /// <summary>
         /// 
@@ -124,7 +124,7 @@ namespace FLib.WorldCores
             }
 
             for (var i = 0; i < DynamicComponentSparse.Count; i++)
-                DynamicComponentSparse[i].ResizeOnPool(default);
+                DynamicComponentSparse[i].Dispose();
 
             ArchetypeGroup = null;
             GC.SuppressFinalize(this);

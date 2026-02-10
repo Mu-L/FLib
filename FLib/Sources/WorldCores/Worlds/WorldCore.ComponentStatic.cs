@@ -50,7 +50,7 @@ namespace FLib.WorldCores
         {
             ref readonly var eti = ref GetEntityInfo(et);
             var compId = ComponentRegistry.GetId<T>();
-            var oldHash = eti.Chunk.Sparse.List[compId];
+            var oldHash = eti.Chunk.SparseComponentOffset[compId];
             var newHash = val.GetHashCode();
             if (oldHash == newHash) return;
 

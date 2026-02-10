@@ -74,8 +74,8 @@ namespace FLib.WorldCores
             if (eti.HasDynamicComponent)
             {
                 var sparse = DynamicComponentSparse[eti.DynamicComponentSparseIndex];
-                var denseIndexes = sparse.List;
-                for (var i = 0; i < denseIndexes.Length; i++)
+                var denseIndexes = sparse;
+                for (var i = 0; i < denseIndexes.Count; i++)
                 {
                     var denseIndex = denseIndexes[i];
                     if (denseIndex < 0) continue;
@@ -112,13 +112,13 @@ namespace FLib.WorldCores
             if (eti.HasDynamicComponent)
             {
                 var sparse = DynamicComponentSparse[eti.DynamicComponentSparseIndex];
-                var denseIndexes = sparse.List;
-                for (var i = 0; i < denseIndexes.Length; i++)
+                var denseIndexes = sparse;
+                for (var i = 0; i < denseIndexes.Count; i++)
                 {
                     var denseIndex = denseIndexes[i];
                     if (denseIndex < 0) continue;
                     var meta = ComponentRegistry.GetInfo(new IncrementId(i + 1)).Meta;
-                    var compIdx = DynamicComponentSparse[denseIndex].Get(meta.Id);
+                    var compIdx = DynamicComponentSparse.GetRef(denseIndex)[meta.Id];
                     var val = Soa.GetGroup(meta.Type).Components.GetValue(compIdx);
                     list.Add(val);
                 }

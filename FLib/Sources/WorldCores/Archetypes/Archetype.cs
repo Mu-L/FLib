@@ -30,7 +30,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly ComponentSparseList Sparse;
+        public readonly uint[] SparseComponentOffset;
 
         /// <summary>
         /// 
@@ -65,8 +65,8 @@ namespace FLib.WorldCores
             MaxComponentId = builder.MaxComponentId;
             ComponentMask = new ulong[BitArrayOperator.GetBitsLength(MaxComponentId.Raw)];
             EntitiesPerChunk = (int)(GlobalSetting.ChunkAllocator.ChunkSize / (builder.ComponentsSize + sizeof(Entity)));
-            Sparse = new ComponentSparseList(MaxComponentId, false);
-            var offset = MathEx.AlignUp(EntitiesPerChunk * sizeof(Entity), GlobalSetting.ComponentAlign);
+            SparseComponentOffset = new uint[MaxComponentId.Raw];
+            var offset = (uint)MathEx.AlignUp(EntitiesPerChunk * sizeof(Entity), GlobalSetting.ComponentAlign);
             using var tempComponents = new PooledList<ComponentMeta>();
             for (ushort i = 0; i < builder.ComponentTypes.Count; i++)
             {
@@ -74,8 +74,8 @@ namespace FLib.WorldCores
                 BitArrayOperator.SetBit(ComponentMask, meta.Id, true);
                 if (!typeof(ISharedComponent).IsAssignableFrom(meta.Type))
                 {
-                    Sparse[meta.Id] = offset;
-                    offset += MathEx.AlignUp(meta.Size * EntitiesPerChunk, GlobalSetting.ComponentAlign);
+                    SparseComponentOffset[meta.Id] = offset;
+                    offset += (uint)MathEx.AlignUp(meta.Size * EntitiesPerChunk, GlobalSetting.ComponentAlign);
                     tempComponents.Add(meta);
                 }
             }
@@ -117,10 +117,9 @@ namespace FLib.WorldCores
         public void SetSharedComponent(in EntityInfo eti, in QuerySharedComponent sharedComponent)
         {
             var chunk = eti.Chunk;
-            var et = *chunk.GetEntity(eti.IndexInChunk);
             Span<QuerySharedComponent> sharedComponents = stackalloc QuerySharedComponent[chunk.AllSharedComponents.Length + 1];
             chunk.AllSharedComponents.CopyTo(sharedComponents);
-            if (chunk.HasSharedComponentHash(sharedComponent.ComponentId))
+            if (chunk.HasSharedComponent(sharedComponent.ComponentId))
             {
                 sharedComponents = sharedComponents[..^1];
                 for (var i = 0; i < sharedComponents.Length; i++)
@@ -194,9 +193,11 @@ namespace FLib.WorldCores
                 Unsafe.CopyBlock(toChunk.Get(toIndex, meta), fromChunk.Get(fromIndex, meta), meta.Size);
             }
 
-            var fromEntity = fromChunk.GetEntity(fromIndex);
-            World.GetEntityInfo(*fromEntity).IndexInChunk = toIndex;
-            *toChunk.GetEntity(toIndex) = *fromEntity;
+            var fromEntity = *fromChunk.GetEntity(fromIndex);
+            *toChunk.GetEntity(toIndex) = fromEntity;
+            ref var eti = ref World.GetEntityInfo(fromEntity);
+            eti.IndexInChunk = toIndex;
+            eti.Chunk = toChunk;
         }
 
         /// <summary>
@@ -216,11 +217,12 @@ namespace FLib.WorldCores
             {
                 var newChunk = GlobalObjectPool<Chunk>.Create();
                 newChunk.Previous = chunk;
-                newChunk.Sparse = new ComponentSparseList(Sparse.List, true);
+                newChunk.SparseComponentOffset = ArrayPool<int>.Shared.Rent(SparseComponentOffset.Length);
+                SparseComponentOffset.CopyTo(newChunk.SparseComponentOffset, 0);
                 newChunk.AllSharedComponentsHash = sharedHash;
                 newChunk.AllSharedComponents = sharedComponents.ToArray();
                 foreach (var sharedComponent in sharedComponents)
-                    newChunk.Sparse.List[sharedComponent.ComponentId] = sharedComponent.Hash;
+                    newChunk.SparseComponentOffset[sharedComponent.ComponentId] = sharedComponent.Hash;
 
                 chunk = SharedChunks[sharedHash] = newChunk;
                 var result = AllChunks.Add(newChunk);
