@@ -119,7 +119,7 @@ namespace FLib.WorldCores
             var chunk = eti.Chunk;
             Span<QuerySharedComponent> sharedComponents = stackalloc QuerySharedComponent[chunk.AllSharedComponents.Length + 1];
             chunk.AllSharedComponents.CopyTo(sharedComponents);
-            if (chunk.HasSharedComponent(sharedComponent.ComponentId))
+            if (chunk.HasComponent(sharedComponent.ComponentId))
             {
                 sharedComponents = sharedComponents[..^1];
                 for (var i = 0; i < sharedComponents.Length; i++)
@@ -167,7 +167,7 @@ namespace FLib.WorldCores
         /// </summary>
         private void RemoveEntity(Chunk chunk, ushort index)
         {
-            if (--chunk.Count == 0)
+            if (chunk.Count == 1)
             {
                 if (chunk.Previous != null)
                     SharedChunks[chunk.AllSharedComponentsHash] = chunk.Previous;
@@ -178,8 +178,10 @@ namespace FLib.WorldCores
             }
             else
             {
-                if (index < chunk.Count - 1)
-                    CopyEntity(chunk, (ushort)(chunk.Count - 1), chunk, index); // 后面在考虑是否跨chunk copy保持chunk的紧凑
+                var newCount = (ushort)(chunk.Count - 1);
+                if (index < newCount)
+                    CopyEntity(chunk, newCount, chunk, index); // 后面在考虑是否跨chunk copy保持chunk的紧凑
+                chunk.Count = newCount;
             }
         }
 
@@ -218,12 +220,12 @@ namespace FLib.WorldCores
             {
                 var newChunk = GlobalObjectPool<Chunk>.Create();
                 newChunk.Previous = chunk;
-                newChunk.SparseComponentOffset = ArrayPool<int>.Shared.Rent(SparseComponentOffset.Length);
-                SparseComponentOffset.CopyTo(newChunk.SparseComponentOffset, 0);
+                newChunk.SparseComponentMeta = ArrayPool<int>.Shared.Rent(SparseComponentOffset.Length);
+                SparseComponentOffset.CopyTo(newChunk.SparseComponentMeta, 0);
                 newChunk.AllSharedComponentsHash = sharedHash;
                 newChunk.AllSharedComponents = sharedComponents.ToArray();
                 foreach (var sharedComponent in sharedComponents)
-                    newChunk.SparseComponentOffset[sharedComponent.ComponentId] = sharedComponent.Hash;
+                    newChunk.SparseComponentMeta[sharedComponent.ComponentId] = sharedComponent.Hash;
 
                 chunk = SharedChunks[sharedHash] = newChunk;
                 var result = AllChunks.Add(newChunk);

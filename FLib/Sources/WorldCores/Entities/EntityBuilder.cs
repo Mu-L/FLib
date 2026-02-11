@@ -36,7 +36,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public EntityBuilder Add<T>() where T : unmanaged
+        public EntityBuilder With<T>() where T : unmanaged
         {
             var meta = ComponentRegistry.GetMeta<T>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
@@ -48,11 +48,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public EntityBuilder AddMng<T>()
+        public EntityBuilder WithMng<T>()
         {
             var meta = ComponentRegistry.GetMeta<Mng<T>>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
-            ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<T>.Info.ComponentAwake));
+            ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<Mng<T>>.Info.ComponentAwake));
             StaticComponentMask.Set(meta, true);
             return this;
         }
@@ -60,7 +60,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public EntityBuilder AddShared<T>() where T : ISharedComponent
+        public EntityBuilder WithShared<T>() where T : ISharedComponent
         {
             var meta = ComponentRegistry.GetMeta<T>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");

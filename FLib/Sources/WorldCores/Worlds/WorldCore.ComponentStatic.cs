@@ -11,36 +11,46 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public unsafe Ref<T1> GetSta<T1>(Entity et) where T1 : unmanaged
+        public Mng<T> GetStaMng<T>(Entity et)
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            return new Ref<T1>(eti.Chunk.Get<T1>(eti.IndexInChunk));
+            return eti.Chunk.GetRef<Mng<T>>(eti.IndexInChunk);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public Mng<T1> GetStaMng<T1>(Entity et)
+        public void SetStaMng<T>(Entity et, in T val)
         {
-            return GetStaRef<Mng<T1>>(et);
+            ref readonly var eti = ref GetEntityInfo(et);
+            eti.Chunk.GetRef<Mng<T>>(eti.IndexInChunk) = new Mng<T>(val);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public ref T1 GetStaRef<T1>(Entity et) where T1 : unmanaged
+        public unsafe Ref<T> GetSta<T>(Entity et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            return ref eti.Chunk.GetRef<T1>(eti.IndexInChunk);
+            return new Ref<T>(eti.Chunk.Get<T>(eti.IndexInChunk));
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SetSta<T1>(Entity et, in T1 val) where T1 : unmanaged
+        public ref T GetStaRef<T>(Entity et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            eti.Chunk.GetRef<T1>(eti.IndexInChunk) = val;
+            return ref eti.Chunk.GetRef<T>(eti.IndexInChunk);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SetSta<T>(Entity et, in T val) where T : unmanaged
+        {
+            ref readonly var eti = ref GetEntityInfo(et);
+            eti.Chunk.GetRef<T>(eti.IndexInChunk) = val;
         }
 
         /// <summary>
@@ -50,7 +60,7 @@ namespace FLib.WorldCores
         {
             ref readonly var eti = ref GetEntityInfo(et);
             var compId = ComponentRegistry.GetId<T>();
-            var oldHash = eti.Chunk.SparseComponentOffset[compId];
+            var oldHash = eti.Chunk.SparseComponentMeta[compId];
             var newHash = val.GetHashCode();
             if (oldHash == newHash) return;
 
@@ -62,9 +72,9 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public bool HasSta<T1>(Entity et) where T1 : unmanaged
+        public bool HasSta<T>(Entity et) where T : unmanaged
         {
-            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, ComponentRegistry.GetMeta<T1>().Id);
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, ComponentRegistry.GetMeta<T>().Id);
         }
 
         /// <summary>

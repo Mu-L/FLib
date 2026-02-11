@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace FLib.WorldCores
 {
@@ -18,6 +19,7 @@ namespace FLib.WorldCores
         public static ushort ComponentCount { get; private set; }
         private static ComponentInfo[] _componentInfos = new ComponentInfo[1024];
         private static readonly MethodInfo SizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf));
+        private static SpinLock _locker = new(false);
 
         /// <summary>
         /// 
@@ -88,14 +90,19 @@ namespace FLib.WorldCores
         /// </summary>
         public static ComponentMeta Register(Type type, ushort size)
         {
+            var locking = false;
+            _locker.Enter(ref locking);
+
             var id = new IncrementId(++ComponentCount);
+            StaticComponentMask.EnsureCapacity(id);
             var cType = new ComponentMeta(id, size, type);
             ComponentTypeMap[type] = cType;
-
             if (_componentInfos.Length <= id)
                 Array.Resize(ref _componentInfos, id + GlobalSetting.CapacityExpandSize);
             _componentInfos[id] = new ComponentInfo(cType, type);
-            StaticComponentMask.EnsureCapacity(id);
+
+            if (locking)
+                _locker.Exit(false);
             return cType;
         }
 

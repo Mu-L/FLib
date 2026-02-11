@@ -127,6 +127,7 @@ namespace FLib.WorldCores
             {
                 denseIdx = group.Alloc(et);
                 var sparse = new PooledList<int>(componentId.Raw);
+                sparse.Count = componentId.Raw;
                 sparse.Span.Fill(-1);
                 sparse[compId] = denseIdx;
                 eti.DynamicComponentSparseIndex = DynamicComponentSparse.Add(sparse);
