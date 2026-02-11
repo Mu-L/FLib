@@ -167,7 +167,7 @@ namespace FLib.WorldCores
         /// </summary>
         private void RemoveEntity(Chunk chunk, ushort index)
         {
-            if (chunk.Count <= 1)
+            if (--chunk.Count == 0)
             {
                 if (chunk.Previous != null)
                     SharedChunks[chunk.AllSharedComponentsHash] = chunk.Previous;
@@ -176,10 +176,11 @@ namespace FLib.WorldCores
                 AllChunks.Remove(chunk);
                 GlobalObjectPool<Chunk>.Release(chunk);
             }
-            else if (index < chunk.Count - 1)
-                CopyEntity(chunk, (ushort)(chunk.Count - 1), chunk, index); // 后面在考虑是否跨chunk copy保持chunk的紧凑
-
-            --chunk.Count;
+            else
+            {
+                if (index < chunk.Count - 1)
+                    CopyEntity(chunk, (ushort)(chunk.Count - 1), chunk, index); // 后面在考虑是否跨chunk copy保持chunk的紧凑
+            }
         }
 
         /// <summary>

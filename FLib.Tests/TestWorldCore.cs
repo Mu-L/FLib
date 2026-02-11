@@ -42,6 +42,7 @@ public class TestWorldCore
     [Fact]
     public void Basic()
     {
+        Console.WriteLine("a");
         var world = new WorldCore();
         var et = world.CreateEntity().Add<Team>().Add<Actor>().AddMng<Player>().AddShared<Shared>().Build();
         world.SetSta(et, new Team() { Value = 10 });
@@ -55,6 +56,7 @@ public class TestWorldCore
     [Fact]
     public void BasicAll()
     {
+        Console.WriteLine("b");
         var world = new WorldCore();
         ComponentRegistry.GetMeta<Buff>();
         // var player1 = world.CreateEntity<Mng<Player>, Team, Actor>(v2: new Team() { Value = 5 }, v1: Mng.T(new Player() { Name = "p1" }));
