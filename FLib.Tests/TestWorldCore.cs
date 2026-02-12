@@ -40,19 +40,6 @@ public record struct Shared(int Value) : ISharedComponent;
 public class TestWorldCore
 {
     [Fact]
-    public void Basic()
-    {
-        var world = new WorldCore();
-        var et = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
-        world.SetSta(et, new Team() { Value = 10 });
-        world.SetShared(et, new Shared(1));
-
-        Assert.NotEqual(0, world.GetEntityInfo(et).Chunk.AllSharedComponentsHash);
-        Assert.Equal(10, world.GetSimple<Team>(et).Value);
-    }
-
-
-    [Fact]
     public void BasicAll()
     {
         var world = new WorldCore();
@@ -79,7 +66,7 @@ public class TestWorldCore
         Assert.Null(world.GetStaMng<Player>(player2).Val.Name);
 
         Assert.Equal([5, 10, 100], world.Query<Team>().Select(v => v.Item2.Val.Value));
-        Assert.Equal([5, 10], world.Query<Team>(world.CreateQuery().All<Team>().None<Enemy>()).Select(v => v.Item2.Val.Value));
+        Assert.Equal([5, 10], world.Query<Team>(world.CreateQuery().WithAll<Team>().WithNone<Enemy>()).Select(v => v.Item2.Val.Value));
 
         // entity
         Assert.Equal(["FLib.Tests.Player", "5", "FLib.Tests.Actor"], world.GetAllEntities(player1).Select(v => v.ToString()));
@@ -99,7 +86,7 @@ public class TestWorldCore
         // dynamic
         Assert.False(world.HasDyn<Buff>(player1));
         world.SetDyn(player1, new Buff() { Name = "abc" });
-        Assert.Equal([player2.Version, player1.Version], world.Query(world.CreateQuery().None<Enemy>()).Select(v => v.Version));
+        Assert.Equal([player2, player1], world.CreateQuery().WithNone<Enemy>().Query());
 
         Assert.True(world.HasDyn<Buff>(player1));
         Assert.Equal("abc", world.GetDyn<Buff>(player1).Name);
@@ -121,6 +108,30 @@ public class TestWorldCore
         world.Dispose();
         Assert.Equal(2, GlobalSetting.ChunkAllocator.FreePagesCount);
     }
+
+
+    [Fact]
+    public void SharedComponent()
+    {
+        var world = new WorldCore();
+        var et1 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
+        Assert.Equal(0, world.GetEntityInfo(et1).Chunk.AllSharedComponentsHash);
+        
+        world.SetSta(et1, new Team() { Value = 10 });
+        world.SetShared(et1, new Shared(1));
+
+        Assert.NotEqual(0, world.GetEntityInfo(et1).Chunk.AllSharedComponentsHash);
+        Assert.Equal(10, world.GetSimple<Team>(et1).Value);
+
+        var et2 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
+        world.SetSta(et2, new Team() { Value = 10 });
+        world.SetShared(et2, new Shared(10));
+
+        Assert.Equal([et1], world.CreateQuery().WithShared(new Shared(1)).Query());
+        Assert.Equal([et2], world.CreateQuery().WithShared(new Shared(10)).Query());
+        Assert.Equal([et1, et2], world.CreateQuery().WithAll<Team>().Query());
+    }
+
 
     [Fact]
     public void TestCode()

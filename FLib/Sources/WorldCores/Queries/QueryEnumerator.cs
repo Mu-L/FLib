@@ -10,16 +10,16 @@ namespace FLib.WorldCores
     /// </summary>
     public readonly struct QueryEnumerator : IEnumerable<Entity>
     {
-        private readonly QueryFilter _filter;
-        public Enumerable GetEnumerator() => new(_filter);
+        public readonly QueryFilter Filter;
+        public Enumerable GetEnumerator() => new(Filter);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IEnumerator<Entity> IEnumerable<Entity>.GetEnumerator() => GetEnumerator();
 
         public QueryEnumerator(in WorldCore world, in QueryFilter filter)
         {
-            _filter = filter;
-            if (_filter.IsEmpty)
-                _filter = new QueryFilterBuilder(world).Build();
+            Filter = filter;
+            if (Filter.IsEmpty)
+                Filter = new QueryFilterBuilder(world).Build();
         }
 
         /// <summary>

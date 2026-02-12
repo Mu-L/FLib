@@ -14,7 +14,7 @@ namespace FLib.WorldCores
         internal ulong[] AllMask;
         internal ulong[] AnyMask;
         internal ulong[] NoneMask;
-        public List<QuerySharedComponent> SharedComponents;
+        internal List<QuerySharedComponent> SharedComponents;
 
         public bool IsEmpty => AllMask == null && AnyMask == null && NoneMask == null;
 
@@ -29,7 +29,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public QueryFilterBuilder All<T>()
+        public QueryFilterBuilder WithAll<T>()
         {
             Set(ref AllMask, ComponentRegistry.GetId<T>());
             return this;
@@ -38,7 +38,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public QueryFilterBuilder Any<T>()
+        public QueryFilterBuilder WithAny<T>()
         {
             Set(ref AnyMask, ComponentRegistry.GetId<T>());
             return this;
@@ -47,7 +47,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public QueryFilterBuilder None<T>()
+        public QueryFilterBuilder WithNone<T>()
         {
             Set(ref NoneMask, ComponentRegistry.GetId<T>());
             return this;
@@ -56,7 +56,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public QueryFilterBuilder SharedComponent<T>(in T value) where T : ISharedComponent
+        public QueryFilterBuilder WithShared<T>(in T value) where T : ISharedComponent
         {
             var hash = value.GetHashCode();
             Debug.Assert(hash != 0);
@@ -105,6 +105,14 @@ namespace FLib.WorldCores
         public readonly QueryFilter Build()
         {
             return new QueryFilter(World, this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly QueryEnumerator Query()
+        {
+            return new QueryEnumerator(World, this);
         }
 
         /// <summary>
