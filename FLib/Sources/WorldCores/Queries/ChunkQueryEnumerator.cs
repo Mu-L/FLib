@@ -77,7 +77,7 @@ namespace FLib.WorldCores
                 for (var i = 0; i < _sharedComponents.Length; i++)
                 {
                     var sharedComponent = _sharedComponents[i];
-                    if (!chunk.HasComponent(sharedComponent.ComponentId, sharedComponent.Hash))
+                    if (!chunk.Has(sharedComponent.ComponentId, sharedComponent.Hash))
                         goto ContinueWhile;
                 }
 

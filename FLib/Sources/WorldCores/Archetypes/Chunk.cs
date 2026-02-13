@@ -59,6 +59,8 @@ namespace FLib.WorldCores
             Previous = null;
         }
 
+        public override string ToString() => $"{Count}, {((IntPtr)Buffer).ToString("X")}";
+
         /// <summary>
         /// 
         /// </summary>
@@ -96,7 +98,7 @@ namespace FLib.WorldCores
         {
             Debug.Assert(entityIndex < Count);
             Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            Debug.Assert(HasComponent(ComponentRegistry.GetId<T>()));
+            Debug.Assert(Has(ComponentRegistry.GetId<T>()));
             return (T*)(Buffer + SparseComponentMeta[ComponentRegistry.GetId<T>()]) + entityIndex;
         }
 
@@ -106,7 +108,7 @@ namespace FLib.WorldCores
         internal void* Get(ushort entityIndex, in ComponentMeta meta)
         {
             Debug.Assert(entityIndex < Count);
-            Debug.Assert(HasComponent(meta.Id));
+            Debug.Assert(Has(meta.Id));
             return Buffer + SparseComponentMeta[meta.Id] + meta.Size * entityIndex;
         }
 
@@ -144,7 +146,7 @@ namespace FLib.WorldCores
         public void ClearMemory(ushort entityIndex, in ComponentMeta meta)
         {
             Debug.Assert(entityIndex < Count);
-            Debug.Assert(HasComponent(meta.Id));
+            Debug.Assert(Has(meta.Id));
             Unsafe.InitBlock(Buffer + SparseComponentMeta[meta.Id] + meta.Size * entityIndex, 0, meta.Size);
         }
 
@@ -153,7 +155,7 @@ namespace FLib.WorldCores
         /// </summary>
         public Span<T> GetAll<T>() where T : unmanaged
         {
-            Debug.Assert(HasComponent(ComponentGenericMap<T>.Id));
+            Debug.Assert(Has(ComponentGenericMap<T>.Id));
             return new Span<T>(Buffer + SparseComponentMeta[ComponentGenericMap<T>.Id], Count);
         }
 
@@ -171,26 +173,34 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public int GetComponentMeta(IncrementId componentId)
+        public int GetMeta(IncrementId componentId)
         {
-            Debug.Assert(HasComponent(componentId));
+            Debug.Assert(Has(componentId));
             return SparseComponentMeta[componentId];
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public bool HasComponent(IncrementId componentId, int meta)
+        public bool Has<T>()
         {
-            return componentId.Raw <= SparseComponentMeta.Length && SparseComponentMeta[componentId] == meta;
+            return Has(ComponentGenericMap<T>.Id);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public bool HasComponent(IncrementId componentId)
+        public bool Has(IncrementId componentId)
         {
             return componentId.Raw <= SparseComponentMeta.Length && SparseComponentMeta[componentId] != 0;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool Has(IncrementId componentId, int meta)
+        {
+            return componentId.Raw <= SparseComponentMeta.Length && SparseComponentMeta[componentId] == meta;
         }
     }
 }

@@ -11,6 +11,7 @@ namespace FLib.WorldCores
         public readonly ushort Id;
         public readonly ushort Version;
         public bool IsEmpty => Version == 0;
+        public override string ToString() => Id.ToString();
 
         public Entity(ushort id, ushort version)
         {

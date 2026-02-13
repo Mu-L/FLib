@@ -19,7 +19,7 @@ namespace FLib.WorldCores
             }
             catch (Exception e)
             {
-                Log.Error?.Write($"{entity} {e}", nameof(ComponentInvoker));
+                throw new Exception($"{entity} {typeof(T)} {e}");
             }
         }
 
@@ -31,7 +31,7 @@ namespace FLib.WorldCores
             }
             catch (Exception e)
             {
-                Log.Error?.Write($"{entity} {e}", nameof(ComponentInvoker));
+                throw new Exception($"{entity} {typeof(T)} {e}");
             }
         }
 
@@ -43,7 +43,7 @@ namespace FLib.WorldCores
             }
             catch (Exception e)
             {
-                Log.Error?.Write($"{entity} {e}", nameof(ComponentInvoker));
+                throw new Exception($"{entity} {typeof(T)} {e}");
             }
         }
 
@@ -55,7 +55,7 @@ namespace FLib.WorldCores
         //     }
         //     catch (Exception e)
         //     {
-        //         Log.Error?.Write($"{entity} {e}", nameof(ComponentInvoker));
+        //         throw new Exception($"{entity} {typeof(T))} {e}");
         //     }
         // }
         //
@@ -67,7 +67,7 @@ namespace FLib.WorldCores
         //     }
         //     catch (Exception e)
         //     {
-        //         Log.Error?.Write($"{entity} {e}", nameof(ComponentInvoker));
+        //         throw new Exception($"{entity} {typeof(T))} {e}");
         //     }
         // }
 

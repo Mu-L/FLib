@@ -56,6 +56,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void RemoveDyn<T>(Entity et)
         {
+            Debug.Assert(HasDyn<T>(et));
             ref readonly var eti = ref GetEntityInfo(et);
             ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
             var id = ComponentRegistry.GetId<T>().Id;
@@ -104,10 +105,18 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int DynamicComponentIndex(Entity et, ISoaComponentGroupable group, IncrementId componentId)
         {
-            ref var eti = ref GetEntityInfo(et);
+            return DynamicComponentIndex(et, group, componentId, ref GetEntityInfo(et));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private int DynamicComponentIndex(Entity et, ISoaComponentGroupable group, IncrementId componentId, ref EntityInfo eti)
+        {
             int denseIdx;
             var compId = componentId.Id;
             if (eti.HasDynamicComponent)

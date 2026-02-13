@@ -57,6 +57,7 @@ namespace FLib.WorldCores
         /// </summary>
         public readonly Dictionary<int, Chunk> SharedChunks = new();
 
+        public override string ToString() => $"{Index}, {string.Join(',', ComponentTypes.Select(v => v.Type.ToString()))}";
 
         public Archetype(WorldCore world, in ArchetypeBuilder builder, ushort index)
         {
@@ -119,7 +120,7 @@ namespace FLib.WorldCores
             var chunk = eti.Chunk;
             Span<QuerySharedComponent> sharedComponents = stackalloc QuerySharedComponent[chunk.AllSharedComponents.Length + 1];
             chunk.AllSharedComponents.CopyTo(sharedComponents);
-            if (chunk.HasComponent(sharedComponent.ComponentId))
+            if (chunk.Has(sharedComponent.ComponentId))
             {
                 sharedComponents = sharedComponents[..^1];
                 for (var i = 0; i < sharedComponents.Length; i++)
