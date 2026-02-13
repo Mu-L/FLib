@@ -36,10 +36,12 @@ namespace FLib
             var frees = new PooledHashSet<int>();
             frees.Raw.EnsureCapacity(Frees.Count);
             frees.Raw.UnionWith(Frees);
-            for (var i = 0; i < Values.Length; i++)
+            var offsetIndex = 0;
+            for (var i = 0; i < Values.Length && offsetIndex < Count; i++)
             {
                 if (frees.Contains(i))
                     continue;
+                ++offsetIndex;
                 yield return Values[i];
             }
         }

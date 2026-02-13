@@ -15,15 +15,9 @@ namespace FLib.WorldCores
 
         public override string ToString() => Val.ToString();
 
-        public Mng(in T v)
-        {
-            _index = _objects.Add(v) + 1;
-        }
-
         public void ComponentAwake(WorldCore world, Entity entity)
         {
-            if (_index == 0)
-                _index = _objects.Add(default) + 1;
+            Set(default);
         }
 
         public void ComponentDestroy(WorldCore world, Entity entity)
@@ -33,11 +27,14 @@ namespace FLib.WorldCores
             _index = 0;
         }
 
-        public static implicit operator T(Mng<T> mng) => _objects[mng._index - 1];
-    }
+        public void Set(in T val)
+        {
+            if (_index == 0)
+                _index = _objects.Add(val) + 1;
+            else
+                _objects.GetRef(_index - 1) = val;
+        }
 
-    public static class Mng
-    {
-        public static Mng<T> T<T>(in T v) => new(v);
+        public static implicit operator T(Mng<T> mng) => _objects[mng._index - 1];
     }
 }

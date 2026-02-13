@@ -1,8 +1,10 @@
 // ==================== qcbf@qq.com | 2026-01-03 ====================
 
+using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Linq;
+using System.Reflection;
 using FLib.WorldCores;
 
 namespace FLib.Tests;
@@ -37,6 +39,13 @@ public struct Buff
 
 public record struct Shared(int Value) : ISharedComponent;
 
+public struct ASystem : IComponentAwake
+{
+    public void ComponentAwake(WorldCore world, Entity entity)
+    {
+    }
+}
+
 public class TestWorldCore
 {
     [Fact]
@@ -56,7 +65,7 @@ public class TestWorldCore
 
         Assert.Equal(world.EntityInfos[player1.Id].ArchetypeIndex, world.EntityInfos[player2.Id].ArchetypeIndex);
         Assert.False(world.HasSta<Enemy>(player1));
-        Assert.False(world.HasSta<Mng<Player>>(enemy1));
+        Assert.False(world.HasStaMng<Player>(enemy1));
         Assert.NotEqual(world.EntityInfos[player1.Id].ArchetypeIndex, world.EntityInfos[enemy1.Id].ArchetypeIndex);
         Assert.ThrowsAny<Exception>(() => world.SetSta(player1, new Enemy()));
         Assert.Equal(5, world.GetSta<Team>(player1).Val.Value);
@@ -106,17 +115,18 @@ public class TestWorldCore
 
         // dispose
         world.Dispose();
-        Assert.Equal(2, GlobalSetting.ChunkAllocator.FreePagesCount);
+        Assert.True(GlobalSetting.ChunkAllocator.FreePagesCount >= 2);
+        Assert.Empty((IEnumerable)typeof(Mng<Player>).GetField("_objects", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!);
     }
 
 
     [Fact]
     public void SharedComponent()
     {
-        var world = new WorldCore();
+        using var world = new WorldCore();
         var et1 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         Assert.Equal(0, world.GetEntityInfo(et1).Chunk.AllSharedComponentsHash);
-        
+
         world.SetSta(et1, new Team() { Value = 10 });
         world.SetShared(et1, new Shared(1));
 

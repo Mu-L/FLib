@@ -23,7 +23,7 @@ namespace FLib.WorldCores
         public void SetStaMng<T>(Entity et, in T val)
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            eti.Chunk.GetRef<Mng<T>>(eti.IndexInChunk) = new Mng<T>(val);
+            eti.Chunk.GetRef<Mng<T>>(eti.IndexInChunk).Set(val);
         }
 
         /// <summary>
@@ -75,6 +75,14 @@ namespace FLib.WorldCores
         public bool HasSta<T>(Entity et) where T : unmanaged
         {
             return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, ComponentRegistry.GetMeta<T>().Id);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasStaMng<T>(Entity et)
+        {
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, ComponentRegistry.GetMeta<Mng<T>>().Id);
         }
 
         /// <summary>
