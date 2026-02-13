@@ -39,7 +39,7 @@ public struct Buff
 
 public record struct Shared(int Value) : ISharedComponent;
 
-public struct ASystem : IComponentAwake
+public struct ASystem
 {
     public void ComponentAwake(WorldCore world, Entity entity)
     {
@@ -58,10 +58,10 @@ public class TestWorldCore
         world.SetStaMng(player1, new Player() { Name = "p1" });
 
         var player2 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().Build();
-        world.SetSta(player2, new Team() { Value = 10 });
+        world.Set(player2, new Team() { Value = 10 });
 
         var enemy1 = world.CreateEntity().With<Enemy>().With<Team>().With<Actor>().Build();
-        world.SetSta(enemy1, new Team() { Value = 100 });
+        world.Set(enemy1, new Team() { Value = 100 });
 
         Assert.Equal(world.EntityInfos[player1.Id].ArchetypeIndex, world.EntityInfos[player2.Id].ArchetypeIndex);
         Assert.False(world.HasSta<Enemy>(player1));
@@ -69,8 +69,8 @@ public class TestWorldCore
         Assert.NotEqual(world.EntityInfos[player1.Id].ArchetypeIndex, world.EntityInfos[enemy1.Id].ArchetypeIndex);
         Assert.ThrowsAny<Exception>(() => world.SetSta(player1, new Enemy()));
         Assert.Equal(5, world.GetSta<Team>(player1).Val.Value);
-        Assert.Equal(10, world.GetSta<Team>(player2).Val.Value);
-        Assert.Equal(100, world.GetSta<Team>(enemy1).Val.Value);
+        Assert.Equal(10, world.GetStaRef<Team>(player2).Value);
+        Assert.Equal(100, world.Get<Team>(enemy1).Value);
         Assert.Equal("p1", world.GetStaMng<Player>(player1).Val.Name);
         Assert.Null(world.GetStaMng<Player>(player2).Val.Name);
 
@@ -89,7 +89,7 @@ public class TestWorldCore
         player1 = world.CreateEntity().WithMng<Player>().With<Team>().With<Actor>().Build();
         world.SetSta(player1, new Team() { Value = 6 });
         Assert.Equal(6, world.GetSta<Team>(player1).Val.Value);
-        Assert.Equal(10, world.GetSimple<Team>(player2).Value);
+        Assert.Equal(10, world.Get<Team>(player2).Value);
         Assert.Equal(100, world.GetSta<Team>(enemy1).Val.Value);
 
         // dynamic
@@ -97,7 +97,7 @@ public class TestWorldCore
         world.SetDyn(player1, new Buff() { Name = "abc" });
         Assert.Equal([player2, player1], world.CreateQuery().WithNone<Enemy>().Query());
 
-        Assert.True(world.HasDyn<Buff>(player1));
+        Assert.True(world.Has<Buff>(player1));
         Assert.Equal("abc", world.GetDyn<Buff>(player1).Name);
         Assert.Equal("abc", ((Buff)world.GetDyn(player1, typeof(Buff))).Name);
         world.RemoveDyn<Buff>(player1);
@@ -105,8 +105,8 @@ public class TestWorldCore
         Assert.ThrowsAny<Exception>(() => world.GetDyn<Buff>(player1));
         world.SetDyn(player1, new Buff() { Name = "aaa" }, null);
         Assert.Equal("aaa", world.GetDyn<Buff>(player1).Name);
-        world.RemoveDyn<Buff>(player1);
-        Assert.False(world.HasDyn<Buff>(player1));
+        world.Remove<Buff>(player1);
+        Assert.False(world.Has<Buff>(player1));
         Assert.Equal(0, world.Soa.GetGroup<Buff>().Count);
         world.SetDyn(player1, new Buff() { Name = "abc2" });
         Assert.Equal(1, world.Soa.GetGroup<Buff>().Count);
@@ -131,7 +131,7 @@ public class TestWorldCore
         world.SetShared(et1, new Shared(1));
 
         Assert.NotEqual(0, world.GetEntityInfo(et1).Chunk.AllSharedComponentsHash);
-        Assert.Equal(10, world.GetSimple<Team>(et1).Value);
+        Assert.Equal(10, world.Get<Team>(et1).Value);
 
         var et2 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         world.SetSta(et2, new Team() { Value = 10 });

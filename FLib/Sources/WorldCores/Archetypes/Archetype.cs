@@ -119,7 +119,7 @@ namespace FLib.WorldCores
             var chunk = eti.Chunk;
             Span<QuerySharedComponent> sharedComponents = stackalloc QuerySharedComponent[chunk.AllSharedComponents.Length + 1];
             chunk.AllSharedComponents.CopyTo(sharedComponents);
-            if (chunk.HasComponent(sharedComponent.ComponentId))
+            if (chunk.Has(sharedComponent.ComponentId))
             {
                 sharedComponents = sharedComponents[..^1];
                 for (var i = 0; i < sharedComponents.Length; i++)
