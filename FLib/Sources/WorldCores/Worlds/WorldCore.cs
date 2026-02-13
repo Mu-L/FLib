@@ -35,6 +35,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
+        public uint Frame;
+
+        /// <summary>
+        /// 
+        /// </summary>
         internal ushort VersionIncrement;
 
         /// <summary>
@@ -90,6 +95,14 @@ namespace FLib.WorldCores
         public EntityBuilder CreateEntity()
         {
             return new EntityBuilder(this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Update()
+        {
+            ++Frame;
         }
 
         /// <summary>

@@ -14,9 +14,9 @@ namespace FLib.WorldCores
         {
             public readonly ComponentMeta Meta;
             public readonly bool IsShared;
-            public readonly ComponentInvoker.Delegate Invoker;
+            public readonly LifeInvoker.Delegate Invoker;
 
-            public ComponentData(ComponentMeta meta, bool isShared, ComponentInvoker.Delegate invoker)
+            public ComponentData(ComponentMeta meta, bool isShared, LifeInvoker.Delegate invoker)
             {
                 Meta = meta;
                 IsShared = isShared;

@@ -1,21 +1,30 @@
-// ==================== qcbf@qq.com | 2026-01-11 ====================
+// ==================== qcbf@qq.com | 2026-02-13 ====================
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace FLib.WorldCores
 {
-    public static class ComponentInvoker
+    public interface IAwakeInvokable
+    {
+        void Awake(WorldCore world, Entity entity);
+    }
+
+    public interface IDestroyInvokable
+    {
+        void Destroy(WorldCore world, Entity entity);
+    }
+
+    public static class LifeInvoker
     {
         public delegate void Delegate(ref byte ptr, WorldCore world, Entity entity);
 
-        internal static void ComponentAwake<T>(ref byte ptr, WorldCore world, Entity entity) where T : IComponentAwake
+        internal static void Awake<T>(ref byte ptr, WorldCore world, Entity entity) where T : IAwakeInvokable
         {
             try
             {
-                Unsafe.As<byte, T>(ref ptr).ComponentAwake(world, entity);
+                Unsafe.As<byte, T>(ref ptr).Awake(world, entity);
             }
             catch (Exception e)
             {
@@ -23,23 +32,11 @@ namespace FLib.WorldCores
             }
         }
 
-        internal static void ComponentStart<T>(ref byte ptr, WorldCore world, Entity entity) where T : IComponentStart
+        internal static void Destroy<T>(ref byte ptr, WorldCore world, Entity entity) where T : IDestroyInvokable
         {
             try
             {
-                Unsafe.As<byte, T>(ref ptr).ComponentStart(world, entity);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"{entity} {typeof(T)} {e}");
-            }
-        }
-
-        internal static void ComponentDestroy<T>(ref byte ptr, WorldCore world, Entity entity) where T : IComponentDestroy
-        {
-            try
-            {
-                Unsafe.As<byte, T>(ref ptr).ComponentDestroy(world, entity);
+                Unsafe.As<byte, T>(ref ptr).Destroy(world, entity);
             }
             catch (Exception e)
             {
@@ -58,7 +55,7 @@ namespace FLib.WorldCores
         //         throw new Exception($"{entity} {typeof(T))} {e}");
         //     }
         // }
-        //
+        // 
         // internal static void ComponentDisable<T>(ref byte ptr, WorldCore world, Entity entity) where T : IComponentDisable
         // {
         //     try
@@ -71,17 +68,12 @@ namespace FLib.WorldCores
         //     }
         // }
 
-        internal static void ComponentUpdate<T>(ref byte ptr, WorldCore world, Entity entity) where T : IComponentUpdate
-        {
-            Unsafe.As<byte, T>(ref ptr).ComponentUpdate(world, entity);
-        }
-
         /// <summary>
         /// 
         /// </summary>
         internal static Delegate Make(Type type, string name)
         {
-            var mi = typeof(ComponentInvoker).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(type);
+            var mi = typeof(LifeInvoker).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(type);
             return mi.CreateDelegate<Delegate>();
         }
     }

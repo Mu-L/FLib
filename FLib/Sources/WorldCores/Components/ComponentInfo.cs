@@ -10,24 +10,18 @@ namespace FLib.WorldCores
     {
         public ComponentMeta Meta { get; }
         public readonly Type Type;
-        public readonly ComponentInvoker.Delegate ComponentAwake;
-        public readonly ComponentInvoker.Delegate ComponentStart;
-        public readonly ComponentInvoker.Delegate ComponentDestroy;
-        public readonly ComponentInvoker.Delegate ComponentUpdate;
+        public readonly LifeInvoker.Delegate ComponentAwake;
+        public readonly LifeInvoker.Delegate ComponentDestroy;
 
-        // public readonly ComponentInvoker.Delegate ComponentEnable; // working
-        // public readonly ComponentInvoker.Delegate ComponentDisable;
+        // public readonly LifeInvoker.Delegate ComponentEnable; // working
+        // public readonly LifeInvoker.Delegate ComponentDisable;
 
         public ComponentInfo(ComponentMeta meta, Type type)
         {
             Type = type;
             Meta = meta;
-            ComponentAwake = typeof(IComponentAwake).IsAssignableFrom(type) ? ComponentInvoker.Make(type, nameof(IComponentAwake.ComponentAwake)) : null;
-            ComponentStart = typeof(IComponentStart).IsAssignableFrom(type) ? ComponentInvoker.Make(type, nameof(IComponentStart.ComponentStart)) : null;
-            ComponentDestroy = typeof(IComponentDestroy).IsAssignableFrom(type) ? ComponentInvoker.Make(type, nameof(IComponentDestroy.ComponentDestroy)) : null;
-            ComponentUpdate = typeof(IComponentUpdate).IsAssignableFrom(type) ? ComponentInvoker.Make(type, nameof(IComponentUpdate.ComponentUpdate)) : null;
-            // ComponentEnable = typeof(IComponentEnable).IsAssignableFrom(type) ? ComponentInvoker.Make(type, nameof(IComponentEnable.ComponentEnable)) : null;
-            // ComponentDisable = typeof(IComponentDisable).IsAssignableFrom(type) ? ComponentInvoker.Make(type, nameof(IComponentDisable.ComponentDisable)) : null;
+            ComponentAwake = typeof(IAwakeInvokable).IsAssignableFrom(type) ? LifeInvoker.Make(type, nameof(IAwakeInvokable.Awake)) : null;
+            ComponentDestroy = typeof(IDestroyInvokable).IsAssignableFrom(type) ? LifeInvoker.Make(type, nameof(IDestroyInvokable.Destroy)) : null;
         }
     }
 }

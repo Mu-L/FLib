@@ -20,6 +20,12 @@ public struct Team
     public byte TestAlign1;
     public byte TestAlign2;
     public override string ToString() => Value.ToString();
+
+    public void ComponentUpdate(WorldCore world, Entity entity)
+    {
+        ++world.Get<Actor>(entity).Id;
+        ++Value;
+    }
 }
 
 public struct Actor
@@ -38,13 +44,6 @@ public struct Buff
 }
 
 public record struct Shared(int Value) : ISharedComponent;
-
-public struct ASystem
-{
-    public void ComponentAwake(WorldCore world, Entity entity)
-    {
-    }
-}
 
 public class TestWorldCore
 {
@@ -144,7 +143,11 @@ public class TestWorldCore
 
 
     [Fact]
-    public void TestCode()
+    public void TestInvoker()
     {
+        using var world = new WorldCore();
+        var et1 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
+        Assert.Equal(0, world.GetEntityInfo(et1).Chunk.AllSharedComponentsHash);
+        
     }
 }
