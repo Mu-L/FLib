@@ -16,7 +16,7 @@ namespace FLib.WorldCores
         void Destroy(WorldCore world, Entity entity);
     }
 
-    public static class LifeInvoker
+    public static class LifeInvokers
     {
         public delegate void Delegate(ref byte ptr, WorldCore world, Entity entity);
 
@@ -68,12 +68,22 @@ namespace FLib.WorldCores
         //     }
         // }
 
+
         /// <summary>
         /// 
         /// </summary>
-        internal static Delegate Make(Type type, string name)
+        public static void Get(Type type, out Delegate awake, out Delegate destroy)
         {
-            var mi = typeof(LifeInvoker).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(type);
+            awake = typeof(IAwakeInvokable).IsAssignableFrom(type) ? CreateDelegate(type, nameof(IAwakeInvokable.Awake)) : null;
+            destroy = typeof(IDestroyInvokable).IsAssignableFrom(type) ? CreateDelegate(type, nameof(IDestroyInvokable.Destroy)) : null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static Delegate CreateDelegate(Type type, string name)
+        {
+            var mi = typeof(LifeInvokers).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(type);
             return mi.CreateDelegate<Delegate>();
         }
     }

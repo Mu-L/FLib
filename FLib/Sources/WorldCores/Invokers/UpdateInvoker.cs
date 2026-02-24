@@ -5,4 +5,13 @@ using System.Runtime.CompilerServices;
 
 namespace FLib.WorldCores
 {
+    public interface IUpdateInvoker
+    {
+        void Update(WorldCore world, Entity entity);
+    }
+
+    public static class UpdateInvokers
+    {
+        
+    }
 }
