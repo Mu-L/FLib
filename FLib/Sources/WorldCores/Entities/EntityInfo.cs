@@ -13,6 +13,7 @@ namespace FLib.WorldCores
         public readonly ushort ArchetypeIndex;
         public ushort IndexInChunk;
         private ushort _dynamicComponentIndex;
+        // TODO: add destroy flag
 
         public bool IsEmpty => Version == 0;
 

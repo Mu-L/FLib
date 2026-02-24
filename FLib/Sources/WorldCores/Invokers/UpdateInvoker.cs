@@ -7,7 +7,7 @@ namespace FLib.WorldCores
 {
     public interface IUpdateInvoker
     {
-        void Update(WorldCore world, Entity entity);
+        void Update(WorldCore world);
     }
 
     public static class UpdateInvokers
