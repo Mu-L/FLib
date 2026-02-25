@@ -64,7 +64,7 @@ namespace FLib.WorldCores
         {
             var meta = ComponentRegistry.GetMeta<T>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
-            ComponentDatas.Add(new ComponentData(meta, true, ComponentGenericMap<T>.Info.ComponentAwake));
+            Debug.Assert(!ComponentRegistry.GetInfo<T>().IsHasLifeInvoker, "nonsupport life invoker");
             StaticComponentMask.Set(meta, true);
             return this;
         }

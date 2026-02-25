@@ -16,7 +16,7 @@ namespace FLib.WorldCores
             if (eti.HasDynamicComponent && !eti.Chunk.Has<T>())
             {
                 var compIdx = DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[ComponentRegistry.GetId<T>()];
-                return ref Soa.GetGroup<T>().Components[compIdx];
+                return ref Soa.GetGroup<T>()[compIdx];
             }
 
             return ref *eti.Chunk.Get<T>(eti.IndexInChunk);
@@ -32,7 +32,7 @@ namespace FLib.WorldCores
             {
                 var group = Soa.GetGroup<T>();
                 var compIdx = DynamicComponentIndex(et, group, ComponentRegistry.GetId<T>(), ref eti);
-                group.Components[compIdx] = component;
+                group[compIdx] = component;
             }
             else
             {

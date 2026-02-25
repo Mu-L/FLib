@@ -16,7 +16,7 @@ namespace FLib.WorldCores
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Debug.Assert(dynIdx >= 0);
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[ComponentRegistry.GetId<T>()];
-            return ref Soa.GetGroup<T>().Components[compIdx];
+            return ref Soa.GetGroup<T>()[compIdx];
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace FLib.WorldCores
         {
             var group = Soa.GetGroup<T>();
             var compIdx = DynamicComponentIndex(et, group, ComponentRegistry.GetId<T>());
-            group.Components[compIdx] = component;
+            group[compIdx] = component;
         }
 
         /// <summary>

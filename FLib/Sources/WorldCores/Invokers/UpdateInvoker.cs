@@ -12,6 +12,5 @@ namespace FLib.WorldCores
 
     public static class UpdateInvokers
     {
-        
     }
 }

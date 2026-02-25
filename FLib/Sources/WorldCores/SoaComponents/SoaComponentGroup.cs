@@ -10,12 +10,18 @@ namespace FLib.WorldCores
 {
     public class SoaComponentGroup<T> : ISoaComponentGroupable
     {
-        public T[] Components = Array.Empty<T>();
         public Stack<int> Frees = new();
         public int Count;
+        protected T[] Components = Array.Empty<T>();
 
         public WorldCore World { get; set; }
         Array ISoaComponentGroupable.Components => Components;
+
+        public virtual ref T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref Components[index];
+        }
 
         // /// <summary>
         // /// 
@@ -49,21 +55,46 @@ namespace FLib.WorldCores
             }
 
             ++Count;
-            ref var first = ref MemoryMarshal.GetArrayDataReference(Components);
-            first = ref Unsafe.Add(ref first, index);
-            ComponentRegistry.GetInfo<T>().ComponentAwake?.Invoke(ref Unsafe.As<T, byte>(ref first), World, et);
+            InvokeAwake(et, index);
             return index;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Free(in Entity et, int hash)
+        public virtual void Free(in Entity et, int index)
         {
-            ComponentRegistry.GetInfo<T>().ComponentDestroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[hash]), World, et);
-            Components[hash] = default;
-            Frees.Push(hash);
-            --Count;
+            try
+            {
+                InvokeDestroy(et, index);
+            }
+            finally
+            {
+                Components[index] = default;
+                --Count;
+                if (index < Count)
+                    Frees.Push(index);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void InvokeDestroy(in Entity et, int index)
+        {
+            ComponentRegistry.GetInfo<T>().ComponentDestroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual void InvokeAwake(in Entity et, int index)
+        {
+            ref var first = ref MemoryMarshal.GetArrayDataReference(Components);
+            first = ref Unsafe.Add(ref first, index);
+            ComponentRegistry.GetInfo<T>().ComponentAwake?.Invoke(ref Unsafe.As<T, byte>(ref first), World, et);
         }
     }
 }

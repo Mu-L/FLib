@@ -16,6 +16,8 @@ namespace FLib.WorldCores
         // public readonly LifeInvoker.Delegate ComponentEnable; // working
         // public readonly LifeInvoker.Delegate ComponentDisable;
 
+        public bool IsHasLifeInvoker => ComponentAwake != null || ComponentDestroy != null;
+
         public ComponentInfo(ComponentMeta meta, Type type)
         {
             Type = type;
