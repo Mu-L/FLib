@@ -14,9 +14,9 @@ namespace FLib.WorldCores
         {
             public readonly ComponentMeta Meta;
             public readonly bool IsShared;
-            public readonly LifeInvokers.Delegate Invoker;
+            public readonly LifeSystemDelegate Invoker;
 
-            public ComponentData(ComponentMeta meta, bool isShared, LifeInvokers.Delegate invoker)
+            public ComponentData(ComponentMeta meta, bool isShared, LifeSystemDelegate invoker)
             {
                 Meta = meta;
                 IsShared = isShared;
@@ -38,6 +38,7 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder With<T>() where T : unmanaged
         {
+            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
             var meta = ComponentRegistry.GetMeta<T>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
             ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<T>.Info.ComponentAwake));
@@ -50,6 +51,7 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder WithMng<T>()
         {
+            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
             var meta = ComponentRegistry.GetMeta<Mng<T>>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
             ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<Mng<T>>.Info.ComponentAwake));

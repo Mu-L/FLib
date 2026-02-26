@@ -41,7 +41,7 @@ namespace FLib.WorldCores
             {
                 using var archetypeBuilder = new ArchetypeBuilder(1);
                 for (var i = 0; i < builder.ComponentDatas.Count; i++)
-                    archetypeBuilder.Add(builder.ComponentDatas[i].Meta);
+                    archetypeBuilder.With(builder.ComponentDatas[i].Meta);
                 archetype = ArchetypeGroup.Create(hash, archetypeBuilder);
             }
 

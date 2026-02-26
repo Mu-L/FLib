@@ -35,6 +35,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn<T>(Entity et, in T component)
         {
+            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
             var group = Soa.GetGroup<T>();
             var compIdx = DynamicComponentIndex(et, group, ComponentRegistry.GetId<T>());
             group[compIdx] = component;
@@ -45,6 +46,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn(Entity et, object component, Type componentType)
         {
+            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(componentType));
             componentType ??= component.GetType();
             var group = Soa.GetGroup(componentType);
             var compIdx = DynamicComponentIndex(et, group, ComponentRegistry.GetId(componentType));

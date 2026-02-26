@@ -28,16 +28,6 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void Add<T>() => Add(ComponentRegistry.GetMeta<T>());
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Add(Type type) => Add(ComponentRegistry.GetMeta(type));
-
-        /// <summary>
-        /// 
-        /// </summary>
         public void Dispose()
         {
             ComponentTypes.Dispose();
@@ -46,7 +36,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void Add(in ComponentMeta meta)
+        public void With(in ComponentMeta meta)
         {
 #if DEBUG
             if (!_componentIds.Add(meta.Id))

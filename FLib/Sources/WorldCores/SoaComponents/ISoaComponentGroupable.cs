@@ -6,7 +6,7 @@ namespace FLib.WorldCores
 {
     public interface ISoaComponentGroupable
     {
-        WorldCore World { get; set; }
+        WorldCore World { get; }
         Array Components { get; }
 
         /// <summary>

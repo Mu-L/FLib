@@ -23,6 +23,10 @@ namespace FLib.WorldCores
 
         public int Version { get; private set; }
 
+        public SharedComponentGroup(WorldCore world) : base(world)
+        {
+        }
+
         public override void EnsureCapacity(int capacity)
         {
             base.EnsureCapacity(capacity);
@@ -52,6 +56,7 @@ namespace FLib.WorldCores
                 r.Index = base.Alloc(et);
                 Components[r.Index] = value;
             }
+
             ++r.RefCount;
             ++Version;
         }

@@ -10,11 +10,8 @@ namespace FLib.WorldCores
     {
         public ComponentMeta Meta { get; }
         public readonly Type Type;
-        public readonly LifeInvokers.Delegate ComponentAwake;
-        public readonly LifeInvokers.Delegate ComponentDestroy;
-
-        // public readonly LifeInvoker.Delegate ComponentEnable; // working
-        // public readonly LifeInvoker.Delegate ComponentDisable;
+        public readonly LifeSystemDelegate ComponentAwake;
+        public readonly LifeSystemDelegate ComponentDestroy;
 
         public bool IsHasLifeInvoker => ComponentAwake != null || ComponentDestroy != null;
 
@@ -22,7 +19,8 @@ namespace FLib.WorldCores
         {
             Type = type;
             Meta = meta;
-            LifeInvokers.Get(type, out ComponentAwake, out ComponentDestroy);
+            ComponentAwake = SystemUtility.CreateDelegate(typeof(IAwakeSystem), type, nameof(IAwakeSystem.Awake));
+            ComponentDestroy = SystemUtility.CreateDelegate(typeof(IDestroySystem), type, nameof(IDestroySystem.Destroy));
         }
     }
 }

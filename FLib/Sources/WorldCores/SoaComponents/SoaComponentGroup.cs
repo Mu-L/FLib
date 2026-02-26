@@ -12,7 +12,7 @@ namespace FLib.WorldCores
     {
         public Stack<int> Frees = new();
         public int Count;
-        protected T[] Components = Array.Empty<T>();
+        internal T[] Components = Array.Empty<T>();
 
         public WorldCore World { get; set; }
         Array ISoaComponentGroupable.Components => Components;
@@ -23,14 +23,10 @@ namespace FLib.WorldCores
             get => ref Components[index];
         }
 
-        // /// <summary>
-        // /// 
-        // /// </summary>
-        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        // public bool Has(Entity et, int idx)
-        // {
-        //     return idx < Components.Length && Components[idx].DynamicComponentContext.Entity == et;
-        // }
+        public SoaComponentGroup(WorldCore world)
+        {
+            World = world;
+        }
 
         /// <summary>
         /// 
