@@ -8,18 +8,13 @@ namespace FLib.WorldCores
     public class ComponentOptionAttribute : Attribute
     {
         /// <summary>
-        /// 在指定组件之后执行
+        /// 执行优先级, 越大越先执行。
         /// </summary>
-        public Type After;
+        public short Priority;
 
         /// <summary>
-        /// 在指定组件之前执行
+        /// 
         /// </summary>
-        public Type Before;
-
-        /// <summary>
-        /// 以数值排序，越小越先执行。
-        /// </summary>
-        public short Order;
+        public bool DoNotResetMemory;
     }
 }

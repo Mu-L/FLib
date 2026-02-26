@@ -13,6 +13,7 @@ namespace FLib.WorldCores
 
         public UpdateSoaComponentGroup(WorldCore world) : base(world)
         {
+            world.UpdateSystem.Register(Update, ComponentRegistry.GetInfo<T>().Options.Priority);
         }
 
         public override void EnsureCapacity(int capacity)
@@ -37,20 +38,19 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static void Update(WorldCore world, object arg)
+        public void Update(WorldCore world)
         {
-            var group = (UpdateSoaComponentGroup<T>)arg;
             var offset = 0;
-            for (var i = 0; i - offset < group.Count; i++)
+            for (var i = 0; i - offset < Count; i++)
             {
-                var et = group.ComponentEntities[i];
+                var et = ComponentEntities[i];
                 if (et.IsEmpty)
                 {
                     offset++;
                     continue;
                 }
 
-                group.Components[i].Update(world, et);
+                Components[i].Update(world, et);
             }
         }
     }

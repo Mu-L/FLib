@@ -15,7 +15,7 @@ namespace FLib.WorldCores
 
         public ISoaComponentGroupable this[IncrementId componentId] => Groups[componentId];
 
-        public SoaComponentGroupManager(WorldCore world)
+        public unsafe SoaComponentGroupManager(WorldCore world)
         {
             World = world;
         }
@@ -27,6 +27,9 @@ namespace FLib.WorldCores
         /// <returns></returns>
         public SoaComponentGroup<T> GetGroup<T>()
         {
+            var id = ComponentRegistry.GetId<T>().Id;
+            if (id < Groups.Length && Groups[id] != null)
+                return (SoaComponentGroup<T>)Groups[id];
             return (SoaComponentGroup<T>)GetGroup(typeof(T));
         }
 

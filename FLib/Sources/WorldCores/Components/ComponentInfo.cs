@@ -12,6 +12,7 @@ namespace FLib.WorldCores
         public readonly Type Type;
         public readonly LifeSystemDelegate ComponentAwake;
         public readonly LifeSystemDelegate ComponentDestroy;
+        public readonly ComponentOptionAttribute Options;
 
         public bool IsHasLifeInvoker => ComponentAwake != null || ComponentDestroy != null;
 
@@ -19,6 +20,7 @@ namespace FLib.WorldCores
         {
             Type = type;
             Meta = meta;
+            Options = type.GetCustomAttribute<ComponentOptionAttribute>();
             ComponentAwake = SystemUtility.CreateDelegate(typeof(IAwakeSystem), type, nameof(IAwakeSystem.Awake));
             ComponentDestroy = SystemUtility.CreateDelegate(typeof(IDestroySystem), type, nameof(IDestroySystem.Destroy));
         }
