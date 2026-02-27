@@ -7,16 +7,22 @@ using System.Runtime.InteropServices;
 
 namespace FLib.WorldCores
 {
-    public class UpdateSoaComponentGroup<T> : SoaComponentGroup<T> where T : IUpdateSystem
+    public class UpdateSoaComponentGroup<T> : SoaComponentGroup<T>
     {
         // 后续考虑改为再包一层，保持components紧凑。
         public Entity[] ComponentEntities;
 
-        private List<int> StartComponents;
+        public HashSet<int> StartComponentIndexes;
 
         public UpdateSoaComponentGroup(WorldCore world) : base(world)
         {
-            world.UpdateSystem.Register(Update, ComponentRegistry.GetInfo<T>().Options?.Priority ?? 0);
+            var priority = ComponentRegistry.GetInfo<T>().Options?.Priority ?? 0;
+            world.UpdateSystem.Register(UpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), priority, this);
+            if (typeof(IUpdateStartSystem).IsAssignableFrom(typeof(T)))
+            {
+                StartComponentIndexes = new HashSet<int>();
+                world.UpdateStartSystem.Register(UpdateSoaComponentGroupHelper.UpdateStartMethodDefine.MakeGenericMethod(typeof(T)), priority, this);
+            }
         }
 
         public override void EnsureCapacity(int capacity)
@@ -29,6 +35,7 @@ namespace FLib.WorldCores
         {
             var index = base.Alloc(et, component);
             ComponentEntities[index] = et;
+            StartComponentIndexes?.Add(index);
             return index;
         }
 
@@ -36,25 +43,7 @@ namespace FLib.WorldCores
         {
             base.Free(et, index);
             ComponentEntities[index] = default;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Update(WorldCore world)
-        {
-            var offset = 0;
-            for (var i = 0; i - offset < Count; i++)
-            {
-                var et = ComponentEntities[i];
-                if (et.IsEmpty)
-                {
-                    offset++;
-                    continue;
-                }
-
-                Components[i].Update(world, et);
-            }
+            StartComponentIndexes?.Remove(index);
         }
     }
 }

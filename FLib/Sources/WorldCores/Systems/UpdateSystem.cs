@@ -2,13 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using FLib.Worlds;
 
 namespace FLib.WorldCores
 {
     public sealed class UpdateSystem
     {
-        public Action<WorldCore>[] ModuleActions = new Action<WorldCore>[64];
+        public (Action<WorldCore, object>, object)[] ModuleActions = new (Action<WorldCore, object>, object)[64];
         public int[] ModulePriorities = new int[64];
 
         public int Count { get; private set; }
@@ -19,13 +20,24 @@ namespace FLib.WorldCores
         public void Update(WorldCore world)
         {
             for (var i = 0; i < Count; i++)
-                ModuleActions[i](world);
+            {
+                ref readonly var data = ref ModuleActions[i];
+                data.Item1(world, data.Item2);
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Register(Action<WorldCore> action, int priority = 0)
+        public void Register(MethodInfo methodInfo, int priority = 0, object param = null)
+        {
+            Register(methodInfo.CreateDelegate<Action<WorldCore, object>>(), priority, param);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Register(Action<WorldCore, object> action, int priority = 0, object param = null)
         {
             var index = Count++;
             if (Count >= ModuleActions.Length)
@@ -46,7 +58,7 @@ namespace FLib.WorldCores
                 }
             }
 
-            ModuleActions[index] = action;
+            ModuleActions[index] = (action, param);
             ModulePriorities[index] = priority;
         }
     }

@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using System.Reflection;
 using FLib.WorldCores;
+using FLib.Worlds;
 
 namespace FLib.Tests;
 
@@ -44,12 +45,33 @@ public struct Buff
     public string Name;
 }
 
-public struct ManagedSystem : IAwakeSystem, IDestroySystem, IUpdateSystem
+[ComponentOption(options: EComponentOption.DoNotResetMemory)]
+public struct ManagedSystem : IAwakeSystem, IDestroySystem, IUpdateSystem, IUpdateStartSystem
 {
-    public string[] Values;
-    public void Awake(WorldCore world, Entity entity) => Values = [nameof(Awake), string.Empty, string.Empty];
-    public void Destroy(WorldCore world, Entity entity) => Values[2] = nameof(Destroy);
-    public void Update(WorldCore world, Entity entity) => Values[1] = nameof(Update);
+    public List<string> Values;
+    public uint AwakeFrame;
+    public uint StartFrame;
+    public uint UpdateFrame;
+
+    public void Awake(WorldCore world, Entity entity)
+    {
+        Values = [nameof(Awake)];
+        AwakeFrame = world.Frame;
+    }
+
+    public void Start(WorldCore world, Entity entity)
+    {
+        Values.Add(nameof(Start));
+        StartFrame = world.Frame;
+    }
+
+    public void Destroy(WorldCore world, Entity entity) => Values.Add(nameof(Destroy));
+
+    public void Update(WorldCore world, Entity entity)
+    {
+        Values.Add(nameof(Update));
+        UpdateFrame = world.Frame;
+    }
 }
 
 public record struct Shared(int Value) : ISharedComponent;
@@ -156,15 +178,25 @@ public class TestWorldCore
     public void ComponentSystem()
     {
         using var world = new WorldCore();
+        world.Update();
         var et = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         world.Set(et, new ManagedSystem());
 
-        Assert.Equal([nameof(IAwakeSystem.Awake), string.Empty, string.Empty], world.Get<ManagedSystem>(et).Values);
+        Assert.Equal([nameof(IAwakeSystem.Awake)], world.Get<ManagedSystem>(et).Values);
+        Assert.Equal(1u, world.Get<ManagedSystem>(et).AwakeFrame);
 
-        for (var i = 0; i < 2; i++)
-        {
-            world.Update();
-            Assert.Equal([nameof(IAwakeSystem.Awake), nameof(IUpdateSystem.Update), string.Empty], world.Get<ManagedSystem>(et).Values);
-        }
+        world.Update();
+        Assert.Equal([nameof(IAwakeSystem.Awake), nameof(IUpdateStartSystem.Start), nameof(IUpdateSystem.Update)], world.Get<ManagedSystem>(et).Values);
+        Assert.Equal(2u, world.Get<ManagedSystem>(et).StartFrame);
+
+        world.Update();
+        Assert.Equal([nameof(IAwakeSystem.Awake), nameof(IUpdateStartSystem.Start), nameof(IUpdateSystem.Update), nameof(IUpdateSystem.Update)], world.Get<ManagedSystem>(et).Values);
+        Assert.Equal(2u, world.Get<ManagedSystem>(et).StartFrame);
+        Assert.Equal(3u, world.Get<ManagedSystem>(et).UpdateFrame);
+
+        world.RemoveEntity(et);
+
+        Assert.Equal([nameof(IAwakeSystem.Awake), nameof(IUpdateStartSystem.Start), nameof(IUpdateSystem.Update), nameof(IUpdateSystem.Update), nameof(IDestroySystem.Destroy)],
+            world.Soa.GetGroup<ManagedSystem>()[0].Values);
     }
 }
