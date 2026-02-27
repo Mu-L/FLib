@@ -6,17 +6,17 @@ using FLib.Worlds;
 
 namespace FLib.WorldCores
 {
-    public class UpdateSystem
+    public sealed class UpdateSystem
     {
         public Action<WorldCore>[] ModuleActions = new Action<WorldCore>[64];
         public int[] ModulePriorities = new int[64];
 
-        public int Count { get; protected set; }
+        public int Count { get; private set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Update(WorldCore world)
+        public void Update(WorldCore world)
         {
             for (var i = 0; i < Count; i++)
                 ModuleActions[i](world);

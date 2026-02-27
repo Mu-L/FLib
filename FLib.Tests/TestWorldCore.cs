@@ -52,14 +52,6 @@ public struct ManagedSystem : IAwakeSystem, IDestroySystem, IUpdateSystem
     public void Update(WorldCore world, Entity entity) => Values[1] = nameof(Update);
 }
 
-public struct UnmanagedSystem : IAwakeSystem, IDestroySystem, IUpdateSystem
-{
-    public int Value;
-    public void Awake(WorldCore world, Entity entity) => ++Value;
-    public void Destroy(WorldCore world, Entity entity) => ++Value;
-    public void Update(WorldCore world, Entity entity) => ++Value;
-}
-
 public record struct Shared(int Value) : ISharedComponent;
 
 public class TestWorldCore
@@ -164,12 +156,15 @@ public class TestWorldCore
     public void ComponentSystem()
     {
         using var world = new WorldCore();
-        var et = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().With<UnmanagedSystem>().Build();
+        var et = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         world.Set(et, new ManagedSystem());
 
         Assert.Equal([nameof(IAwakeSystem.Awake), string.Empty, string.Empty], world.Get<ManagedSystem>(et).Values);
 
-        world.Update();
-        Assert.Equal([nameof(IAwakeSystem.Awake), nameof(IUpdateSystem.Update), string.Empty], world.Get<ManagedSystem>(et).Values);
+        for (var i = 0; i < 2; i++)
+        {
+            world.Update();
+            Assert.Equal([nameof(IAwakeSystem.Awake), nameof(IUpdateSystem.Update), string.Empty], world.Get<ManagedSystem>(et).Values);
+        }
     }
 }

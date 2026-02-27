@@ -2,7 +2,8 @@
 
 namespace FLib.WorldCores
 {
-    public interface IUpdateStartSystem : IUpdateSystem
+    public interface IUpdateStartSystem
     {
+        void Start(WorldCore world, Entity entity);
     }
 }

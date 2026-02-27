@@ -1,6 +1,7 @@
 // ==================== qcbf@qq.com | 2026-02-25 ====================
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -10,6 +11,8 @@ namespace FLib.WorldCores
     {
         // 后续考虑改为再包一层，保持components紧凑。
         public Entity[] ComponentEntities;
+
+        private List<int> StartComponents;
 
         public UpdateSoaComponentGroup(WorldCore world) : base(world)
         {

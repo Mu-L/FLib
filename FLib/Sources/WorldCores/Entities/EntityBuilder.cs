@@ -38,7 +38,7 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder With<T>() where T : unmanaged
         {
-            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
+            AssertNewComponent(typeof(T));
             var meta = ComponentRegistry.GetMeta<T>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
             ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<T>.Info.ComponentAwake));
@@ -51,7 +51,7 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder WithMng<T>()
         {
-            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
+            AssertNewComponent(typeof(T));
             var meta = ComponentRegistry.GetMeta<Mng<T>>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
             ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<Mng<T>>.Info.ComponentAwake));
@@ -80,6 +80,14 @@ namespace FLib.WorldCores
             var et = World.CreateEntity(this, StaticComponentMask.HashCode(), initMemory);
             ComponentDatas.Dispose();
             return et;
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertNewComponent(Type type)
+        {
+            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(type));
+            Debug.Assert(!typeof(IUpdateSystem).IsAssignableFrom(type));
+            Debug.Assert(!typeof(IUpdateStartSystem).IsAssignableFrom(type));
         }
     }
 }
