@@ -33,30 +33,24 @@ namespace FLib.WorldCores
             Groups.EnsureCapacity(capacity);
         }
 
-        public override int Alloc(in Entity et) => throw new NotSupportedException("need component value");
-
         /// <summary>
         /// 
         /// </summary>
-        public int Alloc(in Entity et, in T value)
+        public override int Alloc(in Entity et, in T component)
         {
-            var hash = value.GetHashCode();
-            Alloc(et, value, hash);
+            var hash = component.GetHashCode();
+            Alloc(et, component, hash);
             return hash;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Alloc(in Entity et, in T value, int hash)
+        public void Alloc(in Entity et, in T component, int hash)
         {
             ref var r = ref Groups.GetOrAddValueRef(hash);
             if (r.RefCount == 0)
-            {
-                r.Index = base.Alloc(et);
-                Components[r.Index] = value;
-            }
-
+                r.Index = base.Alloc(et, component);
             ++r.RefCount;
             ++Version;
         }

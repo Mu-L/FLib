@@ -13,7 +13,7 @@ namespace FLib.WorldCores
 
         public UpdateSoaComponentGroup(WorldCore world) : base(world)
         {
-            world.UpdateSystem.Register(Update, ComponentRegistry.GetInfo<T>().Options.Priority);
+            world.UpdateSystem.Register(Update, ComponentRegistry.GetInfo<T>().Options?.Priority ?? 0);
         }
 
         public override void EnsureCapacity(int capacity)
@@ -22,9 +22,9 @@ namespace FLib.WorldCores
             Array.Resize(ref ComponentEntities, capacity);
         }
 
-        public override int Alloc(in Entity et)
+        public override int Alloc(in Entity et, in T component)
         {
-            var index = base.Alloc(et);
+            var index = base.Alloc(et, component);
             ComponentEntities[index] = et;
             return index;
         }

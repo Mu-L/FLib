@@ -184,7 +184,7 @@ namespace FLib.WorldCores
         /// </summary>
         public bool Has<T>()
         {
-            return Has(ComponentGenericMap<T>.Id);
+            return Has(ComponentRegistry.GetId<T>());
         }
 
         /// <summary>

@@ -28,16 +28,10 @@ namespace FLib.WorldCores
         public void Set<T>(Entity et, in T component)
         {
             ref var eti = ref GetEntityInfo(et);
-            if (eti.HasDynamicComponent && !eti.Chunk.Has<T>())
-            {
-                var group = Soa.GetGroup<T>();
-                var compIdx = DynamicComponentIndex(et, group, ComponentRegistry.GetId<T>(), ref eti);
-                group[compIdx] = component;
-            }
+            if (!eti.Chunk.Has<T>())
+                SetDyn(et, ref eti, component);
             else
-            {
                 eti.Chunk.GetRef<T>(eti.IndexInChunk) = component;
-            }
         }
 
         /// <summary>

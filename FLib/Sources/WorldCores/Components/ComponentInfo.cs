@@ -1,5 +1,6 @@
 // ==================== qcbf@qq.com | 2026-01-10 ====================
 
+#nullable enable
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -10,9 +11,9 @@ namespace FLib.WorldCores
     {
         public ComponentMeta Meta { get; }
         public readonly Type Type;
-        public readonly LifeSystemDelegate ComponentAwake;
-        public readonly LifeSystemDelegate ComponentDestroy;
-        public readonly ComponentOptionAttribute Options;
+        public readonly LifeSystemDelegate? ComponentAwake;
+        public readonly LifeSystemDelegate? ComponentDestroy;
+        public readonly ComponentOptionAttribute? Options;
 
         public bool IsHasLifeInvoker => ComponentAwake != null || ComponentDestroy != null;
 

@@ -35,10 +35,22 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn<T>(Entity et, in T component)
         {
+            SetDyn(et, ref GetEntityInfo(et), component);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SetDyn<T>(Entity et, ref EntityInfo eti, in T component)
+        {
             Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
+            var id = ComponentRegistry.GetId<T>();
+            ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup<T>();
-            var compIdx = DynamicComponentIndex(et, group, ComponentRegistry.GetId<T>());
-            group[compIdx] = component;
+            if (slot < 0)
+                slot = group.Alloc(et, component);
+            else
+                group[slot] = component;
         }
 
         /// <summary>
@@ -46,11 +58,16 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn(Entity et, object component, Type componentType)
         {
-            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(componentType));
             componentType ??= component.GetType();
+            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(componentType));
+            var id = ComponentRegistry.GetId(componentType);
+            ref var eti = ref GetEntityInfo(et);
+            ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup(componentType);
-            var compIdx = DynamicComponentIndex(et, group, ComponentRegistry.GetId(componentType));
-            group.Components.SetValue(component, compIdx);
+            if (slot < 0)
+                slot = group.Alloc(et, component);
+            else
+                group.Components.SetValue(component, slot);
         }
 
         /// <summary>
@@ -108,43 +125,24 @@ namespace FLib.WorldCores
         /// 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int DynamicComponentIndex(Entity et, ISoaComponentGroupable group, IncrementId componentId)
+        private ref int EnsureDynamicComponentIndex(IncrementId componentId, ref EntityInfo eti)
         {
-            return DynamicComponentIndex(et, group, componentId, ref GetEntityInfo(et));
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private int DynamicComponentIndex(Entity et, ISoaComponentGroupable group, IncrementId componentId, ref EntityInfo eti)
-        {
-            int denseIdx;
             var compId = componentId.Id;
             if (eti.HasDynamicComponent)
             {
                 ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-                if (sparse.Count >= compId || sparse[compId] < 0)
-                {
+                if (sparse.Count <= compId || sparse[compId] < 0)
                     sparse.Allocate(componentId.Raw);
-                    denseIdx = sparse[componentId] = group.Alloc(et);
-                }
-                else
-                {
-                    denseIdx = sparse[compId];
-                }
+                return ref sparse[compId];
             }
             else
             {
-                denseIdx = group.Alloc(et);
                 var sparse = new PooledList<int>(componentId.Raw);
                 sparse.Count = componentId.Raw;
                 sparse.Span.Fill(-1);
-                sparse[compId] = denseIdx;
                 eti.DynamicComponentSparseIndex = DynamicComponentSparse.Add(sparse);
+                return ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[compId];
             }
-
-            return denseIdx;
         }
     }
 }

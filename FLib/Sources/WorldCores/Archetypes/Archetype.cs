@@ -223,6 +223,7 @@ namespace FLib.WorldCores
                 newChunk.Previous = chunk;
                 newChunk.SparseComponentMeta = ArrayPool<int>.Shared.Rent(SparseComponentOffset.Length);
                 SparseComponentOffset.CopyTo(newChunk.SparseComponentMeta, 0);
+                Array.Clear(newChunk.SparseComponentMeta, SparseComponentOffset.Length, newChunk.SparseComponentMeta.Length - SparseComponentOffset.Length);
                 newChunk.AllSharedComponentsHash = sharedHash;
                 newChunk.AllSharedComponents = sharedComponents.ToArray();
                 foreach (var sharedComponent in sharedComponents)

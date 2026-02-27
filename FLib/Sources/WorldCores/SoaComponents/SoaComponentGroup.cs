@@ -41,7 +41,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual int Alloc(in Entity et)
+        int ISoaComponentGroupable.Alloc(in Entity et, object component) => Alloc(et, (T)component);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual int Alloc(in Entity et, in T component)
         {
             if (!Frees.TryPop(out var index))
             {
@@ -51,6 +56,7 @@ namespace FLib.WorldCores
             }
 
             ++Count;
+            Components[index] = component;
             InvokeAwake(et, index);
             return index;
         }
@@ -66,7 +72,8 @@ namespace FLib.WorldCores
             }
             finally
             {
-                Components[index] = default;
+                if (ComponentGenericMap<T>.Info.Options?.Op(EComponentOption.DoNotResetMemory) != true)
+                    Components[index] = default;
                 --Count;
                 if (index < Count)
                     Frees.Push(index);

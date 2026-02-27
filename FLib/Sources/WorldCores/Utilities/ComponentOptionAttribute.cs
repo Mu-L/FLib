@@ -10,11 +10,26 @@ namespace FLib.WorldCores
         /// <summary>
         /// 执行优先级, 越大越先执行。
         /// </summary>
-        public short Priority;
+        public readonly short Priority;
 
         /// <summary>
         /// 
         /// </summary>
-        public bool DoNotResetMemory;
+        public readonly EComponentOption Options;
+
+        public ComponentOptionAttribute(short priority = 0, EComponentOption options = EComponentOption.None)
+        {
+            Priority = priority;
+            Options = options;
+        }
+
+        public bool Op(EComponentOption option) => (Options & option) == option;
+    }
+
+    [Flags]
+    public enum EComponentOption : byte
+    {
+        None,
+        DoNotResetMemory = 0x1,
     }
 }

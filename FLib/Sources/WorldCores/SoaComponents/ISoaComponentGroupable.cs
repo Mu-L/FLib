@@ -12,7 +12,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 分配一个动态组件
         /// </summary>
-        int Alloc(in Entity et);
+        int Alloc(in Entity et, object component);
 
         /// <summary>
         /// 释放动态组件
