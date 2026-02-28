@@ -43,6 +43,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn<T>(Entity et, ref EntityInfo eti, in T component)
         {
+            Debug.Assert(!eti.IsDestroying, "entity is destroying");
             Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
             var id = ComponentRegistry.GetId<T>();
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);

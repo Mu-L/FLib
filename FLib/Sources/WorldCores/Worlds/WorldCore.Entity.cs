@@ -70,14 +70,14 @@ namespace FLib.WorldCores
         /// </summary>
         public void RemoveEntity(Entity et)
         {
-            ref readonly var eti = ref GetEntityInfo(et);
+            ref var eti = ref GetEntityInfo(et);
+            eti.SetDestroying();
             if (eti.HasDynamicComponent)
             {
                 var sparse = DynamicComponentSparse[eti.DynamicComponentSparseIndex];
-                var denseIndexes = sparse;
-                for (var i = 0; i < denseIndexes.Count; i++)
+                for (var i = 0; i < sparse.Count; i++)
                 {
-                    var denseIndex = denseIndexes[i];
+                    var denseIndex = sparse[i];
                     if (denseIndex < 0) continue;
                     var type = ComponentRegistry.GetType(new IncrementId(i + 1));
                     Soa.GetGroup(type).Free(et, denseIndex);

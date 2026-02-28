@@ -29,9 +29,14 @@ namespace FLib.WorldCores
         {
             ref var eti = ref GetEntityInfo(et);
             if (!eti.Chunk.Has<T>())
+            {
                 SetDyn(et, ref eti, component);
+            }
             else
+            {
+                Debug.Assert(!eti.IsDestroying, "entity is destroying");
                 eti.Chunk.GetRef<T>(eti.IndexInChunk) = component;
+            }
         }
 
         /// <summary>
@@ -40,6 +45,7 @@ namespace FLib.WorldCores
         public void Remove<T>(Entity et)
         {
             Debug.Assert(!GetEntityInfo(et).Chunk.Has<T>(), "cannot remove static component");
+            Debug.Assert(!GetEntityInfo(et).IsDestroying, "entity is destroying");
             RemoveDyn<T>(et);
         }
 

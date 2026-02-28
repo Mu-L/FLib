@@ -1,5 +1,6 @@
 // ==================== qcbf@qq.com | 2026-01-04 ====================
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace FLib.WorldCores
@@ -10,12 +11,21 @@ namespace FLib.WorldCores
         public static EntityInfo Empty = default;
         public Chunk Chunk;
         public readonly ushort Version;
-        public readonly ushort ArchetypeIndex;
         public ushort IndexInChunk;
         private ushort _dynamicComponentIndex;
-        // TODO: add destroy flag
+        private ushort _destroyFlagWithArchetypeIndex;
 
         public bool IsEmpty => Version == 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly int ArchetypeIndex => _destroyFlagWithArchetypeIndex & 0x7fff;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly bool IsDestroying => (_destroyFlagWithArchetypeIndex & 0x8000) == 0;
 
         /// <summary>
         /// 
@@ -33,8 +43,9 @@ namespace FLib.WorldCores
 
         public EntityInfo(ushort version, ushort archetypeIndex, ushort indexInChunk, Chunk chunk)
         {
+            Debug.Assert((archetypeIndex & 0x8000) == 0);
             Version = version;
-            ArchetypeIndex = archetypeIndex;
+            _destroyFlagWithArchetypeIndex = (ushort)(archetypeIndex | 0x8000);
             IndexInChunk = indexInChunk;
             Chunk = chunk;
             _dynamicComponentIndex = 0;
@@ -43,8 +54,14 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="world"></param>
-        /// <returns></returns>
         public readonly Archetype GetArchetype(WorldCore world) => world.ArchetypeGroup[ArchetypeIndex];
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SetDestroying()
+        {
+            _destroyFlagWithArchetypeIndex &= 0x7fff;
+        }
     }
 }
