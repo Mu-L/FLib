@@ -1,6 +1,8 @@
 // ==================== qcbf@qq.com | 2026-01-14 ====================
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace FLib.WorldCores
@@ -20,6 +22,15 @@ namespace FLib.WorldCores
             }
 
             return ref *eti.Chunk.Get<T>(eti.IndexInChunk);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public object Get(Entity et, Type componentType)
+        {
+            ref readonly var eti = ref GetEntityInfo(et);
+            return eti.HasDynamicComponent && !eti.Chunk.Has(ComponentRegistry.GetId(componentType)) ? GetDyn(et, componentType) : GetSta(et, componentType);
         }
 
         /// <summary>
@@ -63,6 +74,31 @@ namespace FLib.WorldCores
             }
 
             return BitArrayOperator.GetBit(ArchetypeGroup[eti.ArchetypeIndex].ComponentMask, compId);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IList GetAll(Entity et, IList result = null)
+        {
+            result ??= new List<object>();
+            ref readonly var eti = ref GetEntityInfo(et);
+            eti.Chunk.GetAll(eti.IndexInChunk, eti.GetArchetype(this), result);
+
+            eti.Chunk.GetAllShared(this, result);
+
+            if (eti.HasDynamicComponent)
+            {
+                var sparse = DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
+                for (var i = 0; i < sparse.Count; i++)
+                {
+                    var denseIndex = sparse[i];
+                    if (denseIndex < 0) continue;
+                    result.Add(GetDyn(et, ComponentRegistry.GetType(new IncrementId(i + 1))));
+                }
+            }
+
+            return result;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly int ArchetypeIndex => _destroyFlagWithArchetypeIndex & 0x7fff;
+        public readonly ushort ArchetypeIndex => (ushort)(_destroyFlagWithArchetypeIndex & 0x7fff);
 
         /// <summary>
         /// 

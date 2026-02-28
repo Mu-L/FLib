@@ -162,12 +162,43 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
+        public IList GetAll(ushort entityIndex, Archetype archetype, IList list = null)
+        {
+            list ??= new List<object>(Count);
+            foreach (var meta in archetype.ComponentTypes)
+            {
+                var obj = GetObj(entityIndex, meta);
+                list.Add(obj);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public IList GetAll(in ComponentMeta meta, IList list = null)
         {
             list ??= new List<object>(Count);
             for (ushort i = 0; i < Count; i++)
                 list.Add(GetObj(i, meta));
             return list;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IList GetAllShared(WorldCore world, IList result = null)
+        {
+            result ??= new List<object>();
+            foreach (var sharedComponent in AllSharedComponents)
+            {
+                var group = world.Soa[sharedComponent.ComponentId];
+                var index = ((ISharedComponentGroupable)group).GetIndexFromHash(sharedComponent.Hash);
+                result.Add(group.Components.GetValue(index));
+            }
+
+            return result;
         }
 
         /// <summary>

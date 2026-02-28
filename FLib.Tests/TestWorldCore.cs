@@ -141,10 +141,13 @@ public class TestWorldCore
         Assert.Equal(0, world.Soa.GetGroup<Buff>().Count);
         world.SetDyn(player1, new Buff { Name = "abc2" });
         Assert.Equal(1, world.Soa.GetGroup<Buff>().Count);
-        world.RemoveEntity(player1);
-        Assert.Equal(0, world.Soa.GetGroup<Buff>().Count);
+
+        // get all
+        Assert.Equal([typeof(Mng<Player>), typeof(Team), typeof(Actor), typeof(Buff)], ((List<object>)world.GetAll(player1)).Select(v => v.GetType()));
 
         // dispose
+        world.RemoveEntity(player1);
+        Assert.Equal(0, world.Soa.GetGroup<Buff>().Count);
         world.Dispose();
         Assert.True(GlobalSetting.ChunkAllocator.FreePagesCount >= 2);
         Assert.Empty((IEnumerable)typeof(Mng<Player>).GetField("_objects", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!);
@@ -167,6 +170,8 @@ public class TestWorldCore
         var et2 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         world.SetSta(et2, new Team { Value = 10 });
         world.SetShared(et2, new Shared(10));
+
+        Assert.Equal([typeof(Team), typeof(Actor), typeof(Mng<Player>), typeof(Shared)], ((List<object>)world.GetAll(et1)).Select(v => v.GetType()));
 
         Assert.Equal([et1], world.CreateQuery().WithShared(new Shared(1)).Query());
         Assert.Equal([et2], world.CreateQuery().WithShared(new Shared(10)).Query());

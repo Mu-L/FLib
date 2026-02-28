@@ -38,6 +38,15 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
+        public object GetSta(Entity et, Type componentType)
+        {
+            ref readonly var eti = ref GetEntityInfo(et);
+            return eti.Chunk.GetObj(eti.IndexInChunk, ComponentRegistry.GetMeta(componentType));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public ref T GetStaRef<T>(Entity et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);

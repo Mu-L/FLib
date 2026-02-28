@@ -88,7 +88,6 @@ namespace FLib.WorldCores
             EntityInfos.RemoveAt(et.Id);
         }
 
-
         /// <summary>
         /// 
         /// </summary>
@@ -97,6 +96,16 @@ namespace FLib.WorldCores
             return !et.IsEmpty && EntityInfos.Count > et.Id && EntityInfos.GetRef(et.Id).Version == et.Version;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasEntityAndNotDestroyed(Entity et)
+        {
+            if (et.IsEmpty) return false;
+            if (EntityInfos.Count <= et.Id) return false;
+            ref readonly var eti = ref EntityInfos.GetRef(et.Id);
+            return eti.Version == et.Version && !eti.IsDestroying;
+        }
 
         /// <summary>
         /// 

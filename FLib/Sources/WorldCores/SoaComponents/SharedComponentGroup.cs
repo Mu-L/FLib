@@ -78,7 +78,7 @@ namespace FLib.WorldCores
         /// <returns></returns>
         public int GetIndexFromHash(int hash)
         {
-            throw new NotSupportedException("need component value");
+            return Groups.TryGetValue(hash, out var r) ? r.Index : -1;
         }
     }
 }

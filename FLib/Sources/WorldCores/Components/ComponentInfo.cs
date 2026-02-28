@@ -25,5 +25,7 @@ namespace FLib.WorldCores
             ComponentAwake = SystemUtility.CreateDelegate(typeof(IAwakeSystem), type, nameof(IAwakeSystem.Awake));
             ComponentDestroy = SystemUtility.CreateDelegate(typeof(IDestroySystem), type, nameof(IDestroySystem.Destroy));
         }
+
+        public static implicit operator ComponentMeta(in ComponentInfo info) => info.Meta;
     }
 }
