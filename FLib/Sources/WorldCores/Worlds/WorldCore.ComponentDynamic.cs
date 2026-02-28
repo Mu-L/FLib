@@ -131,15 +131,21 @@ namespace FLib.WorldCores
             if (eti.HasDynamicComponent)
             {
                 ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-                if (sparse.Count <= compId || sparse[compId] < 0)
-                    sparse.Allocate(componentId.Raw);
+                if (sparse.Count <= compId)
+                {
+                    var oldSize = sparse.Buffer.Length;
+                    if (sparse.Allocate(componentId.Raw))
+                        sparse.Buffer.AsSpan(oldSize).Fill(-1);
+                    sparse.Count = componentId.Raw;
+                }
+
                 return ref sparse[compId];
             }
             else
             {
                 var sparse = new PooledList<int>(componentId.Raw);
                 sparse.Count = componentId.Raw;
-                sparse.Span.Fill(-1);
+                Array.Fill(sparse.Buffer, -1);
                 eti.DynamicComponentSparseIndex = DynamicComponentSparse.Add(sparse);
                 return ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[compId];
             }

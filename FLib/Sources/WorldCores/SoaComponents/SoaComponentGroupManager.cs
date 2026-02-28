@@ -43,7 +43,7 @@ namespace FLib.WorldCores
             var id = ComponentRegistry.GetId(componentType);
             if (id >= Groups.Length)
             {
-                Groups = new ISoaComponentGroupable[id + 1];
+                Array.Resize(ref Groups, id + 1);
                 return Groups[id] = CreateGroup(componentType);
             }
 

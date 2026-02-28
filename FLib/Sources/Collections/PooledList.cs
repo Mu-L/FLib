@@ -1,4 +1,4 @@
-//==================={By Qcbf|qcbf@qq.com|2/25/2022 12:30:31 PM}===================
+// ==================={By Qcbf|qcbf@qq.com|2/25/2022 12:30:31 PM}===================
 
 using FLib;
 using System;
@@ -93,9 +93,9 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public void Allocate(int capacity)
+        public bool Allocate(int capacity)
         {
-            if (Buffer?.Length >= capacity) return;
+            if (Buffer?.Length >= capacity) return false;
             var newArr = ArrayPool<T>.Shared.Rent(capacity);
             if (Buffer != null)
             {
@@ -104,6 +104,7 @@ namespace FLib
             }
 
             Buffer = newArr;
+            return true;
         }
 
         /// <summary>
