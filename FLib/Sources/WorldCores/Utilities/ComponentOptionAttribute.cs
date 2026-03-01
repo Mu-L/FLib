@@ -31,5 +31,6 @@ namespace FLib.WorldCores
     {
         None,
         DoNotResetMemory = 0x1,
+        // InvokeOnEntityDestroy = 0x2,
     }
 }

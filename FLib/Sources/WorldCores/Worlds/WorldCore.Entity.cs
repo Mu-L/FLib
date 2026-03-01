@@ -99,7 +99,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public bool HasEntityAndNotDestroyed(Entity et)
+        public bool HasEntityAndNotDestroying(Entity et)
         {
             if (et.IsEmpty) return false;
             if (EntityInfos.Count <= et.Id) return false;
