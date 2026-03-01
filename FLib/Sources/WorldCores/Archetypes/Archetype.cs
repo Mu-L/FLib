@@ -73,7 +73,7 @@ namespace FLib.WorldCores
             {
                 ref readonly var meta = ref builder.ComponentTypes[i];
                 BitArrayOperator.SetBit(ComponentMask, meta.Id, true);
-                if (!typeof(ISharedComponent).IsAssignableFrom(meta.Type))
+                if (!ComponentRegistry.GetInfo(meta).IsShared)
                 {
                     SparseComponentOffset[meta.Id] = offset;
                     offset += (uint)MathEx.AlignUp(meta.Size * EntitiesPerChunk, GlobalSetting.ComponentAlign);
@@ -106,7 +106,7 @@ namespace FLib.WorldCores
             for (var i = 0; i < ComponentTypes.Length; i++)
             {
                 var meta = ComponentTypes[i];
-                ComponentRegistry.GetInfo(meta).ComponentDestroy?.Invoke(ref *(byte*)chunk.Get(eti.IndexInChunk, meta), World, et);
+                ComponentRegistry.GetInfo(meta).Lifecycle.InvokeDestroy(ref *(byte*)chunk.Get(eti.IndexInChunk, meta), World, et);
             }
 
             RemoveEntity(chunk, eti.IndexInChunk);

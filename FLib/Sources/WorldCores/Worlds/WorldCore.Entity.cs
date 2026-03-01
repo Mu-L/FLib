@@ -28,7 +28,7 @@ namespace FLib.WorldCores
         public ref EntityInfo GetEntityInfo(in Entity et)
         {
             ref var eti = ref EntityInfos.GetRef(et.Id);
-            Debug.Assert(eti.Version == et.Version, "version error");
+            Assert(eti.Version == et.Version, msg: "version error");
             return ref eti;
         }
 
@@ -40,8 +40,8 @@ namespace FLib.WorldCores
             if (!ArchetypeGroup.ArchetypeMap.TryGetValue(hash, out var archetype))
             {
                 using var archetypeBuilder = new ArchetypeBuilder(1);
-                for (var i = 0; i < builder.ComponentDatas.Count; i++)
-                    archetypeBuilder.With(builder.ComponentDatas[i].Meta);
+                for (var i = 0; i < builder.Components.Count; i++)
+                    archetypeBuilder.With(builder.Components[i]);
                 archetype = ArchetypeGroup.Create(hash, archetypeBuilder);
             }
 
@@ -56,10 +56,12 @@ namespace FLib.WorldCores
                 }
             }
 
-            for (var i = 0; i < builder.ComponentDatas.Count; i++)
+            for (var i = 0; i < builder.Components.Count; i++)
             {
-                ref readonly var data = ref builder.ComponentDatas[i];
-                data.Invoker?.Invoke(ref *(byte*)chunk.Get(indexInChunk, data.Meta), this, et);
+                var meta = builder.Components[i];
+                ref readonly var info = ref ComponentRegistry.GetInfo(meta);
+                if (!info.IsShared)
+                    info.Lifecycle.InvokeAwake(ref *(byte*)chunk.Get(indexInChunk, meta), this, et);
             }
 
             return et;

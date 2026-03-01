@@ -44,7 +44,7 @@ namespace FLib.WorldCores
         public void SetDyn<T>(Entity et, ref EntityInfo eti, in T component)
         {
             Debug.Assert(!eti.IsDestroying, "entity is destroying");
-            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(typeof(T)));
+            Debug.Assert(!ComponentRegistry.GetInfo(typeof(T)).IsShared);
             var id = ComponentRegistry.GetId<T>();
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup<T>();
@@ -60,7 +60,7 @@ namespace FLib.WorldCores
         public void SetDyn(Entity et, object component, Type componentType)
         {
             componentType ??= component.GetType();
-            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(componentType));
+            Debug.Assert(!ComponentRegistry.GetInfo(componentType).IsShared);
             var id = ComponentRegistry.GetId(componentType);
             ref var eti = ref GetEntityInfo(et);
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);

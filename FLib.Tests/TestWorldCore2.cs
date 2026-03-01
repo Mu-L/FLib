@@ -39,7 +39,5 @@ public class TestWorldCore2
         Assert.Equal(123 * 10, ((Comp2)world.GetAll(et)[0]!).Value);
 
         Assert.ThrowsAny<Exception>(() => world.RemoveEntity(et));
-
-        world.Set(et, new Comp1());
     }
 }

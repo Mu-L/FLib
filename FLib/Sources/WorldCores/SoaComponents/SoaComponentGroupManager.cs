@@ -55,7 +55,7 @@ namespace FLib.WorldCores
         /// </summary>
         public ISoaComponentGroupable CreateGroup(Type componentType)
         {
-            if (typeof(ISharedComponent).IsAssignableFrom(componentType))
+            if (ComponentRegistry.GetInfo(componentType).IsShared)
                 return (ISoaComponentGroupable)TypeAssistant.New(typeof(SharedComponentGroup<>).MakeGenericType(componentType), World);
             if (typeof(IUpdateSystem).IsAssignableFrom(componentType) || typeof(IUpdateStartSystem).IsAssignableFrom(componentType))
                 return (ISoaComponentGroupable)TypeAssistant.New(typeof(UpdateSoaComponentGroup<>).MakeGenericType(componentType), World);

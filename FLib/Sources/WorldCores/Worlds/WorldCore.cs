@@ -156,5 +156,22 @@ namespace FLib.WorldCores
             ArchetypeGroup = null;
             GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void ThrowException(Entity entity, object msg, Exception inner = null)
+        {
+            throw new WorldCoreException(this, entity, msg, inner);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Conditional("DEBUG")]
+        public virtual void Assert(bool conditional, Entity entity = default, object msg = null, Exception inner = null)
+        {
+            if (!conditional) ThrowException(entity, "[world assert failed]" + msg, inner);
+        }
     }
 }

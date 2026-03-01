@@ -8,21 +8,7 @@ namespace FLib.WorldCores
     public ref struct EntityBuilder
     {
         public WorldCore World;
-        internal PooledList<ComponentData> ComponentDatas;
-
-        public readonly struct ComponentData
-        {
-            public readonly ComponentMeta Meta;
-            public readonly bool IsShared;
-            public readonly LifeSystemDelegate Invoker;
-
-            public ComponentData(ComponentMeta meta, bool isShared, LifeSystemDelegate invoker)
-            {
-                Meta = meta;
-                IsShared = isShared;
-                Invoker = invoker;
-            }
-        }
+        internal PooledList<ComponentMeta> Components;
 
         /// <summary>
         /// 
@@ -41,7 +27,7 @@ namespace FLib.WorldCores
             AssertNewComponent(typeof(T));
             var meta = ComponentRegistry.GetMeta<T>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
-            ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<T>.Info.ComponentAwake));
+            Components.Add(meta);
             StaticComponentMask.Set(meta, true);
             return this;
         }
@@ -54,7 +40,7 @@ namespace FLib.WorldCores
             AssertNewComponent(typeof(T));
             var meta = ComponentRegistry.GetMeta<Mng<T>>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
-            ComponentDatas.Add(new ComponentData(meta, false, ComponentGenericMap<Mng<T>>.Info.ComponentAwake));
+            Components.Add(meta);
             StaticComponentMask.Set(meta, true);
             return this;
         }
@@ -66,7 +52,8 @@ namespace FLib.WorldCores
         {
             var meta = ComponentRegistry.GetMeta<T>();
             Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
-            Debug.Assert(!ComponentRegistry.GetInfo<T>().IsHasLifeInvoker, "nonsupport life invoker");
+            Debug.Assert(ComponentRegistry.GetInfo<T>().Lifecycle.IsEmpty, "nonsupport life invoker");
+            Components.Add(meta);
             StaticComponentMask.Set(meta, true);
             return this;
         }
@@ -78,14 +65,14 @@ namespace FLib.WorldCores
         public Entity Build(bool initMemory = true)
         {
             var et = World.CreateEntity(this, StaticComponentMask.HashCode(), initMemory);
-            ComponentDatas.Dispose();
+            Components.Dispose();
             return et;
         }
 
         [Conditional("DEBUG")]
         private static void AssertNewComponent(Type type)
         {
-            Debug.Assert(!typeof(ISharedComponent).IsAssignableFrom(type));
+            Debug.Assert(!ComponentRegistry.GetInfo(type).IsShared);
             Debug.Assert(!typeof(IUpdateSystem).IsAssignableFrom(type));
             Debug.Assert(!typeof(IUpdateStartSystem).IsAssignableFrom(type));
         }

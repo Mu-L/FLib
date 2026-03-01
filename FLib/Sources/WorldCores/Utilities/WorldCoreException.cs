@@ -1,0 +1,25 @@
+﻿// ==================== qcbf@qq.com | 2026-03-01 ====================
+
+using System;
+
+namespace FLib.WorldCores
+{
+    public class WorldCoreException : Exception
+    {
+        public WorldCore World;
+        public Entity Entity;
+
+        public WorldCoreException(WorldCore world, object msg, Exception inner = null) : base(msg.ToString(), inner)
+        {
+            World = world;
+        }
+
+        public WorldCoreException(WorldCore world, Entity entity, object msg, Exception inner = null) : base(msg.ToString(), inner)
+        {
+            World = world;
+            Entity = entity;
+        }
+
+        public override string Message => Entity.IsEmpty ? $"[{World.Frame}]{base.Message}" : $"[{World.Frame}][{Entity.ToString()}]{base.Message}";
+    }
+}

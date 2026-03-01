@@ -2,6 +2,7 @@
 
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -11,19 +12,17 @@ namespace FLib.WorldCores
     {
         public ComponentMeta Meta { get; }
         public readonly Type Type;
-        public readonly LifeSystemDelegate? ComponentAwake;
-        public readonly LifeSystemDelegate? ComponentDestroy;
+        public readonly LifecycleSystemHelper Lifecycle;
         public readonly ComponentOptionAttribute? Options;
-
-        public bool IsHasLifeInvoker => ComponentAwake != null || ComponentDestroy != null;
+        public readonly bool IsShared;
 
         public ComponentInfo(ComponentMeta meta, Type type)
         {
+            IsShared = typeof(ISharedComponent).IsAssignableFrom(type);
             Type = type;
             Meta = meta;
             Options = type.GetCustomAttribute<ComponentOptionAttribute>();
-            ComponentAwake = SystemUtility.CreateDelegate(typeof(IAwakeSystem), type, nameof(IAwakeSystem.Awake));
-            ComponentDestroy = SystemUtility.CreateDelegate(typeof(IDestroySystem), type, nameof(IDestroySystem.Destroy));
+            Lifecycle = new LifecycleSystemHelper(type);
         }
 
         public static implicit operator ComponentMeta(in ComponentInfo info) => info.Meta;
