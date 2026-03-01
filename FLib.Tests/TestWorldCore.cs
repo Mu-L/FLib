@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using FLib.WorldCores;
 using FLib.Worlds;
@@ -83,6 +84,11 @@ public class TestWorldCore
     public void BasicAll()
     {
         var world = new WorldCore();
+
+        var et = world.CreateEntity().Build();
+        Assert.False(world.Has<Player>(et));
+        world.RemoveEntity(et);
+        
         ComponentRegistry.GetMeta<Buff>();
         var player1 = world.CreateEntity().WithMng<Player>().With<Team>().With<Actor>().Build();
         world.SetSta(player1, new Team { Value = 5 });
@@ -105,6 +111,7 @@ public class TestWorldCore
         Assert.Equal("p1", world.GetStaMng<Player>(player1).Val.Name);
         Assert.Null(world.GetStaMng<Player>(player2).Val.Name);
 
+        var v = world.Query<Team>().Select(v => v.Item2.Val.Value).ToArray();
         Assert.Equal([5, 10, 100], world.Query<Team>().Select(v => v.Item2.Val.Value));
         Assert.Equal([5, 10], world.Query<Team>(world.CreateQuery().WithAll<Team>().WithNone<Enemy>()).Select(v => v.Item2.Val.Value));
 

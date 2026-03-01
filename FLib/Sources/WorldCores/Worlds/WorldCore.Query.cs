@@ -1,4 +1,4 @@
-﻿// ==================== qcbf@qq.com | 2026-01-18 ====================
+﻿// ==================== qcbf@qq.com | 2026-03-01 ====================
 
 
 using System.Collections;
@@ -27,7 +27,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>)>
             {
@@ -82,7 +82,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>, Ref<T2>)>
             {
@@ -140,7 +140,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>, Ref<T2>, Ref<T3>)>
             {
@@ -201,7 +201,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)>
             {
@@ -265,7 +265,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)>
             {
@@ -332,7 +332,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().WithAll<T6>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)>
             {
@@ -402,7 +402,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().WithAll<T6>().WithAll<T7>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)>
             {
@@ -475,7 +475,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().WithAll<T6>().WithAll<T7>().WithAll<T8>().Build();
             }
             public struct Enumerable : IEnumerator<(Entity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)>
             {

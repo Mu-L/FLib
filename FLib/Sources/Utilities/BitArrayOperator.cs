@@ -22,7 +22,8 @@ namespace FLib
 
         public static bool GetBit(in Span<ulong> bits, int index)
         {
-            return (bits[index / BitSize] & (0x1ul << (index % BitSize))) > 0;
+            var bitIndex = index / BitSize;
+            return bitIndex < bits.Length && (bits[bitIndex] & (0x1ul << (index % BitSize))) > 0;
         }
 
         public static void SetBit(in Span<ulong> bits, int index, bool value)

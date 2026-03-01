@@ -36,7 +36,7 @@ namespace FLib.WorldCores
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
-                    _filter = new QueryFilterBuilder(world).Build();
+                    _filter = new QueryFilterBuilder(world)<#= T(1, i, "", n => $".WithAll<T{n}>()") #>.Build();
             }
             public struct Enumerable : IEnumerator<(Entity, <#= refComps #>)>
             {

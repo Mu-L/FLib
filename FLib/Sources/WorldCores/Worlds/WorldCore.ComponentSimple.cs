@@ -67,6 +67,9 @@ namespace FLib.WorldCores
         {
             ref var eti = ref GetEntityInfo(et);
             var compId = ComponentGenericMap<T>.Id;
+            if (compId.IsEmpty)
+                return false;
+
             if (eti.HasDynamicComponent && !eti.Chunk.Has<T>())
             {
                 ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
