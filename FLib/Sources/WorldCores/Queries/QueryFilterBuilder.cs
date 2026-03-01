@@ -59,8 +59,8 @@ namespace FLib.WorldCores
         public QueryFilterBuilder WithShared<T>(in T value) where T : ISharedComponent
         {
             var hash = value.GetHashCode();
-            Debug.Assert(hash != 0);
-            Debug.Assert(hash != -1);
+            World.Assert(hash != 0);
+            World.Assert(hash != -1);
             (SharedComponents ??= new List<QuerySharedComponent>())
                 .Add(new QuerySharedComponent(ComponentRegistry.GetId<T>(), hash));
             return this;

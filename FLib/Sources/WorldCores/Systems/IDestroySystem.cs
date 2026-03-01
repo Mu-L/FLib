@@ -18,7 +18,7 @@ namespace FLib.WorldCores
             }
             catch (Exception e)
             {
-                throw new Exception($"{entity} {typeof(T)} {e}");
+                world.ThrowException(null, entity, e);
             }
         }
 

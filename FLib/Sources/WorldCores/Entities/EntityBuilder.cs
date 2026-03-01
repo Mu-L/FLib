@@ -24,9 +24,9 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder With<T>() where T : unmanaged
         {
-            AssertNewComponent(typeof(T));
+            AssertNewComponent(World, typeof(T));
             var meta = ComponentRegistry.GetMeta<T>();
-            Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
+            World.Assert(!StaticComponentMask.Get(meta), msg: "already exist");
             Components.Add(meta);
             StaticComponentMask.Set(meta, true);
             return this;
@@ -37,9 +37,9 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder WithMng<T>()
         {
-            AssertNewComponent(typeof(T));
+            AssertNewComponent(World, typeof(T));
             var meta = ComponentRegistry.GetMeta<Mng<T>>();
-            Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
+            World.Assert(!StaticComponentMask.Get(meta), msg: "already exist");
             Components.Add(meta);
             StaticComponentMask.Set(meta, true);
             return this;
@@ -51,8 +51,8 @@ namespace FLib.WorldCores
         public EntityBuilder WithShared<T>() where T : ISharedComponent
         {
             var meta = ComponentRegistry.GetMeta<T>();
-            Debug.Assert(!StaticComponentMask.Get(meta), "already exist");
-            Debug.Assert(ComponentRegistry.GetInfo<T>().Lifecycle.IsEmpty, "nonsupport life invoker");
+            World.Assert(!StaticComponentMask.Get(meta), msg: "already exist");
+            World.Assert(ComponentRegistry.GetInfo<T>().Lifecycle.IsEmpty, msg: "nonsupport life invoker");
             Components.Add(meta);
             StaticComponentMask.Set(meta, true);
             return this;
@@ -70,11 +70,11 @@ namespace FLib.WorldCores
         }
 
         [Conditional("DEBUG")]
-        private static void AssertNewComponent(Type type)
+        private static void AssertNewComponent(WorldCore world, Type type)
         {
-            Debug.Assert(!ComponentRegistry.GetInfo(type).IsShared);
-            Debug.Assert(!typeof(IUpdateSystem).IsAssignableFrom(type));
-            Debug.Assert(!typeof(IUpdateStartSystem).IsAssignableFrom(type));
+            world.Assert(!ComponentRegistry.GetInfo(type).IsShared);
+            world.Assert(!typeof(IUpdateSystem).IsAssignableFrom(type));
+            world.Assert(!typeof(IUpdateStartSystem).IsAssignableFrom(type));
         }
     }
 }

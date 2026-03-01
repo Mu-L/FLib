@@ -14,7 +14,7 @@ namespace FLib.WorldCores
         public ref T GetDyn<T>(Entity et)
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
-            Debug.Assert(dynIdx >= 0);
+            Assert(dynIdx >= 0);
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[ComponentRegistry.GetId<T>()];
             return ref Soa.GetGroup<T>()[compIdx];
         }
@@ -25,7 +25,7 @@ namespace FLib.WorldCores
         public object GetDyn(Entity et, Type type)
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
-            Debug.Assert(dynIdx >= 0);
+            Assert(dynIdx >= 0);
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[ComponentRegistry.GetId(type)];
             return Soa.GetGroup(type).Components.GetValue(compIdx);
         }
@@ -43,8 +43,8 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn<T>(Entity et, ref EntityInfo eti, in T component)
         {
-            Debug.Assert(!eti.IsDestroying, "entity is destroying");
-            Debug.Assert(!ComponentRegistry.GetInfo(typeof(T)).IsShared);
+            Assert(!eti.IsDestroying, et, "entity is destroying");
+            Assert(!ComponentRegistry.GetInfo(typeof(T)).IsShared, et);
             var id = ComponentRegistry.GetId<T>();
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup<T>();
@@ -60,7 +60,7 @@ namespace FLib.WorldCores
         public void SetDyn(Entity et, object component, Type componentType)
         {
             componentType ??= component.GetType();
-            Debug.Assert(!ComponentRegistry.GetInfo(componentType).IsShared);
+            Assert(!ComponentRegistry.GetInfo(componentType).IsShared, et);
             var id = ComponentRegistry.GetId(componentType);
             ref var eti = ref GetEntityInfo(et);
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
@@ -76,7 +76,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void RemoveDyn<T>(Entity et)
         {
-            Debug.Assert(HasDyn<T>(et));
+            Assert(HasDyn<T>(et), et);
             ref readonly var eti = ref GetEntityInfo(et);
             ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
             var id = ComponentRegistry.GetId<T>().Id;

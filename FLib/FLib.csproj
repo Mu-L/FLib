@@ -44,6 +44,10 @@
           <Generator>TextTemplatingFilePreprocessor</Generator>
           <LastGenOutput>Utility.cs</LastGenOutput>
         </None>
+        <None Update="Sources\WorldCores\Worlds\WorldCore.Get.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>WorldCore.Get.cs</LastGenOutput>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -71,6 +75,9 @@
       </Compile>
       <Compile Update="Sources\WorldCores\Worlds\WorldCore.Query.cs">
         <DependentUpon>WorldCore.Query.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Sources\WorldCores\Worlds\WorldCore.Get.cs">
+        <DependentUpon>WorldCore.Get.tt</DependentUpon>
       </Compile>
     </ItemGroup>
 

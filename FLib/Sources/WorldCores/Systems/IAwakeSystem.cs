@@ -22,7 +22,7 @@ namespace FLib.WorldCores
             }
             catch (Exception e)
             {
-                world.ThrowException(entity, typeof(T), e);
+                world.ThrowException(typeof(T), entity, e);
             }
         }
 
@@ -52,7 +52,7 @@ namespace FLib.WorldCores
                 }
                 catch (Exception e)
                 {
-                    world.ThrowException(entity, exSys.GetType(), e);
+                    world.ThrowException(exSys.GetType(), entity, e);
                 }
             }
         }

@@ -132,7 +132,7 @@ namespace FLib.WorldCores
                     }
                 }
 
-                throw new Exception($"not found exist component id {ComponentRegistry.GetType(sharedComponent.ComponentId)}");
+                World.ThrowException($"not found exist component id {ComponentRegistry.GetType(sharedComponent.ComponentId)}");
                 Found: ;
             }
             else
@@ -231,7 +231,7 @@ namespace FLib.WorldCores
 
                 chunk = SharedChunks[sharedHash] = newChunk;
                 var result = AllChunks.Add(newChunk);
-                Debug.Assert(result);
+                World.Assert(result);
             }
 
             return chunk;

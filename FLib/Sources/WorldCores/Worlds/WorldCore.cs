@@ -160,7 +160,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual void ThrowException(Entity entity, object msg, Exception inner = null)
+        public virtual void ThrowException(object msg, Entity entity = default, Exception inner = null)
         {
             throw new WorldCoreException(this, entity, msg, inner);
         }
@@ -171,7 +171,7 @@ namespace FLib.WorldCores
         [Conditional("DEBUG")]
         public virtual void Assert(bool conditional, Entity entity = default, object msg = null, Exception inner = null)
         {
-            if (!conditional) ThrowException(entity, "[world assert failed]" + msg, inner);
+            if (!conditional) ThrowException("[world assert failed]" + msg, entity, inner);
         }
     }
 }

@@ -12,9 +12,9 @@ namespace FLib.WorldCores
 <#
     for (var i = 2; i <= 8; i++)
     {
-        var genericParams = string.Join(", ", Enumerable.Range(1, i).Select(n => $"T{n}"));
-        var genericWheres = string.Join(" ", Enumerable.Range(1, i).Select(n => $"where T{n} : unmanaged"));
-        var componentsArgs = string.Join(", ", Enumerable.Range(1, i).Select(n => $"new Ref<T{n}>(chunk.Get<T{n}>(idx))"));
+        var genericParams = string.Join(", ", Enumerable.Range(1, i).Select(n => $"T{n}").ToArray());
+        var genericWheres = string.Join(" ", Enumerable.Range(1, i).Select(n => $"where T{n} : unmanaged").ToArray());
+        var componentsArgs = string.Join(", ", Enumerable.Range(1, i).Select(n => $"new Ref<T{n}>(chunk.Get<T{n}>(idx))").ToArray());
 #>
         /// <summary>
         /// 
@@ -22,9 +22,9 @@ namespace FLib.WorldCores
         public Components<<#= genericParams #>> GetSta<<#= genericParams #>>(in Entity et) <#= genericWheres #>
         {
             ref readonly var eti = ref EntityInfos.GetRef(et.Id);
-            Debug.Assert(eti.Version == et.Version, "version error");
+            Assert(eti.Version == et.Version, et, "version error");
             var chunk = eti.Chunk;
-            var idx = eti.ChunkEntityIdx;
+            var idx = eti.IndexInChunk;
             return new Components<<#= genericParams #>>(<#= componentsArgs #>);
         }
 
