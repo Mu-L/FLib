@@ -5,6 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace FLib.WorldCores
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [SkipLocalsInit]
     public readonly struct Entity : IEquatable<Entity>
     {
@@ -19,6 +22,7 @@ namespace FLib.WorldCores
             Version = version;
         }
 
+        public EntityHelper GetHelper(WorldCore world) => new(world, this);
         public bool Equals(Entity other) => this == other;
         public override bool Equals(object obj) => obj is Entity other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(Id, Version);
