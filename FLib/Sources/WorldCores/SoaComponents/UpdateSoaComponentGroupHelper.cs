@@ -26,7 +26,8 @@ namespace FLib.WorldCores
                     continue;
                 }
 
-                group.Components[i].Update(world, et);
+                ref var comp = ref group.Components[i];
+                comp.Update(world, et);
             }
         }
 
@@ -40,13 +41,15 @@ namespace FLib.WorldCores
             foreach (var i in group.StartComponentIndexes)
             {
                 var et = group.ComponentEntities[i];
+                ref var comp = ref group.Components[i];
                 try
                 {
-                    group.Components[i].Start(world, et);
+                    comp.Start(world, et);
+                    ComponentEvents<T>.OnStart?.Invoke(world, et, ref comp);
                 }
                 catch (Exception e)
                 {
-                    Log.Error?.Write($"{et} {group.Components[i]} {e}");
+                    Log.Error?.Write($"{et} {comp} {e}");
                 }
             }
 

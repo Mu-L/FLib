@@ -86,7 +86,7 @@ namespace FLib.WorldCores
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected virtual void InvokeDestroy(in Entity et, int index)
         {
-            ComponentRegistry.GetInfo<T>().Lifecycle.InvokeDestroy(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
+            ComponentRegistry.GetInfo<T>().Destroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace FLib.WorldCores
         {
             ref var first = ref MemoryMarshal.GetArrayDataReference(Components);
             first = ref Unsafe.Add(ref first, index);
-            ComponentRegistry.GetInfo<T>().Lifecycle.InvokeAwake(ref Unsafe.As<T, byte>(ref first), World, et);
+            ComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref first), World, et);
         }
     }
 }

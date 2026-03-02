@@ -52,7 +52,7 @@ namespace FLib.WorldCores
         {
             var meta = ComponentRegistry.GetMeta<T>();
             World.Assert(!StaticComponentMask.Get(meta), msg: "already exist");
-            World.Assert(ComponentRegistry.GetInfo<T>().Lifecycle.IsEmpty, msg: "nonsupport life invoker");
+            World.Assert(!ComponentRegistry.GetInfo<T>().HasLifecycle, msg: "nonsupport life invoker");
             Components.Add(meta);
             StaticComponentMask.Set(meta, true);
             return this;

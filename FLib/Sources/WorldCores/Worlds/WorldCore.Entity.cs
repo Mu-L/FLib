@@ -61,7 +61,7 @@ namespace FLib.WorldCores
                 var meta = builder.Components[i];
                 ref readonly var info = ref ComponentRegistry.GetInfo(meta);
                 if (!info.IsShared)
-                    info.Lifecycle.InvokeAwake(ref *(byte*)chunk.Get(indexInChunk, meta), this, et);
+                    info.Awake?.Invoke(ref *(byte*)chunk.Get(indexInChunk, meta), this, et);
             }
 
             return et;
