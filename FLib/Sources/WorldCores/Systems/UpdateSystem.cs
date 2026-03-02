@@ -29,15 +29,15 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void Register(MethodInfo methodInfo, int priority = 0, object param = null)
+        public void Register(MethodInfo methodInfo, int order = 0, object param = null)
         {
-            Register(methodInfo.CreateDelegate<Action<WorldCore, object>>(), priority, param);
+            Register(methodInfo.CreateDelegate<Action<WorldCore, object>>(), order, param);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Register(Action<WorldCore, object> action, int priority = 0, object param = null)
+        public void Register(Action<WorldCore, object> action, int order = 0, object param = null)
         {
             var index = Count++;
             if (Count >= ModuleActions.Length)
@@ -46,12 +46,12 @@ namespace FLib.WorldCores
                 Array.Resize(ref ModulePriorities, ModuleActions.Length);
             }
 
-            if (index != 0 && priority > ModulePriorities[index])
+            if (index != 0 && order < ModulePriorities[index])
             {
-                index = Array.BinarySearch(ModulePriorities, 0, Count, priority);
+                index = Array.BinarySearch(ModulePriorities, 0, index, order);
                 if (index < 0)
                     index = ~index;
-                for (var i = Count - 1; i >= index; i--)
+                for (var i = Count - 1; i > index; i--)
                 {
                     ModuleActions[i] = ModuleActions[i - 1];
                     ModulePriorities[i] = ModulePriorities[i - 1];
@@ -59,7 +59,7 @@ namespace FLib.WorldCores
             }
 
             ModuleActions[index] = (action, param);
-            ModulePriorities[index] = priority;
+            ModulePriorities[index] = order;
         }
     }
 }

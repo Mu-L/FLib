@@ -16,12 +16,12 @@ namespace FLib.WorldCores
 
         public UpdateSoaComponentGroup(WorldCore world) : base(world)
         {
-            var priority = ComponentRegistry.GetInfo<T>().Options?.Priority ?? 0;
-            world.UpdateSystem.Register(UpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), priority, this);
+            var order = ComponentRegistry.GetInfo<T>().Options?.Order ?? 0;
+            world.UpdateSystem2.Register(UpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), order, this);
             if (typeof(IUpdateStartSystem).IsAssignableFrom(typeof(T)))
             {
                 StartComponentIndexes = new HashSet<int>();
-                world.UpdateStartSystem.Register(UpdateSoaComponentGroupHelper.UpdateStartMethodDefine.MakeGenericMethod(typeof(T)), priority, this);
+                world.UpdateSystem1.Register(UpdateSoaComponentGroupHelper.UpdateStartMethodDefine.MakeGenericMethod(typeof(T)), order, this);
             }
         }
 

@@ -8,18 +8,18 @@ namespace FLib.WorldCores
     public class ComponentOptionAttribute : Attribute
     {
         /// <summary>
-        /// 执行优先级, 越大越先执行。
+        /// 执行顺序, 越大越先执行。
         /// </summary>
-        public readonly short Priority;
+        public readonly short Order;
 
         /// <summary>
         /// 
         /// </summary>
         public readonly EComponentOption Options;
 
-        public ComponentOptionAttribute(short priority = 0, EComponentOption options = EComponentOption.None)
+        public ComponentOptionAttribute(short order = 0, EComponentOption options = EComponentOption.None)
         {
-            Priority = priority;
+            Order = order;
             Options = options;
         }
 
