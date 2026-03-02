@@ -2,7 +2,7 @@
 
 namespace FLib.WorldCores
 {
-    public interface IUpdateSystem
+    public interface ILifecycleUpdate
     {
         void Update(WorldCore world, Entity entity);
     }

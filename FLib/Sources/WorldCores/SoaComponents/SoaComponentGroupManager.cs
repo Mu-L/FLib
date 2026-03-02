@@ -57,7 +57,7 @@ namespace FLib.WorldCores
         {
             if (ComponentRegistry.GetInfo(componentType).IsShared)
                 return (ISoaComponentGroupable)TypeAssistant.New(typeof(SharedComponentGroup<>).MakeGenericType(componentType), World);
-            if (typeof(IUpdateSystem).IsAssignableFrom(componentType) || typeof(IUpdateStartSystem).IsAssignableFrom(componentType))
+            if (typeof(ILifecycleUpdate).IsAssignableFrom(componentType) || typeof(ILifecycleStart).IsAssignableFrom(componentType))
                 return (ISoaComponentGroupable)TypeAssistant.New(typeof(UpdateSoaComponentGroup<>).MakeGenericType(componentType), World);
             return (ISoaComponentGroupable)TypeAssistant.New(typeof(SoaComponentGroup<>).MakeGenericType(componentType!), World);
         }

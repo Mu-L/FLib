@@ -10,17 +10,17 @@ namespace FLib.WorldCores
     /// <summary>
     /// 
     /// </summary>
-    public delegate void LifecycleSystemDelegate(ref byte ptr, WorldCore world, Entity entity);
+    public delegate void LifecycleDelegate(ref byte ptr, WorldCore world, Entity entity);
 
     /// <summary>
     /// 组件自身作为system, 组件自身收到awake的调用
     /// </summary>
-    public interface IAwakeSystem
+    public interface ILifecycleAwake
     {
         /// <summary>
         /// 
         /// </summary>
-        internal static void Awake<T>(ref byte ptr, WorldCore world, Entity entity) where T : IAwakeSystem
+        internal static void Awake<T>(ref byte ptr, WorldCore world, Entity entity) where T : ILifecycleAwake
         {
             try
             {
@@ -37,12 +37,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        internal static LifecycleSystemDelegate? CreateLifecycleSystemDelegate(Type interfaceType, Type type, string name)
+        internal static LifecycleDelegate? CreateLifecycleDelegate(Type interfaceType, Type type, string name)
         {
             if (!interfaceType.IsAssignableFrom(type))
                 return null;
             var mi = interfaceType.GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(type);
-            return mi.CreateDelegate<LifecycleSystemDelegate>();
+            return mi.CreateDelegate<LifecycleDelegate>();
         }
 
 

@@ -6,7 +6,7 @@ namespace FLib.Tests;
 
 public class TestWorldCore2
 {
-    public struct Comp1 : IDestroySystem
+    public struct Comp1 : ILifecycleDestroy
     {
         public int Value;
 
@@ -16,7 +16,7 @@ public class TestWorldCore2
         }
     }
 
-    public struct Comp2 : IDestroySystem
+    public struct Comp2 : ILifecycleDestroy
     {
         public int Value;
 

@@ -17,11 +17,11 @@ namespace FLib.WorldCores
         public UpdateSoaComponentGroup(WorldCore world) : base(world)
         {
             var order = ComponentRegistry.GetInfo<T>().Options?.Order ?? 0;
-            world.UpdateSystem2.Register(UpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), order, this);
-            if (typeof(IUpdateStartSystem).IsAssignableFrom(typeof(T)))
+            world.Update2.Register(UpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), order, this);
+            if (typeof(ILifecycleStart).IsAssignableFrom(typeof(T)))
             {
                 StartComponentIndexes = new HashSet<int>();
-                world.UpdateSystem1.Register(UpdateSoaComponentGroupHelper.UpdateStartMethodDefine.MakeGenericMethod(typeof(T)), order, this);
+                world.Update1.Register(UpdateSoaComponentGroupHelper.UpdateStartMethodDefine.MakeGenericMethod(typeof(T)), order, this);
             }
         }
 

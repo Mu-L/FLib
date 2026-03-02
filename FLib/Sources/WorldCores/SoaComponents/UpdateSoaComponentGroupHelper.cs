@@ -13,7 +13,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static void Update<T>(WorldCore world, object arg) where T : IUpdateSystem
+        public static void Update<T>(WorldCore world, object arg) where T : ILifecycleUpdate
         {
             var group = (UpdateSoaComponentGroup<T>)arg;
             var offset = 0;
@@ -34,7 +34,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static void UpdateStart<T>(WorldCore world, object arg) where T : IUpdateStartSystem
+        public static void UpdateStart<T>(WorldCore world, object arg) where T : ILifecycleStart
         {
             var group = (UpdateSoaComponentGroup<T>)arg;
 

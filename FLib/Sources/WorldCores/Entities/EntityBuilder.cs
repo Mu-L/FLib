@@ -73,8 +73,8 @@ namespace FLib.WorldCores
         private static void AssertNewComponent(WorldCore world, Type type)
         {
             world.Assert(!ComponentRegistry.GetInfo(type).IsShared);
-            world.Assert(!typeof(IUpdateSystem).IsAssignableFrom(type));
-            world.Assert(!typeof(IUpdateStartSystem).IsAssignableFrom(type));
+            world.Assert(!typeof(ILifecycleUpdate).IsAssignableFrom(type));
+            world.Assert(!typeof(ILifecycleStart).IsAssignableFrom(type));
         }
     }
 }

@@ -7,12 +7,11 @@ using FLib.Worlds;
 
 namespace FLib.WorldCores
 {
-    public sealed class UpdateSystem
+    public sealed class WorldUpdater
     {
         public (Action<WorldCore, object>, object)[] ModuleActions = new (Action<WorldCore, object>, object)[64];
         public int[] ModulePriorities = new int[64];
-
-        public int Count { get; private set; }
+        public int Count;
 
         /// <summary>
         /// 

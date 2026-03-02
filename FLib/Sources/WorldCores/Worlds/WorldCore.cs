@@ -35,12 +35,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public UpdateSystem UpdateSystem1;
+        public WorldUpdater Update1;
 
         /// <summary>
         /// 
         /// </summary>
-        public UpdateSystem UpdateSystem2;
+        public WorldUpdater Update2;
 
         /// <summary>
         /// 
@@ -64,8 +64,8 @@ namespace FLib.WorldCores
         /// </summary>
         public WorldCore(int entityCapacity = 1024)
         {
-            UpdateSystem2 = new UpdateSystem();
-            UpdateSystem1 = new UpdateSystem();
+            Update2 = new WorldUpdater();
+            Update1 = new WorldUpdater();
             ArchetypeGroup = new ArchetypeGroup(this);
             Soa = new SoaComponentGroupManager(this);
             EntityInfos = new FixedIndexList<EntityInfo>(entityCapacity);
@@ -115,8 +115,8 @@ namespace FLib.WorldCores
         public void Update()
         {
             ++Frame;
-            UpdateSystem1.Update(this);
-            UpdateSystem2.Update(this);
+            Update1.Update(this);
+            Update2.Update(this);
         }
 
         /// <summary>

@@ -2,7 +2,7 @@
 
 namespace FLib.WorldCores
 {
-    public struct Mng<T> : IAwakeSystem, IDestroySystem
+    public struct Mng<T> : ILifecycleAwake, ILifecycleDestroy
     {
         /// <summary>
         /// 略微感觉做法有点糙, 但又没想出是否要单独写个分页对象储存池,感觉好像又没太大必要, 暂时先这样实现

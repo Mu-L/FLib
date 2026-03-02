@@ -5,12 +5,12 @@ using System.Runtime.CompilerServices;
 
 namespace FLib.WorldCores
 {
-    public interface IDestroySystem
+    public interface ILifecycleDestroy
     {
         /// <summary>
         /// 
         /// </summary>
-        internal static void Destroy<T>(ref byte ptr, WorldCore world, Entity entity) where T : IDestroySystem
+        internal static void Destroy<T>(ref byte ptr, WorldCore world, Entity entity) where T : ILifecycleDestroy
         {
             try
             {

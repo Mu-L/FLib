@@ -12,8 +12,8 @@ namespace FLib.WorldCores
     {
         public ComponentMeta Meta { get; }
         public readonly Type Type;
-        public readonly LifecycleSystemDelegate? Awake;
-        public readonly LifecycleSystemDelegate? Destroy;
+        public readonly LifecycleDelegate? Awake;
+        public readonly LifecycleDelegate? Destroy;
         public readonly ComponentOptionAttribute? Options;
         public readonly bool IsShared;
 
@@ -25,8 +25,8 @@ namespace FLib.WorldCores
             Type = type;
             Meta = meta;
             Options = type.GetCustomAttribute<ComponentOptionAttribute>();
-            Awake = IAwakeSystem.CreateLifecycleSystemDelegate(typeof(IAwakeSystem), type, nameof(IAwakeSystem.Awake));
-            Destroy = IAwakeSystem.CreateLifecycleSystemDelegate(typeof(IDestroySystem), type, nameof(IDestroySystem.Destroy));
+            Awake = ILifecycleAwake.CreateLifecycleDelegate(typeof(ILifecycleAwake), type, nameof(ILifecycleAwake.Awake));
+            Destroy = ILifecycleAwake.CreateLifecycleDelegate(typeof(ILifecycleDestroy), type, nameof(ILifecycleDestroy.Destroy));
         }
 
         public static implicit operator ComponentMeta(in ComponentInfo info) => info.Meta;
