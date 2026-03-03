@@ -1,5 +1,7 @@
 // ==================== qcbf@qq.com | 2026-01-10 ====================
 
+using System;
+
 namespace FLib.WorldCores
 {
     public struct Mng<T> : ILifecycleAwake, ILifecycleDestroy
@@ -7,7 +9,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 略微感觉做法有点糙, 但又没想出是否要单独写个分页对象储存池,感觉好像又没太大必要, 暂时先这样实现
         /// </summary>
-        private static FixedIndexList<T> _objects;
+        [ThreadStatic] private static FixedIndexList<T> _objects;
 
         private int _index;
 

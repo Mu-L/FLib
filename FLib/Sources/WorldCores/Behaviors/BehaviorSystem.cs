@@ -8,8 +8,8 @@ namespace FLib.WorldCores.Behaviors
 {
     public struct BehaviorSystem : ILifecycleAwake
     {
-        public static BehaviorScript[] AllScripts;
-        public Dictionary<Type, ConcurrentStack<BehaviorScript>> FreeScripts;
+        public static Behavior[] AllScripts;
+        public static Dictionary<Type, ConcurrentStack<Behavior>> FreeScripts;
 
         public uint Mask;
         public int PrimaryIndex;
@@ -24,11 +24,23 @@ namespace FLib.WorldCores.Behaviors
 
         public void Do(Type behaviorType)
         {
+            Behavior bhv;
+            if (FreeScripts?.TryGetValue(behaviorType, out var frees) != true || !frees.TryPop(out bhv))
+                bhv = (Behavior)TypeAssistant.New(behaviorType);
         }
-
 
         public void Stop(int index)
         {
+        }
+
+        public readonly bool IsRunning(uint mask)
+        {
+            return true;
+        }
+
+        public readonly bool IsRunning(Type behaviorType)
+        {
+            return true;
         }
     }
 }
