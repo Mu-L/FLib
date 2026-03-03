@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace FLib.WorldCores
 {
@@ -15,7 +16,20 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public ArchetypeGroup ArchetypeGroup;
+        public static FixedIndexList<WorldCore> AllWorlds;
+
+        private static ushort _worldVersionIncrement;
+        private static SpinLock _locker;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public WorldHandle Handle;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly ArchetypeGroup ArchetypeGroup;
 
         /// <summary>
         /// 
@@ -57,7 +71,7 @@ namespace FLib.WorldCores
         /// </summary>
         internal ushort GenVersion() => unchecked(++VersionIncrement == 0 ? ++VersionIncrement : VersionIncrement);
 
-        public bool IsDisposed => ArchetypeGroup == null;
+        public bool IsDisposed => Handle.IsEmpty;
 
         /// <summary>
         /// 
@@ -70,6 +84,22 @@ namespace FLib.WorldCores
             Soa = new SoaComponentGroupManager(this);
             EntityInfos = new FixedIndexList<EntityInfo>(entityCapacity);
             DynamicComponentSparse = new(entityCapacity >> 1);
+
+            var isLocking = false;
+            _locker.Enter(ref isLocking);
+            try
+            {
+                while (++_worldVersionIncrement == 0)
+                {
+                }
+
+                Handle = new WorldHandle(checked((ushort)AllWorlds.Add(this)), _worldVersionIncrement);
+            }
+            finally
+            {
+                if (isLocking)
+                    _locker.Exit(false);
+            }
         }
 
         /// <summary>
@@ -153,7 +183,19 @@ namespace FLib.WorldCores
             for (var i = 0; i < DynamicComponentSparse.Count; i++)
                 DynamicComponentSparse[i].Dispose();
 
-            ArchetypeGroup = null;
+            var isLocking = false;
+            _locker.Enter(ref isLocking);
+            try
+            {
+                AllWorlds.RemoveAt(Handle.Index);
+                Handle = default;
+            }
+            finally
+            {
+                if (isLocking)
+                    _locker.Exit(false);
+            }
+
             GC.SuppressFinalize(this);
         }
 
@@ -173,5 +215,10 @@ namespace FLib.WorldCores
         {
             if (!conditional) ThrowException("[world assert failed]" + msg, entity, inner);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static implicit operator WorldHandle(WorldCore world) => world.Handle;
     }
 }

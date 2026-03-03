@@ -10,14 +10,15 @@ namespace FLib.WorldCores
     /// </summary>
     public readonly struct EntityHelper
     {
-        public readonly WorldCore World;
+        public readonly WorldHandle WorldHandle;
         public readonly Entity Entity;
-        public bool IsEmpty => World == null || Entity.IsEmpty;
+        public WorldCore World => WorldHandle.World;
+        public bool IsEmpty => Entity.IsEmpty || WorldHandle.IsEmpty;
         public override string ToString() => Entity.ToString();
 
-        public EntityHelper(WorldCore world, Entity entity)
+        public EntityHelper(WorldHandle world, Entity entity)
         {
-            World = world;
+            WorldHandle = world;
             Entity = entity;
         }
 
