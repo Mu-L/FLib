@@ -154,6 +154,157 @@ namespace FLib.WorldCores
 
         #endregion
 
+        #region Events
+
+        /// <summary>
+        /// 分发事件（后处理）。
+        /// </summary>
+#if UNITY_2021_1_OR_NEWER
+        [UnityEngine.HideInCallstack]
+#endif
+        public void DispatchEvent<T>(in T evtData, object dispatcher = null)
+            => World.Entities.DispatchEvent(Entity.Id)?.DispatchEvent(evtData, dispatcher);
+
+        /// <summary>
+        /// 按 ID 分发事件（后处理）。
+        /// </summary>
+#if UNITY_2021_1_OR_NEWER
+        [UnityEngine.HideInCallstack]
+#endif
+        public void DispatchEventById<T>(int evtId, in T evtData, object dispatcher = null)
+            => World.Entities.DispatchEvent(Entity.Id)?.DispatchEventById(evtId, evtData, dispatcher);
+
+        /// <summary>
+        /// 按 ID 分发空事件（后处理）。
+        /// </summary>
+#if UNITY_2021_1_OR_NEWER
+        [UnityEngine.HideInCallstack]
+#endif
+        public void DispatchEventById(int evtId, object dispatcher = null)
+            => World.Entities.DispatchEvent(Entity.Id)?.DispatchEventById(evtId, dispatcher);
+
+        /// <summary>
+        /// 分发前置事件，返回是否继续执行。
+        /// </summary>
+        /// <returns>is continuing run</returns>
+#if UNITY_2021_1_OR_NEWER
+        [UnityEngine.HideInCallstack]
+#endif
+        public bool DispatchPreEvent<T>(ref T evtData, object dispatcher = null)
+            => World.Entities.DispatchEvent(Entity.Id)?.DispatchPreEvent(ref evtData, dispatcher) != false;
+
+        /// <summary>
+        /// 按 ID 分发前置事件，返回是否继续执行。
+        /// </summary>
+        /// <returns>is continuing run</returns>
+#if UNITY_2021_1_OR_NEWER
+        [UnityEngine.HideInCallstack]
+#endif
+        public bool DispatchPreEventById<T>(int evtId, ref T evtData, object dispatcher = null)
+            => World.Entities.DispatchEvent(Entity.Id)?.DispatchPreEventById(evtId, ref evtData, dispatcher) != false;
+
+        /// <summary>
+        /// 按 ID 分发前置空事件，返回是否继续执行。
+        /// </summary>
+        /// <returns>is continuing run</returns>
+#if UNITY_2021_1_OR_NEWER
+        [UnityEngine.HideInCallstack]
+#endif
+        public bool DispatchPreEventById(int evtId, object dispatcher = null)
+            => World.Entities.DispatchEvent(Entity.Id)?.DispatchPreEventById(evtId, dispatcher) != false;
+
+        /// <summary>
+        /// 监听事件（后处理）。
+        /// </summary>
+        public FEventListenHelper<T> ListenEvent<T>(FEvent.PostEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+            => World.Entities.Event(Entity.Id).ListenEvent(handler, priority, isListenOnce);
+
+        /// <summary>
+        /// 监听事件（后处理），指定事件 ID。
+        /// </summary>
+        public FEventListenHelper<T> ListenEvent<T>(int evtId, FEvent.PostEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+            => World.Entities.Event(Entity.Id).ListenEvent(evtId, handler, priority, isListenOnce);
+
+        /// <summary>
+        /// 监听空事件（后处理）。
+        /// </summary>
+        public FEventListenHelper<object> ListenEvent(int evtId, FEvent.PostEventHandler<object> handler, short priority = 0, bool isListenOnce = false)
+            => World.Entities.Event(Entity.Id).ListenEvent(evtId, handler, priority, isListenOnce);
+
+        /// <summary>
+        /// 监听前置事件。
+        /// </summary>
+        public void ListenPreEvent<T>(FEvent.PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+            => World.Entities.Event(Entity.Id).ListenPreEvent(handler, priority, isListenOnce);
+
+        /// <summary>
+        /// 监听前置事件，指定事件 ID。
+        /// </summary>
+        public void ListenPreEvent<T>(int evtId, FEvent.PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+            => World.Entities.Event(Entity.Id).ListenPreEvent(evtId, handler, priority, isListenOnce);
+
+        /// <summary>
+        /// 监听空前置事件。
+        /// </summary>
+        public void ListenPreEvent(int evtId, FEvent.PreEventHandler<object> handler, short priority = 0, bool isListenOnce = false)
+            => World.Entities.Event(Entity.Id).ListenPreEvent(evtId, handler, priority, isListenOnce);
+
+        /// <summary>
+        /// 取消监听事件。
+        /// </summary>
+        public void UnlistenEvent<T>(FEvent.PostEventHandler<T> handler)
+            => World.Entities.Event(Entity.Id).UnlistenEvent(handler);
+
+        /// <summary>
+        /// 取消监听前置事件。
+        /// </summary>
+        public void UnlistenEvent<T>(FEvent.PreEventHandler<T> handler)
+            => World.Entities.Event(Entity.Id).UnlistenEvent(handler);
+
+        /// <summary>
+        /// 取消监听指定 ID 的事件。
+        /// </summary>
+        public void UnlistenEvent<T>(int evtId, FEvent.PostEventHandler<T> handler)
+            => World.Entities.Event(Entity.Id).UnlistenEvent(evtId, handler);
+
+        /// <summary>
+        /// 取消监听指定 ID 的前置事件。
+        /// </summary>
+        public void UnlistenEvent<T>(int evtId, FEvent.PreEventHandler<T> handler)
+            => World.Entities.Event(Entity.Id).UnlistenEvent(evtId, handler);
+
+        /// <summary>
+        /// 检查是否已监听事件。
+        /// </summary>
+        public bool IsListenEvent<T>(FEvent.PostEventHandler<T> handler)
+            => World.Entities.DispatchEvent(Entity.Id)?.IsListenEvent(handler) == true;
+
+        /// <summary>
+        /// 检查是否已监听前置事件。
+        /// </summary>
+        public bool IsListenEvent<T>(FEvent.PreEventHandler<T> handler)
+            => World.Entities.DispatchEvent(Entity.Id)?.IsListenEvent(handler) == true;
+
+        /// <summary>
+        /// 检查是否已监听指定 ID 的事件。
+        /// </summary>
+        public bool IsListenEvent<T>(int evtId, FEvent.PostEventHandler<T> handler)
+            => World.Entities.DispatchEvent(Entity.Id)?.IsListenEvent(evtId, handler) == true;
+
+        /// <summary>
+        /// 检查是否已监听指定 ID 的前置事件。
+        /// </summary>
+        public bool IsListenEvent<T>(int evtId, FEvent.PreEventHandler<T> handler)
+            => World.Entities.DispatchEvent(Entity.Id)?.IsListenEvent(evtId, handler) == true;
+
+        /// <summary>
+        /// 清空所有事件监听。
+        /// </summary>
+        public void ClearListenEvents()
+            => World.Entities.Event(Entity.Id).ClearListenEvents();
+
+        #endregion
+
 
         public static implicit operator Entity(in EntityHelper helper) => helper.Entity;
         public static implicit operator WorldCore(in EntityHelper helper) => helper.World;

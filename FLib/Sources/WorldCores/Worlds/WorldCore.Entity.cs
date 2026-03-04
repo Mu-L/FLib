@@ -15,7 +15,7 @@ namespace FLib.WorldCores
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref EntityInfo GetEntityInfoOrEmpty(in Entity et)
         {
-            ref var eti = ref EntityInfos.GetRef(et.Id);
+            ref var eti = ref Entities[et.Id];
             if (eti.Version != et.Version)
                 return ref EntityInfo.Empty;
             return ref eti;
@@ -27,7 +27,7 @@ namespace FLib.WorldCores
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref EntityInfo GetEntityInfo(in Entity et)
         {
-            ref var eti = ref EntityInfos.GetRef(et.Id);
+            ref var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, msg: "version error");
             return ref eti;
         }
@@ -87,7 +87,7 @@ namespace FLib.WorldCores
             }
 
             ArchetypeGroup[eti.ArchetypeIndex].RemoveEntity(eti);
-            EntityInfos.RemoveAt(et.Id);
+            Entities.Remove(et.Id);
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace FLib.WorldCores
         /// </summary>
         public bool HasEntity(Entity et)
         {
-            return !et.IsEmpty && EntityInfos.Count > et.Id && EntityInfos.GetRef(et.Id).Version == et.Version;
+            return !et.IsEmpty && Entities.Count > et.Id && Entities[et.Id].Version == et.Version;
         }
 
         /// <summary>
@@ -104,8 +104,8 @@ namespace FLib.WorldCores
         public bool HasEntityAndNotDestroying(Entity et)
         {
             if (et.IsEmpty) return false;
-            if (EntityInfos.Count <= et.Id) return false;
-            ref readonly var eti = ref EntityInfos.GetRef(et.Id);
+            if (Entities.Count <= et.Id) return false;
+            ref readonly var eti = ref Entities[et.Id];
             return eti.Version == et.Version && !eti.IsDestroying;
         }
 

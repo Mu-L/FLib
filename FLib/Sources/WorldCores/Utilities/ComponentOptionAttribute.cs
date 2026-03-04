@@ -22,8 +22,6 @@ namespace FLib.WorldCores
             Order = order;
             Options = options;
         }
-
-        public bool Op(EComponentOption option) => (Options & option) == option;
     }
 
     [Flags]
@@ -31,6 +29,7 @@ namespace FLib.WorldCores
     {
         None,
         DoNotResetMemory = 0x1,
-        // InvokeOnEntityDestroy = 0x2,
+        RejectSoa = 0x2,
+        RejectChunk = 0x4,
     }
 }

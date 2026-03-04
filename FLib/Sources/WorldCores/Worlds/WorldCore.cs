@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using FLib.WorldCores.Behaviors;
 
 namespace FLib.WorldCores
 {
@@ -44,7 +45,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public FixedIndexList<EntityInfo> EntityInfos;
+        public EntityContainer Entities;
 
         /// <summary>
         /// 
@@ -82,7 +83,7 @@ namespace FLib.WorldCores
             Update1 = new WorldUpdater();
             ArchetypeGroup = new ArchetypeGroup(this);
             Soa = new SoaComponentGroupManager(this);
-            EntityInfos = new FixedIndexList<EntityInfo>(entityCapacity);
+            Entities = new EntityContainer(entityCapacity);
             DynamicComponentSparse = new(entityCapacity >> 1);
 
             var isLocking = false;
@@ -112,12 +113,12 @@ namespace FLib.WorldCores
         /// </summary>
         public IEnumerator<Entity> GetEnumerator()
         {
-            var count = EntityInfos.Count;
+            var count = Entities.Count;
             for (ushort i = 0; count > 0; i++)
             {
-                if (EntityInfos[i].IsEmpty) continue;
+                if (Entities[i].IsEmpty) continue;
                 --count;
-                yield return new Entity(i, EntityInfos[i].Version);
+                yield return new Entity(i, Entities[i].Version);
             }
         }
 
@@ -134,7 +135,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public EntityBuilder CreateEntity()
+        public EntityBuilder BuildEntity()
         {
             return new EntityBuilder(this);
         }

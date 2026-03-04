@@ -29,6 +29,8 @@ namespace FLib.WorldCores
             Destroy = ILifecycleAwake.CreateLifecycleDelegate(typeof(ILifecycleDestroy), type, nameof(ILifecycleDestroy.Destroy));
         }
 
+        public bool Op(EComponentOption option) => Options != null && (Options.Options & option) == option;
+
         public static implicit operator ComponentMeta(in ComponentInfo info) => info.Meta;
     }
 }

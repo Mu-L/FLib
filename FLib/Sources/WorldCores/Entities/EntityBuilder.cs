@@ -72,7 +72,9 @@ namespace FLib.WorldCores
         [Conditional("DEBUG")]
         private static void AssertNewComponent(WorldCore world, Type type)
         {
-            world.Assert(!ComponentRegistry.GetInfo(type).IsShared);
+            ref readonly var info = ref ComponentRegistry.GetInfo(type);
+            world.Assert(!info.Op(EComponentOption.RejectChunk));
+            world.Assert(!info.IsShared);
             world.Assert(!typeof(ILifecycleUpdate).IsAssignableFrom(type));
             world.Assert(!typeof(ILifecycleStart).IsAssignableFrom(type));
         }

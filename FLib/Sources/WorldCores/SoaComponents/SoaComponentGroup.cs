@@ -72,7 +72,7 @@ namespace FLib.WorldCores
             }
             finally
             {
-                if (ComponentGenericMap<T>.Info.Options?.Op(EComponentOption.DoNotResetMemory) != true)
+                if (!ComponentGenericMap<T>.Info.Op(EComponentOption.DoNotResetMemory))
                     Components[index] = default;
                 --Count;
                 if (index < Count)

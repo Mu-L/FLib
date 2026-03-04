@@ -92,8 +92,7 @@ namespace FLib.WorldCores
             var chunk = GetChunk(sharedComponents);
             var chunkEntityIndex = chunk.Count++;
             entityInfo = new EntityInfo(World.GenVersion(), Index, chunkEntityIndex, chunk);
-            var id = checked((ushort)World.EntityInfos.Add(entityInfo));
-            return *chunk.GetEntity(entityInfo.IndexInChunk) = new Entity(id, entityInfo.Version);
+            return *chunk.GetEntity(entityInfo.IndexInChunk) = new Entity(World.Entities.Add(entityInfo), entityInfo.Version);
         }
 
         /// <summary>
