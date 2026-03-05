@@ -93,31 +93,27 @@ namespace FLib.WorldCores.Behaviors
             }
 
             bhv.Priority = bhv.GetPriority();
-            var stopId = -1;
+            ref var slot = ref PrimaryId;
+            var isStopPrimary = false;
+            var isStopSecondary = false;
 
-            if (HasPrimary)
+            var primary = Primary;
+            if (primary != null)
             {
-                var primary = Primary!;
-                if (primary!.CheckPriority(bhv))
+                if (primary.CheckPriority(bhv))
                 {
-                    PrimaryId = bhv.Id;
-                    Mask = Mask & ~primary.Mask | bhv.Mask;
-                    var secondary = Secondary!;
-                    if (HasSecondary && !bhv.CheckFriend(secondary))
-                    {
-                        Mask &= ~secondary.Mask;
-                        stopId = SecondaryId;
-                        SecondaryId = -1;
-                    }
+                    isStopPrimary = true;
+                    var secondary = Secondary;
+                    isStopSecondary = secondary != null && !bhv.CheckFriend(secondary);
                 }
                 else if (primary.CheckFriend(bhv))
                 {
-                    var secondary = Secondary!;
-                    if (HasSecondary && secondary.CheckPriority(bhv))
+                    var secondary = Secondary;
+                    var hasSecondary = secondary != null;
+                    if (!hasSecondary || secondary!.CheckPriority(bhv))
                     {
-                        Mask &= ~secondary.Mask;
-                        stopId = PrimaryId;
-                        SecondaryId = bhv.Id;
+                        slot = ref SecondaryId;
+                        isStopSecondary = hasSecondary;
                     }
                 }
                 else
@@ -126,17 +122,25 @@ namespace FLib.WorldCores.Behaviors
                     return false;
                 }
             }
-            else
-            {
-                PrimaryId = bhv.Id;
-            }
 
+            if (isStopSecondary)
+                StopSecondary();
+            if (isStopPrimary)
+                StopPrimary();
+
+            slot = bhv.Id;
             Awake(bhv, evt);
 
-            if (stopId >= 0)
-                Stop(stopId);
-
             return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void StopAll()
+        {
+            StopSecondary();
+            StopPrimary();
         }
 
         /// <summary>
@@ -245,9 +249,8 @@ namespace FLib.WorldCores.Behaviors
         {
             e.Behavior = bhv;
             e.IsFirst = isFirst;
-            return bhv.CheckDo() && Self.DispatchPreEventById(0, ref e) && Self.DispatchPreEvent(ref e);
+            return bhv.CheckDo() && Self.DispatchPreEvent(ref e);
         }
-
 
         /// <summary>
         /// 
@@ -255,17 +258,11 @@ namespace FLib.WorldCores.Behaviors
         private void Stop(ref int id)
         {
             Mask &= ~BehaviorPool.Behaviors[id].Mask;
-            var tempId = id;
+            var isPrimary = id == PrimaryId;
+            var bhv = BehaviorPool.Behaviors[id];
             id = -1;
-            Stop(tempId);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private static void Stop(int id)
-        {
-            BehaviorPool.Free(BehaviorPool.Behaviors[id]);
+            Self.DispatchEvent(new StopBehaviorEvent(ref this, bhv, isPrimary));
+            BehaviorPool.Free(bhv);
         }
     }
 }
