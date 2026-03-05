@@ -31,113 +31,241 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 
         /// </summary>
-        public Behavior? Do(Type behaviorType)
-        {
-            if (Primary?.GetType() == behaviorType)
-            {
-                return !Primary.CheckDo(this) ? null : Primary;
-            }
-
-            if (Secondary?.GetType() == behaviorType)
-            {
-                return !Secondary.CheckDo(this) ? null : Secondary;
-            }
-
-            var bhv = BehaviorPool.Rent(behaviorType);
-
-
-            return bhv;
-        }
+        public bool Do<TBehavior, TParam>(in TParam param) where TBehavior : Behavior
+            => Do(typeof(TBehavior), param);
 
         /// <summary>
         /// 
         /// </summary>
         public bool Do<T>(Type behaviorType, in T param)
         {
-            Behavior<T> bhv;
+            Behavior<T>.NewParam = param;
+            return Do(behaviorType);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool Do<T>() where T : Behavior
+            => Do(typeof(T));
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public unsafe bool Do(Type behaviorType)
+        {
+            var evt = new DoBehaviorEvent { SystemPtr = (BehaviorSystem*)Unsafe.AsPointer(ref this) };
+            Behavior bhv;
             if (Primary?.GetType() == behaviorType)
             {
-                bhv = (Behavior<T>)Primary;
-                if (!bhv.CheckDo(this, param))
+                if (!CheckDo(ref evt, bhv = Primary, false))
                     return false;
+                Awake(bhv, evt);
             }
             else if (Secondary?.GetType() == behaviorType)
             {
-                bhv = (Behavior<T>)Secondary;
-                if (!bhv.CheckDo(this, param))
+                if (!CheckDo(ref evt, bhv = Secondary, false))
                     return false;
+                Awake(bhv, evt);
             }
             else
             {
-                bhv = (Behavior<T>)BehaviorPool.Rent(behaviorType);
-                if (!bhv.CheckDo(this, param))
-                {
-                    BehaviorPool.Free(bhv);
+                if (!DoNewBehavior(behaviorType, evt))
                     return false;
-                }
-
-                if (HasPrimary)
-                {
-                    var priority = bhv.GetPriority(this, param);
-                    if (Primary!.CheckPriority(priority, bhv))
-                    {
-                        PrimaryId = bhv.Id;
-                        if (HasSecondary && !bhv.CheckFriend(Secondary))
-                        {
-                            // stop secondary
-                        }
-                    }
-                    else if (Primary.CheckFriend(bhv))
-                    {
-                        if (HasSecondary && Secondary!.CheckPriority(priority, bhv))
-                        {
-                            SecondaryId = bhv.Id;
-                            // stop secondary
-                        }
-                    }
-                    else
-                    {
-                        BehaviorPool.Free(bhv);
-                        return false;
-                    }
-                }
-                else
-                {
-                    PrimaryId = bhv.Id;
-                }
             }
-            
+
             return true;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Do(Behavior behavior)
+        private unsafe bool DoNewBehavior(Type behaviorType, DoBehaviorEvent evt)
         {
+            var bhv = BehaviorPool.Rent(behaviorType);
+            bhv.SystemPtr = (BehaviorSystem*)Unsafe.AsPointer(ref this);
+            bhv.StartFrame = World.Frame;
+
+            if (!CheckDo(ref evt, bhv, true))
+            {
+                BehaviorPool.Free(bhv);
+                return false;
+            }
+
+            bhv.Priority = bhv.GetPriority();
+            var stopId = -1;
+
+            if (HasPrimary)
+            {
+                var primary = Primary!;
+                if (primary!.CheckPriority(bhv))
+                {
+                    PrimaryId = bhv.Id;
+                    Mask = Mask & ~primary.Mask | bhv.Mask;
+                    var secondary = Secondary!;
+                    if (HasSecondary && !bhv.CheckFriend(secondary))
+                    {
+                        Mask &= ~secondary.Mask;
+                        stopId = SecondaryId;
+                        SecondaryId = -1;
+                    }
+                }
+                else if (primary.CheckFriend(bhv))
+                {
+                    var secondary = Secondary!;
+                    if (HasSecondary && secondary.CheckPriority(bhv))
+                    {
+                        Mask &= ~secondary.Mask;
+                        stopId = PrimaryId;
+                        SecondaryId = bhv.Id;
+                    }
+                }
+                else
+                {
+                    BehaviorPool.Free(bhv);
+                    return false;
+                }
+            }
+            else
+            {
+                PrimaryId = bhv.Id;
+            }
+
+            Awake(bhv, evt);
+
+            if (stopId >= 0)
+                Stop(stopId);
+
+            return true;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Stop(int id)
+        public bool StopPrimary()
         {
+            if (HasPrimary)
+            {
+                Stop(ref PrimaryId);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool StopSecondary()
+        {
+            if (HasSecondary)
+            {
+                Stop(ref SecondaryId);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool Stop<T>() where T : Behavior
+        {
+            if (Primary is T)
+            {
+                Stop(ref PrimaryId);
+                return true;
+            }
+
+            if (Secondary is T)
+            {
+                Stop(ref SecondaryId);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool Stop(Type behaviorType)
+        {
+            if (Primary?.GetType() == behaviorType)
+            {
+                Stop(ref PrimaryId);
+                return true;
+            }
+
+            if (Secondary?.GetType() == behaviorType)
+            {
+                Stop(ref SecondaryId);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
         /// 
         /// </summary>
         public readonly bool IsRunning(uint mask)
-        {
-            return (Mask & mask) == mask;
-        }
+            => (Mask & mask) == mask;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly bool IsRunning<T>() where T : Behavior
+            => Primary is T || Secondary is T;
 
         /// <summary>
         /// 
         /// </summary>
         public readonly bool IsRunning(Type behaviorType)
+            => Primary?.GetType() == behaviorType || Secondary?.GetType() == behaviorType;
+
+
+        // ===== privates =====
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Awake(Behavior bhv, in DoBehaviorEvent evt)
         {
-            return true;
+            (bhv as IBehaviorParamable)?.InitializeParam();
+            bhv.Awake(evt.IsFirst);
+            Self.DispatchEvent(evt);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private bool CheckDo(ref DoBehaviorEvent e, Behavior bhv, bool isFirst)
+        {
+            e.Behavior = bhv;
+            e.IsFirst = isFirst;
+            return bhv.CheckDo() && Self.DispatchPreEventById(0, ref e) && Self.DispatchPreEvent(ref e);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Stop(ref int id)
+        {
+            Mask &= ~BehaviorPool.Behaviors[id].Mask;
+            var tempId = id;
+            id = -1;
+            Stop(tempId);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void Stop(int id)
+        {
+            BehaviorPool.Free(BehaviorPool.Behaviors[id]);
         }
     }
 }

@@ -12,7 +12,9 @@ namespace FLib.WorldCores.Behaviors
     {
         public static Behavior[] Behaviors = new Behavior[256];
         public static ConcurrentDictionary<Type, ConcurrentStack<int>> Frees = new();
-        public static int Count;
+        private static int _count;
+
+        public static int Count => Behaviors.Length;
 
         /// <summary>
         /// 
@@ -23,16 +25,16 @@ namespace FLib.WorldCores.Behaviors
                 return Behaviors[index];
 
             var behaviorArrayLength = Behaviors.Length;
-            if (behaviorArrayLength >= Count)
+            if (behaviorArrayLength >= _count)
             {
                 lock (Frees)
                 {
-                    if (behaviorArrayLength >= Count)
+                    if (behaviorArrayLength >= _count)
                         Array.Resize(ref Behaviors, Behaviors.Length * 2);
                 }
             }
 
-            index = Interlocked.Increment(ref Count) - 1;
+            index = Interlocked.Increment(ref _count) - 1;
             var behavior = Behaviors[index] = (Behavior)TypeAssistant.New(behaviorType);
             behavior.Id = index;
             return behavior;
@@ -45,7 +47,10 @@ namespace FLib.WorldCores.Behaviors
         {
             var frees = Frees.GetOrAdd(behavior.GetType(), _ => new ConcurrentStack<int>());
             frees.Push(behavior.Id);
-            behavior.Id = -1;
+            unsafe
+            {
+                behavior.SystemPtr = null;
+            }
         }
     }
 }
