@@ -94,26 +94,29 @@ namespace FLib.WorldCores.Behaviors
 
             bhv.Priority = bhv.GetPriority();
             ref var slot = ref PrimaryId;
-            var isStopPrimary = false;
-            var isStopSecondary = false;
+            Behavior? stopBhvPrimary = null;
+            Behavior? stopBhvSecondary = null;
 
             var primary = Primary;
             if (primary != null)
             {
                 if (primary.CheckPriority(bhv))
                 {
-                    isStopPrimary = true;
+                    stopBhvPrimary = primary;
                     var secondary = Secondary;
-                    isStopSecondary = secondary != null && !bhv.CheckFriend(secondary);
+                    if (secondary != null && !bhv.CheckFriend(secondary))
+                    {
+                        stopBhvSecondary = secondary;
+                        SecondaryId = -1;
+                    }
                 }
                 else if (primary.CheckFriend(bhv))
                 {
                     var secondary = Secondary;
-                    var hasSecondary = secondary != null;
-                    if (!hasSecondary || secondary!.CheckPriority(bhv))
+                    if (secondary?.CheckPriority(bhv) != false)
                     {
                         slot = ref SecondaryId;
-                        isStopSecondary = hasSecondary;
+                        stopBhvSecondary = secondary;
                     }
                 }
                 else
@@ -123,24 +126,34 @@ namespace FLib.WorldCores.Behaviors
                 }
             }
 
-            if (isStopSecondary)
-                StopSecondary();
-            if (isStopPrimary)
-                StopPrimary();
-
             slot = bhv.Id;
             Awake(bhv, evt);
 
+            if (stopBhvPrimary != null)
+                Stop(stopBhvPrimary, true);
+            if (stopBhvSecondary != null)
+                Stop(stopBhvSecondary, false);
             return true;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void StopAll()
+        public void StopAll(bool force = false)
         {
             StopSecondary();
             StopPrimary();
+            if (force && HasPrimary)
+            {
+                for (var i = 0; i < 100000 && HasPrimary; i++)
+                {
+                    StopSecondary();
+                    StopPrimary();
+                }
+
+                if (HasPrimary)
+                    World.ThrowException($"stop all failure {Primary}  {Secondary}", Self);
+            }
         }
 
         /// <summary>
@@ -235,7 +248,7 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 
         /// </summary>
-        private void Awake(Behavior bhv, in DoBehaviorEvent evt)
+        private readonly void Awake(Behavior bhv, in DoBehaviorEvent evt)
         {
             (bhv as IBehaviorParamable)?.InitializeParam();
             bhv.Awake(evt.IsFirst);
@@ -245,7 +258,7 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 
         /// </summary>
-        private bool CheckDo(ref DoBehaviorEvent e, Behavior bhv, bool isFirst)
+        private readonly bool CheckDo(ref DoBehaviorEvent e, Behavior bhv, bool isFirst)
         {
             e.Behavior = bhv;
             e.IsFirst = isFirst;
@@ -257,10 +270,34 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         private void Stop(ref int id)
         {
-            Mask &= ~BehaviorPool.Behaviors[id].Mask;
-            var isPrimary = id == PrimaryId;
             var bhv = BehaviorPool.Behaviors[id];
+            var bhvType = bhv.GetType();
+            var isPrimary = id == PrimaryId;
             id = -1;
+            Stop(bhv, isPrimary);
+            if (isPrimary && !HasPrimary)
+            {
+                var secondary = Secondary;
+                if (secondary != null)
+                {
+                    PrimaryId = SecondaryId;
+                    SecondaryId = -1;
+                    secondary.OnSwapToPrimary(bhvType);
+                    Self.DispatchEvent(new SwapBehaviorEvent(bhvType, secondary));
+                }
+                else
+                {
+                    WorldGlobalSetting.DoDefaultBehavior(ref this);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Stop(Behavior bhv, bool isPrimary)
+        {
+            Mask &= ~bhv.Mask;
             Self.DispatchEvent(new StopBehaviorEvent(ref this, bhv, isPrimary));
             BehaviorPool.Free(bhv);
         }

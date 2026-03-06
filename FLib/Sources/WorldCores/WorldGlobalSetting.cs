@@ -2,12 +2,13 @@
 
 using System;
 using System.Runtime.InteropServices;
+using FLib.WorldCores.Behaviors;
 
 namespace FLib.WorldCores
 {
     // ReSharper disable ConvertToConstant.Global
 #pragma warning disable CA2211
-    public static class GlobalSetting
+    public static class WorldGlobalSetting
     {
         /// <summary>
         /// 对齐大小
@@ -34,5 +35,10 @@ namespace FLib.WorldCores
         /// archetype chunk 内存分配器
         /// </summary>
         public static MemoryAllocator ChunkAllocator = new(16 * 1024, 32, 64);
+
+        /// <summary>
+        /// 默认行为类型
+        /// </summary>
+        public static RWAction<BehaviorSystem> DoDefaultBehavior = (ref BehaviorSystem system) => system.Do(BehaviorPool.Behaviors[0].GetType());
     }
 }

@@ -98,7 +98,7 @@ namespace FLib.WorldCores
             var cType = new ComponentMeta(id, size, type);
             ComponentTypeMap[type] = cType;
             if (_componentInfos.Length <= id)
-                Array.Resize(ref _componentInfos, id + GlobalSetting.CapacityExpandSize);
+                Array.Resize(ref _componentInfos, id + WorldGlobalSetting.CapacityExpandSize);
             _componentInfos[id] = new ComponentInfo(cType, type);
 
             if (locking)

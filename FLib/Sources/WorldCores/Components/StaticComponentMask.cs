@@ -15,7 +15,7 @@ namespace FLib.WorldCores
         {
             var maxLen = (int)Math.Ceiling(maxId.Raw / (float)BitArrayOperator.BitSize);
             if (_buffer == null || _buffer.Length < maxLen)
-                Array.Resize(ref _buffer, maxLen + GlobalSetting.CapacityExpandSize);
+                Array.Resize(ref _buffer, maxLen + WorldGlobalSetting.CapacityExpandSize);
         }
 
         /// <summary>

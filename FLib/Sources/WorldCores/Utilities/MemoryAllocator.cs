@@ -22,7 +22,7 @@ namespace FLib.WorldCores
             public readonly byte* FirstPtr;
             public byte ChunkCount;
             public Page Next;
-            public Page(MemoryAllocator allocator) => FirstPtr = (byte*)GlobalSetting.MemAlloc(allocator.ChunkSize * allocator.ChunksPerPage, allocator.Alignment);
+            public Page(MemoryAllocator allocator) => FirstPtr = (byte*)WorldGlobalSetting.MemAlloc(allocator.ChunkSize * allocator.ChunksPerPage, allocator.Alignment);
         }
 
         /// <summary>

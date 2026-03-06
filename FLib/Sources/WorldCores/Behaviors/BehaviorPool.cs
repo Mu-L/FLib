@@ -6,15 +6,21 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
+#pragma warning disable CA2211
 namespace FLib.WorldCores.Behaviors
 {
     public static class BehaviorPool
     {
         public static Behavior[] Behaviors = new Behavior[256];
-        public static ConcurrentDictionary<Type, ConcurrentStack<int>> Frees = new();
+
+        // public static Type[] BehaviorIdTypes = new Type[8];
+        // public static Dictionary<Type, byte> BehaviorTypeIds = new(8);
+        public static readonly ConcurrentDictionary<Type, ConcurrentStack<int>> Frees = new();
+
+        private static readonly object SyncLock = new();
         private static int _count;
 
-        public static int Count => Behaviors.Length;
+        public static int Count => _count;
 
         /// <summary>
         /// 
@@ -24,12 +30,11 @@ namespace FLib.WorldCores.Behaviors
             if (Frees.TryGetValue(behaviorType, out var frees) && frees.TryPop(out var index))
                 return Behaviors[index];
 
-            var behaviorArrayLength = Behaviors.Length;
-            if (behaviorArrayLength >= _count)
+            if (_count >= Behaviors.Length)
             {
-                lock (Frees)
+                lock (SyncLock)
                 {
-                    if (behaviorArrayLength >= _count)
+                    if (_count >= Behaviors.Length)
                         Array.Resize(ref Behaviors, Behaviors.Length * 2);
                 }
             }
@@ -37,6 +42,19 @@ namespace FLib.WorldCores.Behaviors
             index = Interlocked.Increment(ref _count) - 1;
             var behavior = Behaviors[index] = (Behavior)TypeAssistant.New(behaviorType);
             behavior.Id = index;
+            // if (!BehaviorTypeIds.TryGetValue(behaviorType, out var id))
+            // {
+            //     lock (SyncLock)
+            //     {
+            //         id = checked((byte)(BehaviorTypeIds.Count + 1));
+            //         BehaviorTypeIds.Add(behaviorType, id);
+            //         if (BehaviorIdTypes.Length <= id)
+            //             Array.Resize(ref BehaviorIdTypes, id * 2);
+            //     }
+            // 
+            //     BehaviorIdTypes[id] = behaviorType;
+            // }
+            // behavior.TypeId = id;
             return behavior;
         }
 

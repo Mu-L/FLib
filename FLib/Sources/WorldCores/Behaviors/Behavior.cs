@@ -18,6 +18,7 @@ namespace FLib.WorldCores.Behaviors
         public WorldCore World => SystemPtr->Self.World;
         public bool IsEmpty => SystemPtr == null;
 
+        public byte TypeId { get; internal set; }
         public uint StartFrame { get; internal set; }
         public int Priority { get; internal set; }
         public abstract uint Mask { get; }
@@ -29,6 +30,10 @@ namespace FLib.WorldCores.Behaviors
         public virtual bool CheckPriority(Behavior target) => target.Priority >= Priority;
         public virtual bool CheckFriend(Behavior targetBehavior) => false;
 
+
+        public virtual void OnSwapToPrimary(Type oldPrimaryType)
+        {
+        }
 
         public virtual void Awake(bool isFirst)
         {

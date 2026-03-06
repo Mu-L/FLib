@@ -156,7 +156,7 @@ public class TestWorldCore
         world.RemoveEntity(player1);
         Assert.Equal(0, world.Soa.GetGroup<Buff>().Count);
         world.Dispose();
-        Assert.True(GlobalSetting.ChunkAllocator.FreePagesCount >= 2);
+        Assert.True(WorldGlobalSetting.ChunkAllocator.FreePagesCount >= 2);
         Assert.Empty((IEnumerable)typeof(Mng<Player>).GetField("_objects", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!);
     }
 
