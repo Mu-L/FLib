@@ -32,6 +32,8 @@ namespace FLib
 
         public IEnumerator<T> GetEnumerator()
         {
+            if (Count == 0)
+                yield break;
             // 先这样实现功能, 后续再优化.
             var frees = new PooledHashSet<int>();
             frees.Raw.EnsureCapacity(Frees.Count);

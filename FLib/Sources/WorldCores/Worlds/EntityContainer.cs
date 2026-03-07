@@ -13,8 +13,8 @@ namespace FLib.WorldCores
         public int Count;
         public Stack<ushort> Frees;
 
-        public ref EntityInfo this[ushort index] => ref EntityInfos[index];
-        public ref EntityInfo this[int index] => ref EntityInfos[index];
+        public readonly ref EntityInfo this[ushort index] => ref EntityInfos[index];
+        public readonly ref EntityInfo this[int index] => ref EntityInfos[index];
 
         public EntityContainer(int entityCapacity)
         {
@@ -56,6 +56,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void Remove(ushort id)
         {
+            EntityInfos[id] = default;
             if (id < --Count)
                 Frees.Push(id);
         }
@@ -63,11 +64,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public FEvent? DispatchEvent(ushort id) => Events[id];
+        public readonly FEvent? DispatchEvent(ushort id) => Events[id];
 
         /// <summary>
         /// 
         /// </summary>
-        public FEvent Event(ushort id) => Events[id] ??= new FEvent();
+        public readonly FEvent Event(ushort id) => Events[id] ??= new FEvent();
     }
 }

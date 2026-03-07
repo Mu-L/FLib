@@ -17,8 +17,14 @@ namespace FLib.WorldCores
         /// </summary>
         public readonly EComponentOption Options;
 
-        public ComponentOptionAttribute(short order = 0, EComponentOption options = EComponentOption.None)
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly Type[] RequiredComponents;
+
+        public ComponentOptionAttribute(short order = 0, EComponentOption options = EComponentOption.None, Type[] requiredComponents = null)
         {
+            RequiredComponents = requiredComponents;
             Order = order;
             Options = options;
         }

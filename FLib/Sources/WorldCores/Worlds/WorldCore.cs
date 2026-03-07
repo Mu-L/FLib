@@ -125,7 +125,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public QueryFilterBuilder CreateQuery() => new(this);
+        public QueryFilterBuilder BuildQuery() => new(this);
 
         /// <summary>
         /// 
