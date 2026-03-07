@@ -6,6 +6,7 @@ namespace FLib.Tests;
 
 public class TestWorldCore2
 {
+    [ComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
     public struct Comp1 : ILifecycleDestroy
     {
         public int Value;
@@ -16,6 +17,7 @@ public class TestWorldCore2
         }
     }
 
+    [ComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
     public struct Comp2 : ILifecycleDestroy
     {
         public int Value;

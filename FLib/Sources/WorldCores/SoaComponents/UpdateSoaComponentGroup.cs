@@ -39,9 +39,9 @@ namespace FLib.WorldCores
             return index;
         }
 
-        public override void Free(in Entity et, int index)
+        public override void Free(in Entity et, int index, bool onEntityDestroyed)
         {
-            base.Free(et, index);
+            base.Free(et, index, onEntityDestroyed);
             ComponentEntities[index] = default;
             StartComponentIndexes?.Remove(index);
         }

@@ -104,8 +104,9 @@ namespace FLib.WorldCores
             var et = *chunk.GetEntity(eti.IndexInChunk);
             for (var i = 0; i < ComponentTypes.Length; i++)
             {
-                var meta = ComponentTypes[i];
-                ComponentRegistry.GetInfo(meta).Destroy?.Invoke(ref *(byte*)chunk.Get(eti.IndexInChunk, meta), World, et);
+                ref readonly var info = ref ComponentRegistry.GetInfo(ComponentTypes[i]);
+                if (info.Op(EComponentOption.AlwaysReceiveDestroy))
+                    info.Destroy?.Invoke(ref *(byte*)chunk.Get(eti.IndexInChunk, info.Meta), World, et);
             }
 
             RemoveEntity(chunk, eti.IndexInChunk);

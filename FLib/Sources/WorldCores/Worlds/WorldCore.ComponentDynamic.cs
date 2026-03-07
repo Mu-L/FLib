@@ -86,13 +86,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void RemoveDyn<T>(Entity et)
         {
-            Assert(HasDyn<T>(et), et);
-            ref readonly var eti = ref GetEntityInfo(et);
-            ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-            var id = ComponentRegistry.GetId<T>().Id;
-            var compIdx = sparse[id];
-            sparse[id] = -1;
-            Soa.GetGroup<T>().Free(et, compIdx);
+            RemoveDyn(et, typeof(T));
         }
 
         /// <summary>
@@ -100,12 +94,14 @@ namespace FLib.WorldCores
         /// </summary>
         public void RemoveDyn(Entity et, Type type)
         {
+            Assert(!GetEntityInfo(et).Chunk.Has(ComponentRegistry.GetId(type)), et, "cannot remove static component");
+            Assert(!GetEntityInfo(et).IsDestroying, et, "entity is destroying");
             ref readonly var eti = ref GetEntityInfo(et);
             ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
             var id = ComponentRegistry.GetId(type).Id;
             var compIdx = sparse[id];
             sparse[id] = -1;
-            Soa.GetGroup(type).Free(et, compIdx);
+            Soa.GetGroup(type).Free(et, compIdx, false);
         }
 
         /// <summary>
@@ -113,11 +109,7 @@ namespace FLib.WorldCores
         /// </summary>
         public bool HasDyn<T>(Entity et)
         {
-            ref readonly var eti = ref GetEntityInfo(et);
-            if (!eti.HasDynamicComponent) return false;
-            var compId = ComponentRegistry.GetId<T>().Id;
-            ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-            return compId < sparse.Count && sparse[compId] >= 0;
+            return HasDyn(et, typeof(T));
         }
 
         /// <summary>

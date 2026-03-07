@@ -22,7 +22,7 @@ namespace FLib.WorldCores
             Version = version;
         }
 
-        public EntityHelper GetHelper(WorldHandle world) => new(world, this);
+        public EntityHelper AsHelper(WorldHandle world) => new(world, this);
         public bool Equals(Entity other) => this == other;
         public override bool Equals(object obj) => obj is Entity other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(Id, Version);

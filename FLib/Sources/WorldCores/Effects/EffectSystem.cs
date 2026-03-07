@@ -4,9 +4,14 @@ using System;
 
 namespace FLib.WorldCores.Effects
 {
-    [ComponentOption(options: EComponentOption.RejectSoa, requiredComponents: new[] { typeof(Mng<EffectContainer>) })]
-    public struct EffectSystem
+    [ComponentOption(options: EComponentOption.RejectSoa)]
+    public struct EffectSystem : ILifecycleAwake
     {
         public uint Mask;
+
+        public void Awake(WorldCore world, Entity entity)
+        {
+            world.SetDyn(entity, new EffectContainer());
+        }
     }
 }

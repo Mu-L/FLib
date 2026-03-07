@@ -46,7 +46,7 @@ public struct Buff
     public string Name;
 }
 
-[ComponentOption(options: EComponentOption.DoNotResetMemory)]
+[ComponentOption(options: EComponentOption.DoNotResetMemory | EComponentOption.AlwaysReceiveDestroy)]
 public struct Managed : ILifecycleAwake, ILifecycleDestroy, ILifecycleUpdate, ILifecycleStart
 {
     public List<string> Values;

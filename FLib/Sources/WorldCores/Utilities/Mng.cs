@@ -4,6 +4,7 @@ using System;
 
 namespace FLib.WorldCores
 {
+    [ComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
     public struct Mng<T> : ILifecycleAwake, ILifecycleDestroy
     {
         /// <summary>

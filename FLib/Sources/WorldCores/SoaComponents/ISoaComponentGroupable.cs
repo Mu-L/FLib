@@ -17,7 +17,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 释放动态组件
         /// </summary>
-        void Free(in Entity et, int hash);
+        void Free(in Entity et, int hash, bool onEntityDestroyed);
 
         // /// <summary>
         // /// 

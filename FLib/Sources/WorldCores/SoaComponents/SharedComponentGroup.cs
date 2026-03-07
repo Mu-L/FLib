@@ -58,15 +58,13 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="et"></param>
-        /// <param name="hash"></param>
-        public override void Free(in Entity et, int hash)
+        public override void Free(in Entity et, int hash, bool onEntityDestroyed)
         {
             var idx = Groups.GetEntryIndex(hash);
             if (idx < 0) return;
             ref var r = ref Groups.GetEntryValue(idx);
             if (--r.RefCount > 0) return;
-            base.Free(in et, r.Index);
+            base.Free(in et, r.Index, onEntityDestroyed);
             Groups.Remove(hash);
             ++Version;
         }

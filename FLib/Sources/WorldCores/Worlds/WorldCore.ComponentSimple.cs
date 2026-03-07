@@ -53,12 +53,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void Remove<T>(Entity et)
-        {
-            Assert(!GetEntityInfo(et).Chunk.Has<T>(), et, "cannot remove static component");
-            Assert(!GetEntityInfo(et).IsDestroying, et, "entity is destroying");
-            RemoveDyn<T>(et);
-        }
+        public void Remove<T>(Entity et) => RemoveDyn<T>(et);
 
         /// <summary>
         /// 

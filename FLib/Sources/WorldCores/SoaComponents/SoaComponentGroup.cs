@@ -57,18 +57,22 @@ namespace FLib.WorldCores
 
             ++Count;
             Components[index] = component;
-            InvokeAwake(et, index);
+            ref var first = ref MemoryMarshal.GetArrayDataReference(Components);
+            first = ref Unsafe.Add(ref first, index);
+            ComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref first), World, et);
             return index;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Free(in Entity et, int index)
+        public virtual void Free(in Entity et, int index, bool onEntityDestroyed)
         {
             try
             {
-                InvokeDestroy(et, index);
+                ref readonly var info = ref ComponentRegistry.GetInfo<T>();
+                if (!onEntityDestroyed || info.Op(EComponentOption.AlwaysReceiveDestroy))
+                    info.Destroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
             }
             finally
             {
@@ -78,26 +82,6 @@ namespace FLib.WorldCores
                 if (index < Count)
                     Frees.Push(index);
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void InvokeDestroy(in Entity et, int index)
-        {
-            ComponentRegistry.GetInfo<T>().Destroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void InvokeAwake(in Entity et, int index)
-        {
-            ref var first = ref MemoryMarshal.GetArrayDataReference(Components);
-            first = ref Unsafe.Add(ref first, index);
-            ComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref first), World, et);
         }
     }
 }

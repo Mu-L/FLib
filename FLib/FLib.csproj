@@ -32,10 +32,6 @@
           <Generator>TextTemplatingFileGenerator</Generator>
           <LastGenOutput>WorldCore.Query.cs</LastGenOutput>
         </None>
-        <None Update="Sources\WorldCores\Worlds\WorldCore.CreateEntity.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>WorldCore.CreateEntity.cs</LastGenOutput>
-        </None>
         <None Update="Sources\WorldCores\Worlds\WorldCore.Query.tt">
           <Generator>TextTemplatingFileGenerator</Generator>
           <LastGenOutput>WorldCore.Query.cs</LastGenOutput>

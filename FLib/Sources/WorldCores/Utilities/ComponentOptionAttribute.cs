@@ -1,5 +1,6 @@
 // ==================== qcbf@qq.com | 2026-02-13 ====================
 
+#nullable enable
 using System;
 
 namespace FLib.WorldCores
@@ -20,9 +21,16 @@ namespace FLib.WorldCores
         /// <summary>
         /// 动态组件如果是struct会进行boxing. 建议改功能只用于静态组件, 动态组件如果有实现awake, 可以自己去手动添加.
         /// </summary>
-        public readonly Type[] RequiredComponents;
+        public readonly Type[]? RequiredComponents;
 
-        public ComponentOptionAttribute(short order = 0, EComponentOption options = EComponentOption.None, Type[] requiredComponents = null)
+        public ComponentOptionAttribute(EComponentOption options)
+        {
+            RequiredComponents = null;
+            Order = 0;
+            Options = options;
+        }
+
+        public ComponentOptionAttribute(short order = 0, EComponentOption options = EComponentOption.None, Type[]? requiredComponents = null)
         {
             RequiredComponents = requiredComponents;
             Order = order;
@@ -37,5 +45,6 @@ namespace FLib.WorldCores
         DoNotResetMemory = 0x1,
         RejectSoa = 0x2,
         RejectChunk = 0x4,
+        AlwaysReceiveDestroy = 0x8,
     }
 }

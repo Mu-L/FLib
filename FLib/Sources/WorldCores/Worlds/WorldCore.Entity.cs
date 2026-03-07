@@ -82,7 +82,7 @@ namespace FLib.WorldCores
                     var denseIndex = sparse[i];
                     if (denseIndex < 0) continue;
                     var type = ComponentRegistry.GetType(new IncrementId(i + 1));
-                    Soa.GetGroup(type).Free(et, denseIndex);
+                    Soa.GetGroup(type).Free(et, denseIndex, true);
                 }
             }
 
