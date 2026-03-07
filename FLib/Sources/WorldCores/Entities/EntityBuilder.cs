@@ -24,7 +24,7 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder With<T>() where T : unmanaged
         {
-            With(ComponentRegistry.GetMeta<T>(), false);
+            AddComponent(ComponentRegistry.GetInfo<T>(), false);
             return this;
         }
 
@@ -33,7 +33,7 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder WithMng<T>()
         {
-            With(ComponentRegistry.GetMeta<Mng<T>>(), false);
+            AddComponent(ComponentRegistry.GetInfo<Mng<T>>(), false);
             return this;
         }
 
@@ -42,18 +42,26 @@ namespace FLib.WorldCores
         /// </summary>
         public EntityBuilder WithShared<T>() where T : ISharedComponent
         {
-            With(ComponentRegistry.GetMeta<T>(), true);
+            AddComponent(ComponentRegistry.GetInfo<T>(), true);
             return this;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private void With(ComponentMeta meta, bool isShared)
+        internal void AddComponent(in ComponentInfo info, bool isShared)
         {
-            AssertNewComponent(World, meta, isShared);
-            Components.Add(meta);
-            StaticComponentMask.Set(meta, true);
+            AssertNewComponent(World, info, isShared);
+            Components.Add(info);
+            StaticComponentMask.Set(info.Meta, true);
+            if (info.Options?.RequiredComponents != null)
+            {
+                foreach (var t in info.Options.RequiredComponents)
+                {
+                    ref readonly var reqInfo = ref ComponentRegistry.GetInfo(t);
+                    AddComponent(reqInfo, reqInfo.IsShared);
+                }
+            }
         }
 
         /// <summary>
@@ -68,18 +76,16 @@ namespace FLib.WorldCores
         }
 
         [Conditional("DEBUG")]
-        internal static void AssertNewComponent(WorldCore world, ComponentMeta meta, bool isShared)
+        internal static void AssertNewComponent(WorldCore world, in ComponentInfo info, bool isShared)
         {
-            var type = meta.Type;
-            ref readonly var info = ref ComponentRegistry.GetInfo(type);
             world.Assert(!StaticComponentMask.Get(info.Meta), msg: "already exist");
             world.Assert(!info.Op(EComponentOption.RejectChunk));
             if (isShared)
                 world.Assert(!info.HasLifecycle, msg: "nonsupport life invoker");
             else
                 world.Assert(!info.IsShared);
-            world.Assert(!typeof(ILifecycleUpdate).IsAssignableFrom(type));
-            world.Assert(!typeof(ILifecycleStart).IsAssignableFrom(type));
+            world.Assert(!typeof(ILifecycleUpdate).IsAssignableFrom(info.Type));
+            world.Assert(!typeof(ILifecycleStart).IsAssignableFrom(info.Type));
         }
     }
 }

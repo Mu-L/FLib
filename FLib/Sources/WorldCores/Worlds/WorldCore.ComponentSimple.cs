@@ -41,7 +41,7 @@ namespace FLib.WorldCores
             ref var eti = ref GetEntityInfo(et);
             if (!eti.Chunk.Has<T>())
             {
-                SetDyn(et, ref eti, component);
+                SetDyn(et, component, ref eti);
             }
             else
             {

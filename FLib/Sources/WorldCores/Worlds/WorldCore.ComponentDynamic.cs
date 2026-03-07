@@ -35,13 +35,13 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn<T>(Entity et, in T component)
         {
-            SetDyn(et, ref GetEntityInfo(et), component);
+            SetDyn(et, component, ref GetEntityInfo(et));
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn<T>(Entity et, ref EntityInfo eti, in T component)
+        public void SetDyn<T>(Entity et, in T component, ref EntityInfo eti)
         {
             Assert(!eti.IsDestroying, et, "entity is destroying");
             Assert(!ComponentRegistry.GetInfo(typeof(T)).IsShared, et);
@@ -49,15 +49,20 @@ namespace FLib.WorldCores
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup<T>();
             if (slot < 0)
+            {
+                TryAddRequiredComponents(et, ref eti, ComponentRegistry.GetInfo(typeof(T)));
                 slot = group.Alloc(et, component);
+            }
             else
+            {
                 group[slot] = component;
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn(Entity et, object component, Type componentType)
+        public void SetDyn(Entity et, Type componentType, object component)
         {
             componentType ??= component.GetType();
             Assert(!ComponentRegistry.GetInfo(componentType).IsShared, et);
@@ -66,9 +71,14 @@ namespace FLib.WorldCores
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup(componentType);
             if (slot < 0)
+            {
+                TryAddRequiredComponents(et, ref eti, ComponentRegistry.GetInfo(componentType));
                 slot = group.Alloc(et, component);
+            }
             else
+            {
                 group.Components.SetValue(component, slot);
+            }
         }
 
         /// <summary>
@@ -125,7 +135,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private ref int EnsureDynamicComponentIndex(IncrementId componentId, ref EntityInfo eti)
         {
             var compId = componentId.Id;
@@ -150,6 +160,17 @@ namespace FLib.WorldCores
                 eti.DynamicComponentSparseIndex = DynamicComponentSparse.Add(sparse);
                 return ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[compId];
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void TryAddRequiredComponents(Entity et, ref EntityInfo eti, in ComponentInfo info)
+        {
+            if (info.Options?.RequiredComponents == null)
+                return;
+            foreach (var reqComp in info.Options.RequiredComponents)
+                SetDyn(et, reqComp, TypeAssistant.New(reqComp));
         }
     }
 }

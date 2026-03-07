@@ -17,7 +17,6 @@ namespace FLib.WorldCores
         public readonly LifecycleDelegate? Destroy;
         public readonly ComponentOptionAttribute? Options;
         public readonly bool IsShared;
-        public readonly (Type Type, bool IsManaged)[]? RequiredComponents;
 
         public bool HasLifecycle => Awake != null || Destroy != null;
 
@@ -29,18 +28,6 @@ namespace FLib.WorldCores
             Options = type.GetCustomAttribute<ComponentOptionAttribute>();
             Awake = ILifecycleAwake.CreateLifecycleDelegate(typeof(ILifecycleAwake), type, nameof(ILifecycleAwake.Awake));
             Destroy = ILifecycleAwake.CreateLifecycleDelegate(typeof(ILifecycleDestroy), type, nameof(ILifecycleDestroy.Destroy));
-            RequiredComponents = Options?.RequiredComponents?.Select(t =>
-            {
-                try
-                {
-                    _ = typeof(Ref<>).MakeGenericType(t);
-                    return (t, true);
-                }
-                catch
-                {
-                    return (t, false);
-                }
-            }).ToArray();
         }
 
         public bool Op(EComponentOption option) => Options != null && (Options.Options & option) == option;

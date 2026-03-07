@@ -130,7 +130,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 设置实体的动态组件（通过类型和值）。
         /// </summary>
-        public void SetDyn(object component, Type type) => World.SetDyn(Entity, component, type);
+        public void SetDyn(object component, Type type) => World.SetDyn(Entity, type, component);
 
         /// <summary>
         /// 移除实体的动态组件。
