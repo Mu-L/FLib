@@ -47,7 +47,7 @@ namespace FLib.WorldCores.Behaviors
     /// <summary>
     /// 
     /// </summary>
-    public interface IBehaviorParamable
+    public interface IBehaviorParameterizable
     {
         void InitializeParam();
     }
@@ -55,7 +55,7 @@ namespace FLib.WorldCores.Behaviors
     /// <summary>
     /// 
     /// </summary>
-    public abstract class Behavior<TParam> : Behavior, IBehaviorParamable
+    public abstract class Behavior<TParam> : Behavior, IBehaviorParameterizable
     {
         [ThreadStatic] internal static TParam NewParam;
         public TParam Param;

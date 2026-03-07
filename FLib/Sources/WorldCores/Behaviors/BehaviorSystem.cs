@@ -250,7 +250,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         private readonly void Awake(Behavior bhv, in DoBehaviorEvent evt)
         {
-            (bhv as IBehaviorParamable)?.InitializeParam();
+            (bhv as IBehaviorParameterizable)?.InitializeParam();
             bhv.Awake(evt.IsFirst);
             Self.DispatchEvent(evt);
         }

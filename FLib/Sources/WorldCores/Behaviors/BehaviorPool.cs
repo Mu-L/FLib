@@ -12,9 +12,6 @@ namespace FLib.WorldCores.Behaviors
     public static class BehaviorPool
     {
         public static Behavior[] Behaviors = new Behavior[256];
-
-        // public static Type[] BehaviorIdTypes = new Type[8];
-        // public static Dictionary<Type, byte> BehaviorTypeIds = new(8);
         public static readonly ConcurrentDictionary<Type, ConcurrentStack<int>> Frees = new();
 
         private static readonly object SyncLock = new();
@@ -42,19 +39,6 @@ namespace FLib.WorldCores.Behaviors
             index = Interlocked.Increment(ref _count) - 1;
             var behavior = Behaviors[index] = (Behavior)TypeAssistant.New(behaviorType);
             behavior.Id = index;
-            // if (!BehaviorTypeIds.TryGetValue(behaviorType, out var id))
-            // {
-            //     lock (SyncLock)
-            //     {
-            //         id = checked((byte)(BehaviorTypeIds.Count + 1));
-            //         BehaviorTypeIds.Add(behaviorType, id);
-            //         if (BehaviorIdTypes.Length <= id)
-            //             Array.Resize(ref BehaviorIdTypes, id * 2);
-            //     }
-            // 
-            //     BehaviorIdTypes[id] = behaviorType;
-            // }
-            // behavior.TypeId = id;
             return behavior;
         }
 
