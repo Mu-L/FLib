@@ -16,7 +16,7 @@ namespace FLib.Worlds
         public int MaxStackCount = 1;
 
         [Comment("标记")]
-        public WorldFlags Flags;
+        public BitFlags Flags;
 
         [Comment("重复添加方式")]
         public EWorldEffectAddOption AddOption = EWorldEffectAddOption.ResetTime;
@@ -44,7 +44,7 @@ namespace FLib.Worlds
         /// <summary>
         /// 
         /// </summary>
-        public virtual WorldFlags GetFlags(WorldEffectContext context) => Flags;
+        public virtual BitFlags GetFlags(WorldEffectContext context) => Flags;
 
         /// <summary>
         /// 

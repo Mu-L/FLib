@@ -17,13 +17,13 @@ namespace FLib.Worlds
     public class WorldEffectSystem : IBytesPackable, IWorldEndComponentable
     {
         public Dictionary<uint, WorldEffectContext> Effects = new();
-        public SlimDictionary<WorldFlags, int> FlagsCount = new();
+        public SlimDictionary<BitFlags, int> FlagsCount = new();
         private bool _isDisposing;
         public WorldComponentContext SelfContext { get; set; }
         public WorldBase World => SelfContext.World;
         public WorldEntity Entity => SelfContext.Entity;
 
-        public WorldFlags FlagsMask { get; private set; }
+        public BitFlags FlagsMask { get; private set; }
 
         void IWorldEndComponentable.ComponentEnd()
         {
@@ -146,7 +146,7 @@ namespace FLib.Worlds
                 Effects[id] = effectCtx = effectContext;
                 FlagsMask |= effect.Flags;
                 if (effect.Flags.Mask != 0)
-                    ++(FlagsCount ??= new SlimDictionary<WorldFlags, int>(4)).GetOrAddValueRef(effect.Flags);
+                    ++(FlagsCount ??= new SlimDictionary<BitFlags, int>(4)).GetOrAddValueRef(effect.Flags);
                 StackCount();
                 effectContext.Begin();
             }
@@ -170,12 +170,12 @@ namespace FLib.Worlds
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Clear() => Clear(WorldFlags.AllFlags);
+        public virtual void Clear() => Clear(BitFlags.AllFlags);
 
         /// <summary>
         ///
         /// </summary>
-        public virtual void Clear(WorldFlags flags)
+        public virtual void Clear(BitFlags flags)
         {
             if (Effects.Count == 0)
                 return;
@@ -193,7 +193,7 @@ namespace FLib.Worlds
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Clear<T>(WorldFlags flags, ref T removeIds) where T : IList<uint>
+        public virtual void Clear<T>(BitFlags flags, ref T removeIds) where T : IList<uint>
         {
             if (Effects.Count == 0)
                 return;
