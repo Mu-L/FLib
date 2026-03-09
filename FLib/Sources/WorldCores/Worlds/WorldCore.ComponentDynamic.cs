@@ -11,29 +11,29 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public ref T GetDyn<T>(Entity et)
+        public ref T GetDyn<T>(WorldEntity et)
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Assert(dynIdx >= 0);
-            var compIdx = DynamicComponentSparse.GetRef(dynIdx)[ComponentRegistry.GetId<T>()];
+            var compIdx = DynamicComponentSparse.GetRef(dynIdx)[WorldComponentRegistry.GetId<T>()];
             return ref Soa.GetGroup<T>()[compIdx];
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public object GetDyn(Entity et, Type type)
+        public object GetDyn(WorldEntity et, Type type)
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Assert(dynIdx >= 0);
-            var compIdx = DynamicComponentSparse.GetRef(dynIdx)[ComponentRegistry.GetId(type)];
+            var compIdx = DynamicComponentSparse.GetRef(dynIdx)[WorldComponentRegistry.GetId(type)];
             return Soa.GetGroup(type).Components.GetValue(compIdx);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn<T>(Entity et, in T component)
+        public void SetDyn<T>(WorldEntity et, in T component)
         {
             SetDyn(et, component, ref GetEntityInfo(et));
         }
@@ -41,16 +41,16 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn<T>(Entity et, in T component, ref EntityInfo eti)
+        public void SetDyn<T>(WorldEntity et, in T component, ref WorldEntityInfo eti)
         {
             Assert(!eti.IsDestroying, et, "entity is destroying");
-            Assert(!ComponentRegistry.GetInfo(typeof(T)).IsShared, et);
-            var id = ComponentRegistry.GetId<T>();
+            Assert(!WorldComponentRegistry.GetInfo(typeof(T)).IsShared, et);
+            var id = WorldComponentRegistry.GetId<T>();
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup<T>();
             if (slot < 0)
             {
-                TryAddRequiredComponents(et, ref eti, ComponentRegistry.GetInfo(typeof(T)));
+                TryAddRequiredComponents(et, ref eti, WorldComponentRegistry.GetInfo(typeof(T)));
                 slot = group.Alloc(et, component);
             }
             else
@@ -62,17 +62,17 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn(Entity et, Type componentType, object component)
+        public void SetDyn(WorldEntity et, Type componentType, object component)
         {
             componentType ??= component.GetType();
-            Assert(!ComponentRegistry.GetInfo(componentType).IsShared, et);
-            var id = ComponentRegistry.GetId(componentType);
+            Assert(!WorldComponentRegistry.GetInfo(componentType).IsShared, et);
+            var id = WorldComponentRegistry.GetId(componentType);
             ref var eti = ref GetEntityInfo(et);
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup(componentType);
             if (slot < 0)
             {
-                TryAddRequiredComponents(et, ref eti, ComponentRegistry.GetInfo(componentType));
+                TryAddRequiredComponents(et, ref eti, WorldComponentRegistry.GetInfo(componentType));
                 slot = group.Alloc(et, component);
             }
             else
@@ -84,7 +84,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void RemoveDyn<T>(Entity et)
+        public void RemoveDyn<T>(WorldEntity et)
         {
             RemoveDyn(et, typeof(T));
         }
@@ -92,13 +92,13 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void RemoveDyn(Entity et, Type type)
+        public void RemoveDyn(WorldEntity et, Type type)
         {
-            Assert(!GetEntityInfo(et).Chunk.Has(ComponentRegistry.GetId(type)), et, "cannot remove static component");
+            Assert(!GetEntityInfo(et).Chunk.Has(WorldComponentRegistry.GetId(type)), et, "cannot remove static component");
             Assert(!GetEntityInfo(et).IsDestroying, et, "entity is destroying");
             ref readonly var eti = ref GetEntityInfo(et);
             ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
-            var id = ComponentRegistry.GetId(type).Id;
+            var id = WorldComponentRegistry.GetId(type).Id;
             var compIdx = sparse[id];
             sparse[id] = -1;
             Soa.GetGroup(type).Free(et, compIdx, false);
@@ -107,7 +107,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public bool HasDyn<T>(Entity et)
+        public bool HasDyn<T>(WorldEntity et)
         {
             return HasDyn(et, typeof(T));
         }
@@ -115,11 +115,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public bool HasDyn(Entity et, Type componentType)
+        public bool HasDyn(WorldEntity et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
             if (!eti.HasDynamicComponent) return false;
-            var compId = ComponentRegistry.GetId(componentType).Id;
+            var compId = WorldComponentRegistry.GetId(componentType).Id;
             ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
             return compId < sparse.Count && sparse[compId] >= 0;
         }
@@ -128,7 +128,7 @@ namespace FLib.WorldCores
         /// 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private ref int EnsureDynamicComponentIndex(IncrementId componentId, ref EntityInfo eti)
+        private ref int EnsureDynamicComponentIndex(WorldIncrementId componentId, ref WorldEntityInfo eti)
         {
             var compId = componentId.Id;
             if (eti.HasDynamicComponent)
@@ -157,7 +157,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        private void TryAddRequiredComponents(Entity et, ref EntityInfo eti, in ComponentInfo info)
+        private void TryAddRequiredComponents(WorldEntity et, ref WorldEntityInfo eti, in WorldComponentInfo info)
         {
             if (info.Options?.RequiredComponents == null)
                 return;

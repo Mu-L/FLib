@@ -12,12 +12,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public unsafe ref T Get<T>(Entity et)
+        public unsafe ref T Get<T>(WorldEntity et)
         {
             ref readonly var eti = ref GetEntityInfo(et);
             if (eti.HasDynamicComponent && !eti.Chunk.Has<T>())
             {
-                var compIdx = DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[ComponentRegistry.GetId<T>()];
+                var compIdx = DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[WorldComponentRegistry.GetId<T>()];
                 return ref Soa.GetGroup<T>()[compIdx];
             }
 
@@ -27,16 +27,16 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public object Get(Entity et, Type componentType)
+        public object Get(WorldEntity et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            return eti.HasDynamicComponent && !eti.Chunk.Has(ComponentRegistry.GetId(componentType)) ? GetDyn(et, componentType) : GetSta(et, componentType);
+            return eti.HasDynamicComponent && !eti.Chunk.Has(WorldComponentRegistry.GetId(componentType)) ? GetDyn(et, componentType) : GetSta(et, componentType);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Set<T>(Entity et, in T component)
+        public void Set<T>(WorldEntity et, in T component)
         {
             ref var eti = ref GetEntityInfo(et);
             if (!eti.Chunk.Has<T>())
@@ -53,15 +53,15 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void Remove<T>(Entity et) => RemoveDyn<T>(et);
+        public void Remove<T>(WorldEntity et) => RemoveDyn<T>(et);
 
         /// <summary>
         /// 
         /// </summary>
-        public bool Has<T>(Entity et)
+        public bool Has<T>(WorldEntity et)
         {
             ref var eti = ref GetEntityInfo(et);
-            var compId = ComponentGenericMap<T>.Id;
+            var compId = WorldComponentGenericMap<T>.Id;
             if (compId.IsEmpty)
                 return false;
 
@@ -77,7 +77,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public IList GetAll(Entity et, IList result = null)
+        public IList GetAll(WorldEntity et, IList result = null)
         {
             result ??= new List<object>();
             ref readonly var eti = ref GetEntityInfo(et);
@@ -92,7 +92,7 @@ namespace FLib.WorldCores
                 {
                     var denseIndex = sparse[i];
                     if (denseIndex < 0) continue;
-                    result.Add(GetDyn(et, ComponentRegistry.GetType(new IncrementId(i + 1))));
+                    result.Add(GetDyn(et, WorldComponentRegistry.GetType(new WorldIncrementId(i + 1))));
                 }
             }
 

@@ -4,8 +4,8 @@ using System;
 
 namespace FLib.WorldCores
 {
-    [ComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
-    public struct Mng<T> : ILifecycleAwake, ILifecycleDestroy
+    [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
+    public struct Mng<T> : IWorldLifecycleAwake, IWorldLifecycleDestroy
     {
         /// <summary>
         /// 略微感觉做法有点糙, 但又没想出是否要单独写个分页对象储存池,感觉好像又没太大必要, 暂时先这样实现
@@ -18,12 +18,12 @@ namespace FLib.WorldCores
 
         public override string ToString() => Val.ToString();
 
-        public void Awake(WorldCore world, Entity entity)
+        public void Awake(WorldCore world, WorldEntity entity)
         {
             Set(default);
         }
 
-        public void Destroy(WorldCore world, Entity entity)
+        public void Destroy(WorldCore world, WorldEntity entity)
         {
             if (_index == 0) return;
             _objects.RemoveAt(_index - 1);

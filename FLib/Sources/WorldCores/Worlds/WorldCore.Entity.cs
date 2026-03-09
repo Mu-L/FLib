@@ -13,11 +13,11 @@ namespace FLib.WorldCores
         /// 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref EntityInfo GetEntityInfoOrEmpty(in Entity et)
+        public ref WorldEntityInfo GetEntityInfoOrEmpty(in WorldEntity et)
         {
             ref var eti = ref Entities[et.Id];
             if (eti.Version != et.Version)
-                return ref EntityInfo.Empty;
+                return ref WorldEntityInfo.Empty;
             return ref eti;
         }
 
@@ -25,7 +25,7 @@ namespace FLib.WorldCores
         /// 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref EntityInfo GetEntityInfo(in Entity et)
+        public ref WorldEntityInfo GetEntityInfo(in WorldEntity et)
         {
             ref var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, msg: "version error");
@@ -35,11 +35,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public unsafe Entity CreateEntity(in EntityBuilder builder, int hash, bool initMemory = true)
+        public unsafe WorldEntity CreateEntity(in WorldEntityBuilder builder, int hash, bool initMemory = true)
         {
             if (!ArchetypeGroup.ArchetypeMap.TryGetValue(hash, out var archetype))
             {
-                using var archetypeBuilder = new ArchetypeBuilder(1);
+                using var archetypeBuilder = new WorldArchetypeBuilder(1);
                 for (var i = 0; i < builder.Components.Count; i++)
                     archetypeBuilder.With(builder.Components[i]);
                 archetype = ArchetypeGroup.Create(hash, archetypeBuilder);
@@ -59,7 +59,7 @@ namespace FLib.WorldCores
             for (var i = 0; i < builder.Components.Count; i++)
             {
                 var meta = builder.Components[i];
-                ref readonly var info = ref ComponentRegistry.GetInfo(meta);
+                ref readonly var info = ref WorldComponentRegistry.GetInfo(meta);
                 if (!info.IsShared)
                     info.Awake?.Invoke(ref *(byte*)chunk.Get(indexInChunk, meta), this, et);
             }
@@ -70,7 +70,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void RemoveEntity(Entity et)
+        public void RemoveEntity(WorldEntity et)
         {
             ref var eti = ref GetEntityInfo(et);
             eti.SetDestroying();
@@ -81,7 +81,7 @@ namespace FLib.WorldCores
                 {
                     var denseIndex = sparse[i];
                     if (denseIndex < 0) continue;
-                    var type = ComponentRegistry.GetType(new IncrementId(i + 1));
+                    var type = WorldComponentRegistry.GetType(new WorldIncrementId(i + 1));
                     Soa.GetGroup(type).Free(et, denseIndex, true);
                 }
             }
@@ -93,7 +93,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public bool HasEntity(Entity et)
+        public bool HasEntity(WorldEntity et)
         {
             return !et.IsEmpty && Entities.Count > et.Id && Entities[et.Id].Version == et.Version;
         }
@@ -101,7 +101,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public bool HasEntityAndNotDestroying(Entity et)
+        public bool HasEntityAndNotDestroying(WorldEntity et)
         {
             if (et.IsEmpty) return false;
             if (Entities.Count <= et.Id) return false;
@@ -112,7 +112,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public IList<object> GetAllEntities(Entity et, IList<object> list = null)
+        public IList<object> GetAllEntities(WorldEntity et, IList<object> list = null)
         {
             list ??= new List<object>();
             var eti = GetEntityInfo(et);
@@ -128,7 +128,7 @@ namespace FLib.WorldCores
                 {
                     var denseIndex = denseIndexes[i];
                     if (denseIndex < 0) continue;
-                    var meta = ComponentRegistry.GetInfo(new IncrementId(i + 1)).Meta;
+                    var meta = WorldComponentRegistry.GetInfo(new WorldIncrementId(i + 1)).Meta;
                     var compIdx = DynamicComponentSparse.GetRef(denseIndex)[meta.Id];
                     var val = Soa.GetGroup(meta.Type).Components.GetValue(compIdx);
                     list.Add(val);

@@ -16,9 +16,9 @@
         <None Remove="**/package.json"/>
         <None Remove="**/csc.rsp"/>
         
-        <None Update="Sources\WorldCores\Components\Components.tt">
+        <None Update="Sources\WorldCores\Components\WorldComponents.tt">
           <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>Components.cs</LastGenOutput>
+          <LastGenOutput>WorldComponents.cs</LastGenOutput>
         </None>
         <None Update="Sources\WorldCores\World\WorldCore.CreateEntity.tt">
           <Generator>TextTemplatingFileGenerator</Generator>
@@ -55,8 +55,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Sources\WorldCores\Components\Components.cs">
-        <DependentUpon>Components.tt</DependentUpon>
+      <Compile Update="Sources\WorldCores\Components\WorldComponents.cs">
+        <DependentUpon>WorldComponents.tt</DependentUpon>
       </Compile>
       <Compile Update="Sources\WorldCores\World\WorldCore.Get.cs">
         <DependentUpon>WorldCore.Get.tt</DependentUpon>

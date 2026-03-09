@@ -12,7 +12,7 @@ using FLib.WorldCores.Behaviors;
 
 namespace FLib.WorldCores
 {
-    public partial class WorldCore : FEvent, IDisposable, IEnumerable<Entity>
+    public partial class WorldCore : FEvent, IDisposable, IEnumerable<WorldEntity>
     {
         /// <summary>
         /// 
@@ -30,12 +30,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly ArchetypeGroup ArchetypeGroup;
+        public readonly WorldArchetypeGroup ArchetypeGroup;
 
         /// <summary>
         /// 
         /// </summary>
-        public readonly SoaComponentGroupManager Soa;
+        public readonly WorldSoaComponentGroupManager Soa;
 
         /// <summary>
         /// 
@@ -45,7 +45,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public EntityContainer Entities;
+        public WorldEntityContainer Entities;
 
         /// <summary>
         /// 
@@ -81,9 +81,9 @@ namespace FLib.WorldCores
         {
             Update2 = new WorldUpdater();
             Update1 = new WorldUpdater();
-            ArchetypeGroup = new ArchetypeGroup(this);
-            Soa = new SoaComponentGroupManager(this);
-            Entities = new EntityContainer(entityCapacity);
+            ArchetypeGroup = new WorldArchetypeGroup(this);
+            Soa = new WorldSoaComponentGroupManager(this);
+            Entities = new WorldEntityContainer(entityCapacity);
             DynamicComponentSparse = new(entityCapacity >> 1);
 
             var isLocking = false;
@@ -111,33 +111,33 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public IEnumerator<Entity> GetEnumerator()
+        public IEnumerator<WorldEntity> GetEnumerator()
         {
             var count = Entities.Count;
             for (ushort i = 0; count > 0; i++)
             {
                 if (Entities[i].IsEmpty) continue;
                 --count;
-                yield return new Entity(i, Entities[i].Version);
+                yield return new WorldEntity(i, Entities[i].Version);
             }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public QueryFilterBuilder BuildQuery() => new(this);
+        public WorldQueryFilterBuilder BuildQuery() => new(this);
 
         /// <summary>
         /// 
         /// </summary>
-        public QueryEnumerator Query(in QueryFilter filter = default) => new(this, filter);
+        public WorldQueryEnumerator Query(in WorldQueryFilter filter = default) => new(this, filter);
 
         /// <summary>
         /// 
         /// </summary>
-        public EntityBuilder BuildEntity()
+        public WorldEntityBuilder BuildEntity()
         {
-            return new EntityBuilder(this);
+            return new WorldEntityBuilder(this);
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual void ThrowException(object msg, Entity entity = default, Exception inner = null)
+        public virtual void ThrowException(object msg, WorldEntity entity = default, Exception inner = null)
         {
             throw new WorldCoreException(this, entity, msg, inner);
         }
@@ -212,7 +212,7 @@ namespace FLib.WorldCores
         /// 
         /// </summary>
         [Conditional("DEBUG")]
-        public virtual void Assert(bool conditional, Entity entity = default, object msg = null, Exception inner = null)
+        public virtual void Assert(bool conditional, WorldEntity entity = default, object msg = null, Exception inner = null)
         {
             if (!conditional) ThrowException("[world assert failed]" + msg, entity, inner);
         }

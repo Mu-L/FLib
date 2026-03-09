@@ -6,23 +6,23 @@ namespace FLib.Tests;
 
 public class TestWorldCore2
 {
-    [ComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
-    public struct Comp1 : ILifecycleDestroy
+    [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
+    public struct Comp1 : IWorldLifecycleDestroy
     {
         public int Value;
 
-        public void Destroy(WorldCore world, Entity entity)
+        public void Destroy(WorldCore world, WorldEntity entity)
         {
             world.Set(entity, new Comp2() { Value = Value * 10 });
         }
     }
 
-    [ComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
-    public struct Comp2 : ILifecycleDestroy
+    [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
+    public struct Comp2 : IWorldLifecycleDestroy
     {
         public int Value;
 
-        public void Destroy(WorldCore world, Entity entity)
+        public void Destroy(WorldCore world, WorldEntity entity)
         {
             Value *= 10;
             world.Get<Comp2>(entity);

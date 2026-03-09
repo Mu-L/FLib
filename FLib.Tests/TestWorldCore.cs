@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Reflection;
 using FLib.WorldCores;
 using FLib.Worlds;
+using WorldEntity = FLib.WorldCores.WorldEntity;
 
 namespace FLib.Tests;
 
@@ -24,7 +25,7 @@ public struct Team
     public byte TestAlign2;
     public override string ToString() => Value.ToString();
 
-    public void ComponentUpdate(WorldCore world, Entity entity)
+    public void ComponentUpdate(WorldCore world, WorldEntity entity)
     {
         ++world.Get<Actor>(entity).Id;
         ++Value;
@@ -46,36 +47,36 @@ public struct Buff
     public string Name;
 }
 
-[ComponentOption(options: EComponentOption.DoNotResetMemory | EComponentOption.AlwaysReceiveDestroy)]
-public struct Managed : ILifecycleAwake, ILifecycleDestroy, ILifecycleUpdate, ILifecycleStart
+[WorldCores.WorldComponentOption(options: EComponentOption.DoNotResetMemory | EComponentOption.AlwaysReceiveDestroy)]
+public struct Managed : IWorldLifecycleAwake, IWorldLifecycleDestroy, IWorldLifecycleUpdate, IWorldLifecycleStart
 {
     public List<string> Values;
     public uint AwakeFrame;
     public uint StartFrame;
     public uint UpdateFrame;
 
-    public void Awake(WorldCore world, Entity entity)
+    public void Awake(WorldCore world, WorldEntity entity)
     {
         Values = [nameof(Awake)];
         AwakeFrame = world.Frame;
     }
 
-    public void Start(WorldCore world, Entity entity)
+    public void Start(WorldCore world, WorldEntity entity)
     {
         Values.Add(nameof(Start));
         StartFrame = world.Frame;
     }
 
-    public void Destroy(WorldCore world, Entity entity) => Values.Add(nameof(Destroy));
+    public void Destroy(WorldCore world, WorldEntity entity) => Values.Add(nameof(Destroy));
 
-    public void Update(WorldCore world, Entity entity)
+    public void Update(WorldCore world, WorldEntity entity)
     {
         Values.Add(nameof(Update));
         UpdateFrame = world.Frame;
     }
 }
 
-public record struct Shared(int Value) : ISharedComponent;
+public record struct Shared(int Value) : IWorldSharedComponent;
 
 public class TestWorldCore
 {
@@ -89,7 +90,7 @@ public class TestWorldCore
         Assert.False(world.Has<Player>(et));
         world.RemoveEntity(et);
         
-        ComponentRegistry.GetMeta<Buff>();
+        WorldComponentRegistry.GetMeta<Buff>();
         var player1 = world.BuildEntity().WithMng<Player>().With<Team>().With<Actor>().Build();
         world.SetSta(player1, new Team { Value = 5 });
         world.SetStaMng(player1, new Player { Name = "p1" });
@@ -195,22 +196,22 @@ public class TestWorldCore
         world.Set(et, new Managed());
         world.Set(et, new Player { Name = "abc" });
 
-        Assert.Equal([nameof(ILifecycleAwake.Awake)], world.Get<Managed>(et).Values);
+        Assert.Equal([nameof(IWorldLifecycleAwake.Awake)], world.Get<Managed>(et).Values);
         Assert.Equal(1u, world.Get<Managed>(et).AwakeFrame);
 
         world.Update();
-        Assert.Equal([nameof(ILifecycleAwake.Awake), nameof(ILifecycleStart.Start), nameof(ILifecycleUpdate.Update)], world.Get<Managed>(et).Values);
+        Assert.Equal([nameof(IWorldLifecycleAwake.Awake), nameof(IWorldLifecycleStart.Start), nameof(IWorldLifecycleUpdate.Update)], world.Get<Managed>(et).Values);
         Assert.Equal(2u, world.Get<Managed>(et).StartFrame);
 
         world.Update();
-        Assert.Equal([nameof(ILifecycleAwake.Awake), nameof(ILifecycleStart.Start), nameof(ILifecycleUpdate.Update), nameof(ILifecycleUpdate.Update)], world.Get<Managed>(et).Values);
+        Assert.Equal([nameof(IWorldLifecycleAwake.Awake), nameof(IWorldLifecycleStart.Start), nameof(IWorldLifecycleUpdate.Update), nameof(IWorldLifecycleUpdate.Update)], world.Get<Managed>(et).Values);
         Assert.Equal(2u, world.Get<Managed>(et).StartFrame);
         Assert.Equal(3u, world.Get<Managed>(et).UpdateFrame);
 
         Assert.Equal("abc", world.Soa.GetGroup<Player>()[0].Name);
         world.RemoveEntity(et);
 
-        Assert.Equal([nameof(ILifecycleAwake.Awake), nameof(ILifecycleStart.Start), nameof(ILifecycleUpdate.Update), nameof(ILifecycleUpdate.Update), nameof(ILifecycleDestroy.Destroy)],
+        Assert.Equal([nameof(IWorldLifecycleAwake.Awake), nameof(IWorldLifecycleStart.Start), nameof(IWorldLifecycleUpdate.Update), nameof(IWorldLifecycleUpdate.Update), nameof(IWorldLifecycleDestroy.Destroy)],
             world.Soa.GetGroup<Managed>()[0].Values);
 
         Assert.Null(world.Soa.GetGroup<Player>()[0].Name);

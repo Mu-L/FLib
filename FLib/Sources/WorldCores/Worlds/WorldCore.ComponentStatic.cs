@@ -11,7 +11,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public Mng<T> GetStaMng<T>(Entity et)
+        public Mng<T> GetStaMng<T>(WorldEntity et)
         {
             ref readonly var eti = ref GetEntityInfo(et);
             return eti.Chunk.GetRef<Mng<T>>(eti.IndexInChunk);
@@ -20,7 +20,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void SetStaMng<T>(Entity et, in T val)
+        public void SetStaMng<T>(WorldEntity et, in T val)
         {
             ref readonly var eti = ref GetEntityInfo(et);
             eti.Chunk.GetRef<Mng<T>>(eti.IndexInChunk).Set(val);
@@ -29,7 +29,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public unsafe Ref<T> GetSta<T>(Entity et) where T : unmanaged
+        public unsafe Ref<T> GetSta<T>(WorldEntity et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
             return new Ref<T>(eti.Chunk.Get<T>(eti.IndexInChunk));
@@ -38,16 +38,16 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public object GetSta(Entity et, Type componentType)
+        public object GetSta(WorldEntity et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            return eti.Chunk.GetObj(eti.IndexInChunk, ComponentRegistry.GetMeta(componentType));
+            return eti.Chunk.GetObj(eti.IndexInChunk, WorldComponentRegistry.GetMeta(componentType));
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public ref T GetStaRef<T>(Entity et) where T : unmanaged
+        public ref T GetStaRef<T>(WorldEntity et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
             return ref eti.Chunk.GetRef<T>(eti.IndexInChunk);
@@ -56,7 +56,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void SetSta<T>(Entity et, in T val) where T : unmanaged
+        public void SetSta<T>(WorldEntity et, in T val) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
             eti.Chunk.GetRef<T>(eti.IndexInChunk) = val;
@@ -65,41 +65,41 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void SetShared<T>(Entity et, in T val) where T : ISharedComponent
+        public void SetShared<T>(WorldEntity et, in T val) where T : IWorldSharedComponent
         {
             ref readonly var eti = ref GetEntityInfo(et);
-            var compId = ComponentRegistry.GetId<T>();
+            var compId = WorldComponentRegistry.GetId<T>();
             var oldHash = eti.Chunk.SparseComponentMeta[compId];
             var newHash = val.GetHashCode();
             if (oldHash == newHash) return;
 
-            var sharedGroup = (SharedComponentGroup<T>)Soa.GetGroup<T>();
+            var sharedGroup = (WorldSharedComponentGroup<T>)Soa.GetGroup<T>();
             sharedGroup.Alloc(et, val, newHash);
-            eti.GetArchetype(this).SetSharedComponent(eti, new QuerySharedComponent(compId, newHash));
+            eti.GetArchetype(this).SetSharedComponent(eti, new WorldQuerySharedComponent(compId, newHash));
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public bool HasSta<T>(Entity et) where T : unmanaged
+        public bool HasSta<T>(WorldEntity et) where T : unmanaged
         {
-            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, ComponentRegistry.GetMeta<T>().Id);
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<T>().Id);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public bool HasStaMng<T>(Entity et)
+        public bool HasStaMng<T>(WorldEntity et)
         {
-            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, ComponentRegistry.GetMeta<Mng<T>>().Id);
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<Mng<T>>().Id);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public bool HasSta(Entity et, Type componentType)
+        public bool HasSta(WorldEntity et, Type componentType)
         {
-            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, ComponentRegistry.GetMeta(componentType).Id);
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta(componentType).Id);
         }
     }
 }
