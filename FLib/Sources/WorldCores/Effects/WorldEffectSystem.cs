@@ -5,24 +5,29 @@ using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Effects
 {
-    [WorldComponentOption(options: EComponentOption.RejectSoa)]
     public struct WorldEffectSystem : IWorldAwake, IWorldDestroy
     {
         public uint Mask;
         public WorldEntityHelper Self;
-        
+
+        private int _containerIndex;
+
 
         public void Awake(WorldCore world, WorldEntity entity)
         {
-            world.SetDyn(entity, new WorldEffectContainer());
+            _containerIndex = world.SetDyn(entity, new WorldEffectContainer());
         }
 
         public void Destroy(WorldCore world, WorldEntity entity)
         {
+            _containerIndex = -1;
             world.RemoveDyn<WorldEffectContainer>(entity);
         }
-        
-        public void Add()
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void Add(WorldEffect effect)
         {
         }
     }

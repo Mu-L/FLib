@@ -35,15 +35,15 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn<T>(WorldEntity et, in T component)
+        public int SetDyn<T>(WorldEntity et, in T component)
         {
-            SetDyn(et, component, ref GetEntityInfo(et));
+            return SetDyn(et, component, ref GetEntityInfo(et));
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn<T>(WorldEntity et, in T component, ref WorldEntityInfo eti)
+        public int SetDyn<T>(WorldEntity et, in T component, ref WorldEntityInfo eti)
         {
             Assert(!eti.IsDestroying, et, "entity is destroying");
             Assert(!WorldComponentRegistry.GetInfo(typeof(T)).IsShared, et);
@@ -59,12 +59,14 @@ namespace FLib.WorldCores
             {
                 group[slot] = component;
             }
+
+            return slot;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void SetDyn(WorldEntity et, Type componentType, object component)
+        public int SetDyn(WorldEntity et, Type componentType, object component)
         {
             componentType ??= component.GetType();
             Assert(!WorldComponentRegistry.GetInfo(componentType).IsShared, et);
@@ -81,6 +83,8 @@ namespace FLib.WorldCores
             {
                 group.Components.SetValue(component, slot);
             }
+
+            return slot;
         }
 
         /// <summary>
