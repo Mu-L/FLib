@@ -8,6 +8,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using FLib.WorldCores.SoaComponents;
+using FLib.WorldCores.Queries;
+using FLib.WorldCores.Entities;
+using FLib.WorldCores.Archetypes;
 using FLib.WorldCores.Behaviors;
 
 namespace FLib.WorldCores

@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores.Entities;
+using FLib.WorldCores.Components;
+using FLib.WorldCores.Archetypes;
 
 namespace FLib.WorldCores
 {

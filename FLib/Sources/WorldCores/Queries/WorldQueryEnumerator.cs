@@ -2,8 +2,10 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using FLib.WorldCores;
+using FLib.WorldCores.Entities;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Queries
 {
     /// <summary>
     /// 

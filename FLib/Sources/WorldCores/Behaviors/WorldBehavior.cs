@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Behaviors
 {

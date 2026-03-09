@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CS8500
-namespace FLib.Sources
+namespace FLib
 {
     public unsafe struct FreeSpan<T> where T : unmanaged
     {

@@ -2,8 +2,10 @@
 
 using System;
 using System.Runtime.InteropServices;
+using FLib.WorldCores.Components;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Archetypes
 {
     [StructLayout(LayoutKind.Auto)]
     public struct WorldArchetypeBuilder : IDisposable

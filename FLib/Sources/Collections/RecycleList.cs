@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace FLib.Sources
+namespace FLib
 {
     public struct RecycleList<T> : IList<T>
     {

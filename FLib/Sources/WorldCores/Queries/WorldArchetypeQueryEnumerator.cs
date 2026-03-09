@@ -2,8 +2,9 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using FLib.WorldCores.Archetypes;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Queries
 {
     public struct WorldArchetypeQueryEnumerator : IEnumerator<WorldArchetype>
     {

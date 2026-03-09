@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace FLib.Worlds
+namespace FLib
 {
     /// <summary>
     /// 按位标记
@@ -101,9 +101,16 @@ namespace FLib.Worlds
             set => Raw = (value << 4) | Group;
         }
 
-        // public readonly bool All(uint mask) => (Mask & mask) == mask;
-        // public readonly bool Any(uint mask) => (Mask & mask) != 0;
-        
+        /// <summary>
+        /// 是否包含指定的全部标记(忽略group)
+        /// </summary>
+        public readonly bool All(uint mask) => (Mask & mask) == mask;
+
+        /// <summary>
+        /// 是否包含指定的任意一个标记(忽略group)
+        /// </summary>
+        public readonly bool Any(uint mask) => (Mask & mask) != 0;
+
         /// <summary>
         /// 是否包含指定的全部标记
         /// </summary>
@@ -196,6 +203,8 @@ namespace FLib.Worlds
         public bool Equals(BitFlags other) => Raw == other.Raw;
         public override bool Equals(object obj) => obj is BitFlags other && Equals(other);
         public override int GetHashCode() => (int)Raw;
+        public static bool operator ==(BitFlags left, BitFlags right) => left.Raw == right.Raw;
+        public static bool operator !=(BitFlags left, BitFlags right) => left.Raw != right.Raw;
 
         #endregion
     }

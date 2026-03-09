@@ -2,6 +2,8 @@
 
 using System;
 using System.Diagnostics;
+using FLib.WorldCores.Entities;
+using FLib.WorldCores.Components;
 
 namespace FLib.WorldCores
 {

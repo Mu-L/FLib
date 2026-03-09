@@ -2,12 +2,10 @@
 
 #nullable enable
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Components
 {
     public readonly struct WorldComponentInfo
     {
@@ -26,8 +24,8 @@ namespace FLib.WorldCores
             Type = type;
             Meta = meta;
             Options = type.GetCustomAttribute<WorldComponentOptionAttribute>();
-            Awake = IWorldLifecycleAwake.CreateLifecycleDelegate(typeof(IWorldLifecycleAwake), type, nameof(IWorldLifecycleAwake.Awake));
-            Destroy = IWorldLifecycleAwake.CreateLifecycleDelegate(typeof(IWorldLifecycleDestroy), type, nameof(IWorldLifecycleDestroy.Destroy));
+            Awake = IWorldAwake.CreateLifecycleDelegate(typeof(IWorldAwake), type, nameof(IWorldAwake.Awake));
+            Destroy = IWorldAwake.CreateLifecycleDelegate(typeof(IWorldDestroy), type, nameof(IWorldDestroy.Destroy));
         }
 
         public bool Op(EComponentOption option) => Options != null && (Options.Options & option) == option;

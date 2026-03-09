@@ -3,6 +3,8 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using FLib.WorldCores.Queries;
+using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores
 {

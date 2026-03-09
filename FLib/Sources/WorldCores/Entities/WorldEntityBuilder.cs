@@ -1,9 +1,10 @@
 // ==================== qcbf@qq.com | 2026-01-09 ====================
 
-using System;
 using System.Diagnostics;
+using FLib.WorldCores;
+using FLib.WorldCores.Components;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Entities
 {
     public ref struct WorldEntityBuilder
     {
@@ -84,8 +85,8 @@ namespace FLib.WorldCores
                 world.Assert(!info.HasLifecycle, msg: "nonsupport life invoker");
             else
                 world.Assert(!info.IsShared);
-            world.Assert(!typeof(IWorldLifecycleUpdate).IsAssignableFrom(info.Type));
-            world.Assert(!typeof(IWorldLifecycleStart).IsAssignableFrom(info.Type));
+            world.Assert(!typeof(IWorldUpdate).IsAssignableFrom(info.Type));
+            world.Assert(!typeof(IWorldStart).IsAssignableFrom(info.Type));
         }
     }
 }

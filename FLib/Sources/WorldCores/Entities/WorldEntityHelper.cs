@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections;
+using FLib.WorldCores;
+using FLib.WorldCores.Components;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Entities
 {
     /// <summary>
     /// 实体辅助类，提供对实体的快速访问。

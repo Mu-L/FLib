@@ -2,8 +2,10 @@
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores;
+using FLib.WorldCores.Archetypes;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Entities
 {
     [SkipLocalsInit]
     public struct WorldEntityInfo

@@ -2,8 +2,10 @@
 
 using System;
 using System.Reflection;
+using FLib.WorldCores;
+using FLib.WorldCores.Components;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.SoaComponents
 {
     internal static class WorldUpdateSoaComponentGroupHelper
     {
@@ -13,7 +15,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static void Update<T>(WorldCore world, object arg) where T : IWorldLifecycleUpdate
+        public static void Update<T>(WorldCore world, object arg) where T : IWorldUpdate
         {
             var group = (WorldUpdateSoaComponentGroup<T>)arg;
             var offset = 0;
@@ -34,7 +36,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public static void UpdateStart<T>(WorldCore world, object arg) where T : IWorldLifecycleStart
+        public static void UpdateStart<T>(WorldCore world, object arg) where T : IWorldStart
         {
             var group = (WorldUpdateSoaComponentGroup<T>)arg;
 

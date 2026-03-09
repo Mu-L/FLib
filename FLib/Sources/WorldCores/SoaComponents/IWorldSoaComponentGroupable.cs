@@ -1,8 +1,10 @@
 // ==================== qcbf@qq.com | 2026-01-10 ====================
 
 using System;
+using FLib.WorldCores;
+using FLib.WorldCores.Entities;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.SoaComponents
 {
     public interface IWorldSoaComponentGroupable
     {

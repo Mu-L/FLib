@@ -6,8 +6,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Components
 {
     /// <summary>
     /// 这里会对每个Component类型 首次使用时进行注册, 生成比较的id, size, info等等信息.

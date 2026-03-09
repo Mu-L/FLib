@@ -1,6 +1,7 @@
 ﻿// ==================== qcbf@qq.com | 2026-03-01 ====================
 
 using System;
+using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores
 {

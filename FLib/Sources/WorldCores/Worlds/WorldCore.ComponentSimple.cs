@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using FLib.WorldCores.Entities;
+using FLib.WorldCores.Components;
 
 namespace FLib.WorldCores
 {

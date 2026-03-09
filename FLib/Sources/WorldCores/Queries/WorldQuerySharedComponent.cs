@@ -1,6 +1,8 @@
 // ==================== qcbf@qq.com | 2026-01-17 ====================
 
-namespace FLib.WorldCores
+using FLib.WorldCores;
+
+namespace FLib.WorldCores.Queries
 {
     public readonly struct WorldQuerySharedComponent
     {

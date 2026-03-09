@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+using FLib.WorldCores;
+using FLib.WorldCores.Archetypes;
+using FLib.WorldCores.Components;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Queries
 {
     public struct WorldQueryFilterBuilder
     {

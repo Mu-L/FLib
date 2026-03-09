@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using FLib.WorldCores;
+using FLib.WorldCores.Components;
+using FLib.WorldCores.Entities;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.SoaComponents
 {
     public class WorldSoaComponentGroup<T> : IWorldSoaComponentGroupable
     {

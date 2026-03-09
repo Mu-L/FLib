@@ -4,6 +4,8 @@
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores.Entities;
+using FLib.WorldCores.Components;
 
 namespace FLib.WorldCores
 {
@@ -15,12 +17,12 @@ namespace FLib.WorldCores
     /// <summary>
     /// 组件自身作为system, 组件自身收到awake的调用
     /// </summary>
-    public interface IWorldLifecycleAwake
+    public interface IWorldAwake
     {
         /// <summary>
         /// 
         /// </summary>
-        internal static void Awake<T>(ref byte ptr, WorldCore world, WorldEntity entity) where T : IWorldLifecycleAwake
+        internal static void Awake<T>(ref byte ptr, WorldCore world, WorldEntity entity) where T : IWorldAwake
         {
             try
             {

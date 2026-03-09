@@ -1,8 +1,9 @@
 // ==================== qcbf@qq.com | 2026-01-23 ====================
 
 using System;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Components
 {
     internal static class WorldStaticComponentMask
     {

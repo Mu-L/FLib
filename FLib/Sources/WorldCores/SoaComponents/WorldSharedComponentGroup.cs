@@ -1,9 +1,10 @@
 // ==================== qcbf@qq.com | 2026-01-15 ====================
 
-using System;
-using System.Collections.Generic;
+using FLib.WorldCores;
+using FLib.WorldCores.Components;
+using FLib.WorldCores.Entities;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.SoaComponents
 {
     public struct WorldSharedComponentGroupRef
     {

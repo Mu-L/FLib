@@ -2,10 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using FLib.WorldCores;
+using FLib.WorldCores.Components;
+using FLib.WorldCores.Entities;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.SoaComponents
 {
     public class WorldUpdateSoaComponentGroup<T> : WorldSoaComponentGroup<T>
     {
@@ -18,7 +19,7 @@ namespace FLib.WorldCores
         {
             var order = WorldComponentRegistry.GetInfo<T>().Options?.Order ?? 0;
             world.Update2.Register(WorldUpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), order, this);
-            if (typeof(IWorldLifecycleStart).IsAssignableFrom(typeof(T)))
+            if (typeof(IWorldStart).IsAssignableFrom(typeof(T)))
             {
                 StartComponentIndexes = new HashSet<int>();
                 world.Update1.Register(WorldUpdateSoaComponentGroupHelper.UpdateStartMethodDefine.MakeGenericMethod(typeof(T)), order, this);

@@ -3,8 +3,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores.Archetypes;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Queries
 {
     public struct WorldChunkQueryEnumerator : IEnumerator<WorldChunk>
     {

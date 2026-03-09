@@ -1,9 +1,10 @@
 // ==================== qcbf@qq.com | 2026-01-10 ====================
 
 using System;
-using System.Diagnostics;
+using FLib.WorldCores;
+using FLib.WorldCores.Components;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.SoaComponents
 {
     /// <summary>
     /// 动态组件组 管理器
@@ -59,7 +60,7 @@ namespace FLib.WorldCores
             World.Assert(!info.Op(EComponentOption.RejectSoa));
             if (info.IsShared)
                 return (IWorldSoaComponentGroupable)TypeAssistant.New(typeof(WorldSharedComponentGroup<>).MakeGenericType(componentType), World);
-            if (typeof(IWorldLifecycleUpdate).IsAssignableFrom(componentType) || typeof(IWorldLifecycleStart).IsAssignableFrom(componentType))
+            if (typeof(IWorldUpdate).IsAssignableFrom(componentType) || typeof(IWorldStart).IsAssignableFrom(componentType))
                 return (IWorldSoaComponentGroupable)TypeAssistant.New(typeof(WorldUpdateSoaComponentGroup<>).MakeGenericType(componentType), World);
             return (IWorldSoaComponentGroupable)TypeAssistant.New(typeof(WorldSoaComponentGroup<>).MakeGenericType(componentType!), World);
         }

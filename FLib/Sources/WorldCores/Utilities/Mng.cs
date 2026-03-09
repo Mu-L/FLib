@@ -1,11 +1,12 @@
 // ==================== qcbf@qq.com | 2026-01-10 ====================
 
 using System;
+using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores
 {
     [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
-    public struct Mng<T> : IWorldLifecycleAwake, IWorldLifecycleDestroy
+    public struct Mng<T> : IWorldAwake, IWorldDestroy
     {
         /// <summary>
         /// 略微感觉做法有点糙, 但又没想出是否要单独写个分页对象储存池,感觉好像又没太大必要, 暂时先这样实现

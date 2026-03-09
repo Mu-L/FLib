@@ -1,5 +1,6 @@
 ﻿// ==================== qcbf@qq.com | 2026-03-01 ====================
 
+using FLib.WorldCores.Entities;
 using FLib.WorldCores;
 
 namespace FLib.Tests;
@@ -7,7 +8,7 @@ namespace FLib.Tests;
 public class TestWorldCore2
 {
     [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
-    public struct Comp1 : IWorldLifecycleDestroy
+    public struct Comp1 : IWorldDestroy
     {
         public int Value;
 
@@ -18,7 +19,7 @@ public class TestWorldCore2
     }
 
     [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
-    public struct Comp2 : IWorldLifecycleDestroy
+    public struct Comp2 : IWorldDestroy
     {
         public int Value;
 

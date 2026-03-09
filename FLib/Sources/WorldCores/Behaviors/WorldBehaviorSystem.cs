@@ -5,11 +5,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Behaviors
 {
     [WorldComponentOption(options: EComponentOption.RejectSoa)]
-    public struct WorldBehaviorSystem : IWorldLifecycleAwake
+    public struct WorldBehaviorSystem : IWorldAwake
     {
         public WorldEntityHelper Self;
         public uint Mask;
@@ -22,7 +23,7 @@ namespace FLib.WorldCores.Behaviors
         public readonly WorldBehavior? Secondary => HasSecondary ? WorldBehaviorPool.Behaviors[SecondaryId] : null;
         public readonly WorldCore World => Self.World;
 
-        void IWorldLifecycleAwake.Awake(WorldCore world, WorldEntity entity)
+        void IWorldAwake.Awake(WorldCore world, WorldEntity entity)
         {
             SecondaryId = PrimaryId = -1;
             Self = new WorldEntityHelper(world, entity);

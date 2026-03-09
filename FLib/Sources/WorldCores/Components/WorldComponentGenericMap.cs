@@ -2,7 +2,9 @@
 
 // ReSharper disable StaticMemberInGenericType
 
-namespace FLib.WorldCores
+using FLib.WorldCores;
+
+namespace FLib.WorldCores.Components
 {
     public static class WorldComponentGenericMap<T>
     {

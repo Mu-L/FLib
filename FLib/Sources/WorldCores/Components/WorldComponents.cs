@@ -1,9 +1,9 @@
 ﻿// ==================== qcbf@qq.com | 2026-03-09 ====================
 
-using System;
-using System.Runtime.CompilerServices; 
+using System.Runtime.CompilerServices;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Components
 {
 
     [SkipLocalsInit]

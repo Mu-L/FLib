@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Archetypes
 {
     public class WorldArchetypeGroup
     {

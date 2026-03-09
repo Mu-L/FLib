@@ -1,7 +1,10 @@
 // ==================== qcbf@qq.com | 2026-03-02 ====================
 
+using FLib.WorldCores.Entities;
+using FLib.WorldCores;
+
 #pragma warning disable CA2211
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Components
 {
     public static class WorldComponentEvents<T>
     {

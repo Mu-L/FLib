@@ -2,8 +2,9 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Entities
 {
     /// <summary>
     /// 

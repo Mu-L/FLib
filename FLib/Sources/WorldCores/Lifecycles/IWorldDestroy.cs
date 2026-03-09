@@ -2,15 +2,17 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using FLib.WorldCores.Entities;
+using FLib.WorldCores.Components;
 
 namespace FLib.WorldCores
 {
-    public interface IWorldLifecycleDestroy
+    public interface IWorldDestroy
     {
         /// <summary>
         /// 
         /// </summary>
-        internal static void Destroy<T>(ref byte ptr, WorldCore world, WorldEntity entity) where T : IWorldLifecycleDestroy
+        internal static void Destroy<T>(ref byte ptr, WorldCore world, WorldEntity entity) where T : IWorldDestroy
         {
             try
             {

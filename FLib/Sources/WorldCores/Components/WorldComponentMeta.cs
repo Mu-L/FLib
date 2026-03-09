@@ -1,8 +1,9 @@
 ﻿// ==================== qcbf@qq.com |2026-01-01 ====================
 
 using System;
+using FLib.WorldCores;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Components
 {
     public readonly struct WorldComponentMeta
     {

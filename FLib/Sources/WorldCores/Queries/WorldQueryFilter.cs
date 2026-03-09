@@ -1,9 +1,10 @@
 // ==================== qcbf@qq.com | 2026-01-17 ====================
 
 using System;
-using System.Collections.Generic;
+using FLib.WorldCores;
+using FLib.WorldCores.Archetypes;
 
-namespace FLib.WorldCores
+namespace FLib.WorldCores.Queries
 {
     public readonly struct WorldQueryFilter
     {
