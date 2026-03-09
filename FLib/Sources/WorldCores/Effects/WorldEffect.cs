@@ -5,15 +5,12 @@ using FLib.WorldCores.Entities;
 namespace FLib.WorldCores.Effects
 {
     [BytesPackGenHoldKey(2)]
-    public unsafe class WorldEffect
+    public unsafe class WorldEffect : IBytesPackable
     {
         internal WorldEffectSystem* SystemPtr;
-
-        public uint Id;
-        public FNum Duration;
-        public int MaxStackCount = 1;
-        public BitFlags Flags;
-        public EWorldEffectAddOption AddOption = EWorldEffectAddOption.ResetTime;
+        public WorldEffectData Data;
+        public FNum StartTime;
+        public WorldEntity AddedBy;
 
         public ref WorldEffectSystem System => ref *SystemPtr;
         public ref WorldEntityHelper Entity => ref SystemPtr->Self;
@@ -43,6 +40,15 @@ namespace FLib.WorldCores.Effects
         /// 
         /// </summary>
         public virtual void OnStackCountChange(int addCount)
+        {
+        }
+
+        public virtual void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
+        {
+            key.Push(ref writer, 1);
+        }
+
+        public virtual void Z_BytesPackRead(int key, ref BytesReader reader)
         {
         }
     }

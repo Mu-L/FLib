@@ -53,7 +53,10 @@ namespace FLib
         public readonly ref T GetRef(int index) => ref Values[index];
         void ICollection<T>.Add(T item) => Add(item);
 
-        public int Add(in T item)
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Add()
         {
             if (Frees?.TryPop(out var index) != true)
             {
@@ -63,11 +66,20 @@ namespace FLib
             }
 
             ++Count;
-            Values[index] = item;
 #if DEBUG
             (Uses ??= new HashSet<int>()).Add(index);
 #endif
             return index;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int Add(in T item)
+        {
+            var idx = Add();
+            Values[idx] = item;
+            return idx;
         }
 
         void IList<T>.Insert(int index, T item) => throw new NotSupportedException();

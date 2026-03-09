@@ -1,5 +1,6 @@
 // ==================== qcbf@qq.com | 2026-01-14 ====================
 
+#nullable enable
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -29,7 +30,7 @@ namespace FLib.WorldCores
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Assert(dynIdx >= 0);
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[WorldComponentRegistry.GetId(type)];
-            return Soa.GetGroup(type).Components.GetValue(compIdx);
+            return Soa.GetGroup(type).Components.GetValue(compIdx)!;
         }
 
         /// <summary>
