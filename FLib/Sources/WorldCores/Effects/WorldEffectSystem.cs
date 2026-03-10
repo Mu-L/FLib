@@ -33,7 +33,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public WorldEffect? Add(Type effectType, in WorldEntity addedBy, uint id, int addCount = 1)
+        public WorldEffect? Add(Type effectType, in WorldEntity addedBy, uint id, ushort addCount = 1)
         {
             var container = WorldEffectPool.Containers[_containerIndex];
             var effects = container.Effects;
@@ -98,19 +98,64 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public void Remove(WorldEffect effect)
+        public void Remove(WorldEffect effect, ushort removeCount = 1)
         {
-            
+            var evt = new WorldRemoveEffectEvent { Effect = effect, RemoveCount = removeCount };
+            if (!Self.DispatchPreEvent(ref evt))
+                return;
+            effect.Data.StackCount -= evt.RemoveCount;
+            effect.OnStackCountChange(evt.RemoveCount);
+
+            if (effect.Data.StackCount > 0)
+            {
+                Self.DispatchEvent(evt);
+                return;
+            }
+
+            try
+            {
+                Self.DispatchEvent(evt);
+            }
+            finally
+            {
+                FreeEffect(effect);
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private static void AddEffectStackCount(WorldEffect effect, ref int addCount)
+        private void FreeEffect(WorldEffect effect)
+        {
+            var container = WorldEffectPool.Containers[_containerIndex];
+            FlagMask &= ~container.RemoveFlags(effect.Data.Flags);
+            ref var item = ref container.Effects[effect.Data.Id];
+            try
+            {
+                if (item.Single == effect && !item.TryPopMoreList())
+                {
+                    container.Effects.Remove(effect.Data.Id);
+                }
+                else
+                {
+                    if (!item.MoreList.Remove(effect))
+                        World.ThrowException("not found effect instance", Self);
+                }
+            }
+            finally
+            {
+                WorldEffectPool.Free(effect);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void AddEffectStackCount(WorldEffect effect, ref ushort addCount)
         {
             var oldCount = effect.Data.StackCount;
             effect.Data.StackCount = (ushort)Math.Clamp(effect.Data.StackCount + addCount, 1, effect.Data.MaxStackCount);
-            addCount = effect.Data.StackCount - oldCount;
+            addCount = (ushort)(effect.Data.StackCount - oldCount);
         }
 
         /// <summary>

@@ -17,6 +17,18 @@ namespace FLib.WorldCores.Effects
         {
             public WorldEffect? Single;
             public PooledList<WorldEffect> MoreList;
+
+            public bool TryPopMoreList()
+            {
+                if (MoreList.IsEmpty)
+                    return false;
+                var index = MoreList.Count - 1;
+                Single = MoreList[index];
+                MoreList.RemoveAt(index);
+                if (MoreList.IsEmpty)
+                    MoreList.Dispose();
+                return true;
+            }
         }
 
         /// <summary>

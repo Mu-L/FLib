@@ -28,6 +28,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public static unsafe void Free(WorldEffect effect)
         {
+            effect.Data = default;
             effect.SystemPtr = null;
             AllFrees.GetOrAdd(effect.GetType(), _ => new ConcurrentStack<WorldEffect>()).Push(effect);
         }

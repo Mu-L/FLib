@@ -9,6 +9,6 @@ namespace FLib.WorldCores.Effects
         public uint Id;
         public WorldEffect Effect;
         public WorldEntity AddedBy;
-        public int AddCount;
+        public ushort AddCount;
     }
 }
