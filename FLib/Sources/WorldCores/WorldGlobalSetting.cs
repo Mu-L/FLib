@@ -11,6 +11,16 @@ namespace FLib.WorldCores
     public static class WorldGlobalSetting
     {
         /// <summary>
+        /// 帧率
+        /// </summary>
+        public static byte FrameRate = 30;
+
+        /// <summary>
+        /// 每帧时间
+        /// </summary>
+        public static FNum DeltaTime = FNum.One / FrameRate;
+
+        /// <summary>
         /// 对齐大小
         /// </summary>
         public static int ComponentAlign = 16;

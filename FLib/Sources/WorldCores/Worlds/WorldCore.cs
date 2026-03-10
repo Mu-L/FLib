@@ -81,6 +81,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
+        public virtual FNum Time => Frame * WorldGlobalSetting.DeltaTime;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public WorldCore(int entityCapacity = 1024)
         {
             Update2 = new WorldUpdater();
