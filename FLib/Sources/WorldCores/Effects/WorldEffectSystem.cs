@@ -16,6 +16,7 @@ namespace FLib.WorldCores.Effects
 
         private int _containerIndex;
 
+        public readonly WorldEffectContainer Container => WorldEffectPool.Containers[_containerIndex];
         public readonly WorldCore World => Self.World;
 
 
@@ -35,7 +36,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public WorldEffect? Add(Type effectType, in WorldEntity addedBy, uint id, ushort addCount = 1)
         {
-            var container = WorldEffectPool.Containers[_containerIndex];
+            var container = Container;
             var effects = container.Effects;
             ref var item = ref effects.GetOrAddValueRef(id);
             var evt = new WorldAddEffectEvent { AddCount = addCount, AddedBy = addedBy.IsEmpty ? Self : addedBy, Id = id, Effect = item.Single };
@@ -98,7 +99,23 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public void Remove(WorldEffect effect, ushort removeCount = 1)
+        public bool Remove(uint id, ushort removeCount = 0)
+        {
+            var container = Container;
+            var idx = container.Effects.GetEntryIndex(id);
+            if (idx >= 0)
+            {
+                Remove(container.Effects.GetEntryValue(idx).Single!, removeCount);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Remove(WorldEffect effect, ushort removeCount = 0)
         {
             var evt = new WorldRemoveEffectEvent { Effect = effect, RemoveCount = removeCount };
             if (!Self.DispatchPreEvent(ref evt))
@@ -127,7 +144,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         private void FreeEffect(WorldEffect effect)
         {
-            var container = WorldEffectPool.Containers[_containerIndex];
+            var container = Container;
             FlagMask &= ~container.RemoveFlags(effect.Data.Flags);
             ref var item = ref container.Effects[effect.Data.Id];
             try
