@@ -30,13 +30,14 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 执行指定行为类型并传入参数，如果已有相同行为则复用；返回执行是否成功。
         /// </summary>
         public bool Do<TBehavior, TParam>(in TParam param) where TBehavior : WorldBehavior
             => Do(typeof(TBehavior), param);
 
         /// <summary>
-        /// 
+        /// 执行给定行为类型，并通过静态泛型承载参数。
+        /// 参数值会提前存储到 <see cref="Behavior{T}.NewParam"/>。
         /// </summary>
         public bool Do<T>(Type behaviorType, in T param)
         {
@@ -45,13 +46,16 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 启动指定泛型类型的行为（无参数）。
         /// </summary>
         public bool Do<T>() where T : WorldBehavior
             => Do(typeof(T));
 
         /// <summary>
-        /// 
+        /// 尝试激活或新建指定行为类型：
+        /// - 如果当前主或次行为已是该类型，则直接检查并唤醒；
+        /// - 否则根据优先级/友好关系决定是否创建新实例并替换。
+        /// 返回是否成功执行行为。
         /// </summary>
         public unsafe bool Do(Type behaviorType)
         {
@@ -79,7 +83,8 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 创建一个新行为并根据当前主/次行为的优先级与友好关系
+        /// 将其插入到系统中；必要时会停止被替换的行为。
         /// </summary>
         private unsafe bool DoNewBehavior(Type behaviorType, WorldDoBehaviorEvent evt)
         {
@@ -138,7 +143,8 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 停止系统中运行的所有行为。
+        /// 如果 <paramref name="force"/> 为 true，会循环尝试直至彻底清空或抛出错误。
         /// </summary>
         public void StopAll(bool force = false)
         {
@@ -158,7 +164,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 停止当前主行为（如果存在）。
         /// </summary>
         public bool StopPrimary()
         {
@@ -172,7 +178,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 停止当前次行为（如果存在）。
         /// </summary>
         public bool StopSecondary()
         {
@@ -186,7 +192,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 停止指定类型的行为（无论是主还是次）。
         /// </summary>
         public bool Stop<T>() where T : WorldBehavior
         {
@@ -206,7 +212,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 停止指定类型的行为实例。
         /// </summary>
         public bool Stop(Type behaviorType)
         {
@@ -226,19 +232,19 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 检查标记组合是否全部被当前行为掩码包含。
         /// </summary>
         public readonly bool IsRunning(uint mask)
             => (Mask & mask) == mask;
 
         /// <summary>
-        /// 
+        /// 判断给定泛型类型的行为是否正在运行。
         /// </summary>
         public readonly bool IsRunning<T>() where T : WorldBehavior
             => Primary is T || Secondary is T;
 
         /// <summary>
-        /// 
+        /// 判断指定类型的行为是否作为主或次正在运行。
         /// </summary>
         public readonly bool IsRunning(Type behaviorType)
             => Primary?.GetType() == behaviorType || Secondary?.GetType() == behaviorType;
@@ -247,7 +253,7 @@ namespace FLib.WorldCores.Behaviors
         // ===== privates =====
 
         /// <summary>
-        /// 
+        /// 通用唤醒逻辑：初始化参数、调用行为唤醒并派发事件。
         /// </summary>
         private readonly void Awake(WorldBehavior bhv, in WorldDoBehaviorEvent evt)
         {
@@ -257,7 +263,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 在执行行为前进行检查，包括行为自身条件和预事件拦截。
         /// </summary>
         private readonly bool CheckDo(ref WorldDoBehaviorEvent e, WorldBehavior bhv, bool isFirst)
         {
@@ -267,7 +273,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 停止指定 ID 的行为并处理主次切换逻辑。
         /// </summary>
         private void Stop(ref int id)
         {
@@ -294,7 +300,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 
+        /// 执行行为停止的底层逻辑：更新掩码、派发事件并回收对象。
         /// </summary>
         private void Stop(WorldBehavior bhv, bool isPrimary)
         {
