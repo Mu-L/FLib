@@ -23,8 +23,8 @@ namespace FLib.WorldCores.Behaviors
 
         public readonly ref readonly T GetParam<T>()
         {
-            Debug.Assert(Behavior is Behavior<T>);
-            return ref Behavior<T>.NewParam;
+            Debug.Assert(Behavior is WorldBehavior<T>);
+            return ref WorldBehavior<T>.NewParam;
         }
     }
 }

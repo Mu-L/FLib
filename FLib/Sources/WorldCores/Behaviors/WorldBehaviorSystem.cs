@@ -23,10 +23,13 @@ namespace FLib.WorldCores.Behaviors
         public readonly WorldBehavior? Secondary => HasSecondary ? WorldBehaviorPool.Behaviors[SecondaryId] : null;
         public readonly WorldCore World => Self.World;
 
+        public override string ToString() => $"{Self}, {Primary}, {Secondary}";
+
         void IWorldAwake.Awake(WorldCore world, WorldEntity entity)
         {
             SecondaryId = PrimaryId = -1;
             Self = new WorldEntityHelper(world, entity);
+            WorldGlobalSetting.DoDefaultBehavior(ref this);
         }
 
         /// <summary>
@@ -37,11 +40,12 @@ namespace FLib.WorldCores.Behaviors
 
         /// <summary>
         /// 执行给定行为类型，并通过静态泛型承载参数。
-        /// 参数值会提前存储到 <see cref="Behavior{T}.NewParam"/>。
+        /// 参数值会提前存储到 <see cref="WorldBehavior{TParam}.NewParam"/>。
         /// </summary>
         public bool Do<T>(Type behaviorType, in T param)
         {
-            Behavior<T>.NewParam = param;
+            World.Assert(typeof(WorldBehavior<T>).IsAssignableFrom(behaviorType));
+            WorldBehavior<T>.NewParam = param;
             return Do(behaviorType);
         }
 
@@ -65,12 +69,14 @@ namespace FLib.WorldCores.Behaviors
             {
                 if (!CheckDo(ref evt, bhv = Primary, false))
                     return false;
+                (bhv as IWorldBehaviorParameterizable)?.InitializeParam();
                 Awake(bhv, evt);
             }
             else if (Secondary?.GetType() == behaviorType)
             {
                 if (!CheckDo(ref evt, bhv = Secondary, false))
                     return false;
+                (bhv as IWorldBehaviorParameterizable)?.InitializeParam();
                 Awake(bhv, evt);
             }
             else
@@ -91,6 +97,7 @@ namespace FLib.WorldCores.Behaviors
             var bhv = WorldBehaviorPool.Rent(behaviorType);
             bhv.SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this);
             bhv.StartFrame = World.Frame;
+            (bhv as IWorldBehaviorParameterizable)?.InitializeParam();
 
             if (!CheckDo(ref evt, bhv, true))
             {
@@ -98,7 +105,7 @@ namespace FLib.WorldCores.Behaviors
                 return false;
             }
 
-            bhv.Priority = bhv.GetPriority();
+            bhv.Priority = bhv.GetInitialPriority();
             ref var slot = ref PrimaryId;
             WorldBehavior? stopBhvPrimary = null;
             WorldBehavior? stopBhvSecondary = null;
@@ -108,12 +115,18 @@ namespace FLib.WorldCores.Behaviors
             {
                 if (primary.CheckPriority(bhv))
                 {
-                    stopBhvPrimary = primary;
-                    var secondary = Secondary;
-                    if (secondary != null && !bhv.CheckFriend(secondary))
+                    if (bhv.CheckFriend(primary))
                     {
-                        stopBhvSecondary = secondary;
-                        SecondaryId = -1;
+                        Swap(primary, behaviorType, ref SecondaryId);
+                    }
+                    else
+                    {
+                        stopBhvPrimary = primary;
+                        var secondary = Secondary;
+                        if (secondary != null && !bhv.CheckFriend(secondary))
+                        {
+                            stopBhvSecondary = secondary;
+                        }
                     }
                 }
                 else if (primary.CheckFriend(bhv))
@@ -135,10 +148,15 @@ namespace FLib.WorldCores.Behaviors
             slot = bhv.Id;
             Awake(bhv, evt);
 
+            if (stopBhvSecondary != null)
+            {
+                SecondaryId = -1;
+                Stop(stopBhvSecondary, false);
+            }
+
             if (stopBhvPrimary != null)
                 Stop(stopBhvPrimary, true);
-            if (stopBhvSecondary != null)
-                Stop(stopBhvSecondary, false);
+
             return true;
         }
 
@@ -146,16 +164,16 @@ namespace FLib.WorldCores.Behaviors
         /// 停止系统中运行的所有行为。
         /// 如果 <paramref name="force"/> 为 true，会循环尝试直至彻底清空或抛出错误。
         /// </summary>
-        public void StopAll(bool force = false)
+        public void StopAll(bool force = false, bool isDoDefault = true)
         {
             StopSecondary();
-            StopPrimary();
+            StopPrimary(isDoDefault);
             if (force && HasPrimary)
             {
                 for (var i = 0; i < 100000 && HasPrimary; i++)
                 {
                     StopSecondary();
-                    StopPrimary();
+                    StopPrimary(isDoDefault);
                 }
 
                 if (HasPrimary)
@@ -166,11 +184,11 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 停止当前主行为（如果存在）。
         /// </summary>
-        public bool StopPrimary()
+        public bool StopPrimary(bool isDoDefault = true)
         {
             if (HasPrimary)
             {
-                Stop(ref PrimaryId);
+                Stop(ref PrimaryId, isDoDefault);
                 return true;
             }
 
@@ -194,17 +212,17 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 停止指定类型的行为（无论是主还是次）。
         /// </summary>
-        public bool Stop<T>() where T : WorldBehavior
+        public bool Stop<T>(bool isDoDefault = true) where T : WorldBehavior
         {
             if (Primary is T)
             {
-                Stop(ref PrimaryId);
+                Stop(ref PrimaryId, isDoDefault);
                 return true;
             }
 
             if (Secondary is T)
             {
-                Stop(ref SecondaryId);
+                Stop(ref SecondaryId, isDoDefault);
                 return true;
             }
 
@@ -214,17 +232,17 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 停止指定类型的行为实例。
         /// </summary>
-        public bool Stop(Type behaviorType)
+        public bool Stop(Type behaviorType, bool isDoDefault = true)
         {
             if (Primary?.GetType() == behaviorType)
             {
-                Stop(ref PrimaryId);
+                Stop(ref PrimaryId, isDoDefault);
                 return true;
             }
 
             if (Secondary?.GetType() == behaviorType)
             {
-                Stop(ref SecondaryId);
+                Stop(ref SecondaryId, isDoDefault);
                 return true;
             }
 
@@ -257,7 +275,6 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         private readonly void Awake(WorldBehavior bhv, in WorldDoBehaviorEvent evt)
         {
-            (bhv as IBehaviorParameterizable)?.InitializeParam();
             bhv.Awake(evt.IsFirst);
             Self.DispatchEvent(evt);
         }
@@ -275,7 +292,7 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 停止指定 ID 的行为并处理主次切换逻辑。
         /// </summary>
-        private void Stop(ref int id)
+        private void Stop(ref int id, bool isDoDefault = true)
         {
             var bhv = WorldBehaviorPool.Behaviors[id];
             var bhvType = bhv.GetType();
@@ -287,12 +304,10 @@ namespace FLib.WorldCores.Behaviors
                 var secondary = Secondary;
                 if (secondary != null)
                 {
-                    PrimaryId = SecondaryId;
                     SecondaryId = -1;
-                    secondary.OnSwapToPrimary(bhvType);
-                    Self.DispatchEvent(new WorldSwapBehaviorEvent(bhvType, secondary));
+                    Swap(secondary, bhvType, ref PrimaryId);
                 }
-                else
+                else if (isDoDefault)
                 {
                     WorldGlobalSetting.DoDefaultBehavior(ref this);
                 }
@@ -307,6 +322,16 @@ namespace FLib.WorldCores.Behaviors
             Mask &= ~bhv.Mask;
             Self.DispatchEvent(new WorldStopBehaviorEvent(ref this, bhv, isPrimary));
             WorldBehaviorPool.Free(bhv);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Swap(WorldBehavior bhv, Type conflictType, ref int to)
+        {
+            to = bhv.Id;
+            bhv.OnSwap(conflictType);
+            Self.DispatchEvent(new WorldSwapBehaviorEvent(conflictType, bhv));
         }
     }
 }

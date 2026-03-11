@@ -37,10 +37,7 @@ namespace FLib.WorldCores.Behaviors
                 }
             }
 
-            index = Interlocked.Increment(ref _count) - 1;
-            var behavior = Behaviors[index] = (WorldBehavior)TypeAssistant.New(behaviorType);
-            behavior.Id = index;
-            return behavior;
+            return NewBehavior(behaviorType);
         }
 
         /// <summary>
@@ -60,18 +57,25 @@ namespace FLib.WorldCores.Behaviors
             var allCount = capacities.Sum(v => v.Item2);
             Behaviors = new WorldBehavior[allCount];
             AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<int>>(WorldGlobalSetting.ThreadConcurrencyLevel, allCount);
-            var index = 0;
             for (var i = 0; i < capacities.Length; i++)
             {
                 var type = capacities[i].Item1;
                 var count = capacities[i].Item2;
                 var stack = AllFrees[type] = new ConcurrentStack<int>();
                 for (var j = 0; j < count; j++)
-                {
-                    Behaviors[index++] = (WorldBehavior)TypeAssistant.New(type);
-                    stack.Push(index);
-                }
+                    stack.Push(NewBehavior(type).Id);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static WorldBehavior NewBehavior(Type behaviorType)
+        {
+            var index = Interlocked.Increment(ref _count) - 1;
+            var behavior = Behaviors[index] = (WorldBehavior)TypeAssistant.New(behaviorType);
+            behavior.Id = index;
+            return behavior;
         }
     }
 }

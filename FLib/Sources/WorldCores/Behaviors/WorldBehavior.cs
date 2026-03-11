@@ -21,18 +21,18 @@ namespace FLib.WorldCores.Behaviors
 
         public byte TypeId { get; internal set; }
         public uint StartFrame { get; internal set; }
-        public int Priority { get; internal set; }
+        public byte Priority { get; internal set; }
         public abstract uint Mask { get; }
 
 
-        public virtual int GetPriority() => 0;
+        public virtual byte GetInitialPriority() => 0;
         public virtual bool CheckDo() => !System.IsRunning(Mask);
 
         public virtual bool CheckPriority(WorldBehavior target) => target.Priority >= Priority;
         public virtual bool CheckFriend(WorldBehavior targetBehavior) => false;
 
 
-        public virtual void OnSwapToPrimary(Type oldPrimaryType)
+        public virtual void OnSwap(Type conflictType)
         {
         }
 
@@ -48,7 +48,7 @@ namespace FLib.WorldCores.Behaviors
     /// <summary>
     /// 
     /// </summary>
-    public interface IBehaviorParameterizable
+    public interface IWorldBehaviorParameterizable
     {
         void InitializeParam();
     }
@@ -56,7 +56,7 @@ namespace FLib.WorldCores.Behaviors
     /// <summary>
     /// 
     /// </summary>
-    public abstract class Behavior<TParam> : WorldBehavior, IBehaviorParameterizable
+    public abstract class WorldBehavior<TParam> : WorldBehavior, IWorldBehaviorParameterizable
     {
         [ThreadStatic] internal static TParam NewParam;
         public TParam Param;
