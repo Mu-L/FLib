@@ -16,19 +16,21 @@ namespace FLib.WorldCores.Effects
 
         private int _containerIndex;
 
-        public readonly WorldEffectContainer Container => WorldEffectPool.Containers[_containerIndex];
+        public readonly WorldEffectContainer Container => World.Soa.GetGroup<WorldEffectContainer>()[_containerIndex];
         public readonly WorldCore World => Self.World;
+        public readonly bool IsDisposed => _containerIndex < 0;
 
 
         public void Awake(WorldCore world, WorldEntity entity)
         {
-            _containerIndex = WorldEffectPool.Containers.Add();
+            _containerIndex = world.SetDyn(entity, WorldEffectPool.RentContainer());
         }
 
         public void Destroy(WorldCore world, WorldEntity entity)
         {
-            WorldEffectPool.Containers.RemoveAt(_containerIndex, false);
+            WorldEffectPool.FreeContainer(Container);
             _containerIndex = -1;
+            Clear();
         }
 
         /// <summary>
@@ -36,6 +38,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public WorldEffect? Add(Type effectType, in WorldEntity addedBy, uint id, ushort addCount = 1)
         {
+            World.Assert(!IsDisposed);
             var container = Container;
             var effects = container.Effects;
             ref var item = ref effects.GetOrAddValueRef(id);
@@ -103,30 +106,28 @@ namespace FLib.WorldCores.Effects
         {
             var container = Container;
             var idx = container.Effects.GetEntryIndex(id);
-            if (idx >= 0)
-            {
-                Remove(container.Effects.GetEntryValue(idx).Single!, removeCount);
-                return true;
-            }
-
-            return false;
+            return idx >= 0 && Remove(container.Effects.GetEntryValue(idx).Single!, removeCount);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Remove(WorldEffect effect, ushort removeCount = 0)
+        public bool Remove(WorldEffect effect, ushort removeCount = 0)
         {
+            if (removeCount == 0)
+                removeCount = effect.Data.StackCount;
+
             var evt = new WorldRemoveEffectEvent { Effect = effect, RemoveCount = removeCount };
             if (!Self.DispatchPreEvent(ref evt))
-                return;
+                return false;
+            
             effect.Data.StackCount -= evt.RemoveCount;
             effect.OnStackCountChange(evt.RemoveCount);
 
             if (effect.Data.StackCount > 0)
             {
                 Self.DispatchEvent(evt);
-                return;
+                return true;
             }
 
             try
@@ -136,6 +137,32 @@ namespace FLib.WorldCores.Effects
             finally
             {
                 FreeEffect(effect);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Clear(uint flags = uint.MaxValue, IList<uint>? idList = null)
+        {
+            var container = Container;
+            var effectsEnum = container.Effects.GetEnumerator();
+            while (effectsEnum.MoveNext())
+            {
+                if (!effectsEnum.Value.Single!.Data.Flags.All(flags))
+                    continue;
+                idList?.Add(effectsEnum.Key);
+                if (!effectsEnum.Value.MoreList.IsEmpty)
+                {
+                    for (var i = effectsEnum.Value.MoreList.Count - 1; i >= 0; i--)
+                    {
+                        Remove(effectsEnum.Value.MoreList[i]);
+                    }
+                }
+
+                Remove(effectsEnum.Value.Single);
             }
         }
 

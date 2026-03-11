@@ -85,8 +85,8 @@ namespace FLib.WorldCores.Entities
                 world.Assert(!info.HasLifecycle, msg: "nonsupport life invoker");
             else
                 world.Assert(!info.IsShared);
-            world.Assert(!typeof(IWorldUpdate).IsAssignableFrom(info.Type));
-            world.Assert(!typeof(IWorldStart).IsAssignableFrom(info.Type));
+            world.Assert(!typeof(IWorldUpdate).IsAssignableFrom(info.Type), msg: "static component not support update");
+            world.Assert(!typeof(IWorldStart).IsAssignableFrom(info.Type), msg: "static component not support start");
         }
     }
 }

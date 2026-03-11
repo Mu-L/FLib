@@ -10,7 +10,7 @@ namespace FLib.WorldCores.Effects
     public static class WorldEffectPool
     {
         public static readonly ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>> AllFrees = new();
-        [ThreadStatic] public static FixedIndexList<WorldEffectContainer> Containers;
+        public static ConcurrentStack<WorldEffectContainer> Containers = new();
 
         /// <summary>
         /// 
@@ -31,6 +31,23 @@ namespace FLib.WorldCores.Effects
             effect.Data = default;
             effect.SystemPtr = null;
             AllFrees.GetOrAdd(effect.GetType(), _ => new ConcurrentStack<WorldEffect>()).Push(effect);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static WorldEffectContainer RentContainer()
+        {
+            return Containers.TryPop(out var container) ? container : new WorldEffectContainer();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void FreeContainer(WorldEffectContainer container)
+        {
+            container.Clear();
+            Containers.Push(container);
         }
     }
 }
