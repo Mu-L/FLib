@@ -16,7 +16,7 @@ namespace FLib.WorldCores.SoaComponents
 
         public IWorldSoaComponentGroupable this[WorldIncrementId componentId] => Groups[componentId];
 
-        public unsafe WorldSoaComponentGroupManager(WorldCore world)
+        public WorldSoaComponentGroupManager(WorldCore world)
         {
             World = world;
         }

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 #pragma warning disable CA2211
@@ -12,7 +13,7 @@ namespace FLib.WorldCores.Behaviors
     public static class WorldBehaviorPool
     {
         public static WorldBehavior[] Behaviors = new WorldBehavior[256];
-        public static readonly ConcurrentDictionary<Type, ConcurrentStack<int>> AllFrees = new();
+        public static ConcurrentDictionary<Type, ConcurrentStack<int>> AllFrees = new(WorldGlobalSetting.ThreadConcurrencyLevel, 256);
 
         private static readonly object SyncLock = new();
         private static int _count;
@@ -49,6 +50,28 @@ namespace FLib.WorldCores.Behaviors
         {
             behavior.SystemPtr = null;
             AllFrees.GetOrAdd(behavior.GetType(), _ => new ConcurrentStack<int>()).Push(behavior.Id);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void EnsureCapacity((Type, int)[] capacities)
+        {
+            var allCount = capacities.Sum(v => v.Item2);
+            Behaviors = new WorldBehavior[allCount];
+            AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<int>>(WorldGlobalSetting.ThreadConcurrencyLevel, allCount);
+            var index = 0;
+            for (var i = 0; i < capacities.Length; i++)
+            {
+                var type = capacities[i].Item1;
+                var count = capacities[i].Item2;
+                var stack = AllFrees[type] = new ConcurrentStack<int>();
+                for (var j = 0; j < count; j++)
+                {
+                    Behaviors[index++] = (WorldBehavior)TypeAssistant.New(type);
+                    stack.Push(index);
+                }
+            }
         }
     }
 }

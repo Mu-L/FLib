@@ -76,6 +76,17 @@ namespace FLib.WorldCores.Entities
             return et;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="initMemory">是否初始化内存, false:性能会更高,但会导致字段不是默认值</param>
+        public WorldEntityHelper BuildAsEntityHelper(bool initMemory = true)
+        {
+            var et = World.CreateEntity(this, WorldStaticComponentMask.HashCode(), initMemory);
+            Components.Dispose();
+            return new WorldEntityHelper(World, et);
+        }
+
         [Conditional("DEBUG")]
         internal static void AssertNewComponent(WorldCore world, in WorldComponentInfo info, bool isShared)
         {

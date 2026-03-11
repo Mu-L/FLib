@@ -50,5 +50,16 @@ namespace FLib.WorldCores
         /// 默认行为类型
         /// </summary>
         public static RWAction<WorldBehaviorSystem> DoDefaultBehavior = (ref WorldBehaviorSystem system) => system.Do(WorldBehaviorPool.Behaviors[0].GetType());
+
+
+        /// <summary>
+        /// 线程并发级别
+        /// </summary>
+        public static int ThreadConcurrencyLevel =
+#if UNITY_PROJ
+            1
+#else
+            Environment.ProcessorCount;
+#endif
     }
 }

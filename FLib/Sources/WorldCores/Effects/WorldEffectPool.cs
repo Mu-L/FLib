@@ -1,15 +1,18 @@
 // ==================== qcbf@qq.com | 2026-03-09 ====================
 
+#nullable enable
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace FLib.WorldCores.Effects
 {
     public static class WorldEffectPool
     {
-        public static readonly ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>> AllFrees = new();
+        public static ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>> AllFrees = new();
         public static ConcurrentStack<WorldEffectContainer> Containers = new();
 
         /// <summary>
@@ -48,6 +51,29 @@ namespace FLib.WorldCores.Effects
         {
             container.Clear();
             Containers.Push(container);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void EnsureCapacity(int entityCapacities, (Type, int)[]? effectCapacities)
+        {
+            for (var i = Containers.Count; i < entityCapacities; i++)
+                Containers.Push(new WorldEffectContainer());
+            if (effectCapacities == null)
+            {
+                AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>>(WorldGlobalSetting.ThreadConcurrencyLevel, entityCapacities);
+            }
+            else
+            {
+                AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>>(WorldGlobalSetting.ThreadConcurrencyLevel, effectCapacities.Sum(v => v.Item2));
+                foreach (var (type, count) in effectCapacities)
+                {
+                    var stack = AllFrees[type] = new ConcurrentStack<WorldEffect>();
+                    for (var i = 0; i < count; i++)
+                        stack.Push((WorldEffect)TypeAssistant.New(type));
+                }
+            }
         }
     }
 }
