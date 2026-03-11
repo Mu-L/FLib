@@ -11,3 +11,4 @@
 **/.vsconfig
 **/Publish/
 *.meta
+.DS_Store

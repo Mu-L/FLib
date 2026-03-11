@@ -12,8 +12,11 @@ namespace FLib.WorldCores
     public partial class WorldCore
     {
         /// <summary>
-        /// 
+        /// 获取实体的组件（优先返回动态组件，如果不存在则返回静态组件）。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>返回该实体的组件引用</returns>
         public unsafe ref T Get<T>(WorldEntity et)
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -27,8 +30,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 获取实体的指定类型的组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="componentType">组件的类型</param>
+        /// <returns>返回该实体的组件实例</returns>
         public object Get(WorldEntity et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -36,8 +42,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 设置实体的组件值（如果组件不存在则添加为动态组件）。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <param name="component">要设置的组件值</param>
         public void Set<T>(WorldEntity et, in T component)
         {
             ref var eti = ref GetEntityInfo(et);
@@ -53,13 +62,18 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 移除实体的指定类型的组件。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
         public void Remove<T>(WorldEntity et) => RemoveDyn<T>(et);
 
         /// <summary>
-        /// 
+        /// 检查实体是否拥有指定类型的组件。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>如果实体拥有该组件返回 true，否则返回 false</returns>
         public bool Has<T>(WorldEntity et)
         {
             ref var eti = ref GetEntityInfo(et);
@@ -77,8 +91,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 获取实体的所有组件实例。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="result">用于存储组件的列表，为 null 时会创建新的列表</param>
+        /// <returns>包含该实体所有组件的列表</returns>
         public IList GetAll(WorldEntity et, IList result = null)
         {
             result ??= new List<object>();

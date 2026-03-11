@@ -24,7 +24,7 @@ namespace FLib.WorldCores.Archetypes
         public byte* Buffer;
 
         /// <summary>
-        /// 
+        /// 数据块中的实体数量。
         /// </summary>
         public ushort Count;
 
@@ -34,12 +34,12 @@ namespace FLib.WorldCores.Archetypes
         public int[] SparseComponentMeta;
 
         /// <summary>
-        /// 
+        /// 重新布置前的旧数据块引用。
         /// </summary>
         public WorldChunk Previous;
 
         /// <summary>
-        /// 
+        /// 前一个输出所有项模组件的较验掌。
         /// </summary>
         public int AllSharedComponentsHash;
 
@@ -66,8 +66,10 @@ namespace FLib.WorldCores.Archetypes
         public override string ToString() => $"{Count}, {((IntPtr)Buffer).ToString("X")}";
 
         /// <summary>
-        /// 
+        /// 执一个数据块中的实体指针。
         /// </summary>
+        /// <param name="entityIndex">实体的索引位置</param>
+        /// <returns>实体指针</returns>
         public WorldEntity* GetEntity(int entityIndex)
         {
             Debug.Assert(entityIndex < Count);
@@ -75,8 +77,10 @@ namespace FLib.WorldCores.Archetypes
         }
 
         /// <summary>
-        /// 
+        /// 获取数据块中所有实体。
         /// </summary>
+        /// <param name="array">用于存储实体的数组，为 null 时会创建新数组</param>
+        /// <returns>包含数据块中所有实体的数组</returns>
         public IList<WorldEntity> GetAllEntities(IList<WorldEntity> array = null)
         {
             array ??= new WorldEntity[Count];
@@ -87,8 +91,11 @@ namespace FLib.WorldCores.Archetypes
         }
 
         /// <summary>
-        /// 
+        /// 获取数据块中指定活会索引的特定类型组件的引用。
         /// </summary>
+        /// <typeparam name="T">组件类型</typeparam>
+        /// <param name="entityIndex">实体的索引位置</param>
+        /// <returns>组件的引用</returns>
         internal ref T GetRef<T>(ushort entityIndex)
         {
             return ref *Get<T>(entityIndex);
@@ -96,8 +103,11 @@ namespace FLib.WorldCores.Archetypes
 
 #pragma warning disable CS8500
         /// <summary>
-        /// 
+        /// 获取数据块中指定实体的特定类型组件的指针。
         /// </summary>
+        /// <typeparam name="T">组件类型，必须是非托管类型</typeparam>
+        /// <param name="entityIndex">实体的索引位置</param>
+        /// <returns>组件指针</returns>
         internal T* Get<T>(ushort entityIndex)
         {
             Debug.Assert(entityIndex < Count);
@@ -107,8 +117,11 @@ namespace FLib.WorldCores.Archetypes
         }
 
         /// <summary>
-        /// 
+        /// 获取数据块中指定实体的指季类型组件指针。
         /// </summary>
+        /// <param name="entityIndex">实体的索引位置</param>
+        /// <param name="meta">组件的元数据信息</param>
+        /// <returns>组件指针</returns>
         internal void* Get(ushort entityIndex, in WorldComponentMeta meta)
         {
             Debug.Assert(entityIndex < Count);
@@ -117,8 +130,11 @@ namespace FLib.WorldCores.Archetypes
         }
 
         /// <summary>
-        /// 
+        /// 获取数据块中指定实体的特定类型组件的对象表示。
         /// </summary>
+        /// <param name="entityIndex">实体的索引位置</param>
+        /// <param name="meta">组件的元数据信息</param>
+        /// <returns>空返回视影中的特定类型组件实例</returns>
         public object GetObj(ushort entityIndex, in WorldComponentMeta meta)
         {
             var ptr = Get(entityIndex, meta);
@@ -145,8 +161,10 @@ namespace FLib.WorldCores.Archetypes
         }
 
         /// <summary>
-        /// 
+        /// 清除数据块中指定实体的特定类型组件的内存。
         /// </summary>
+        /// <param name="entityIndex">实体的索引位置</param>
+        /// <param name="meta">组件的元数据信息</param>
         public void ClearMemory(ushort entityIndex, in WorldComponentMeta meta)
         {
             Debug.Assert(entityIndex < Count);
@@ -155,8 +173,10 @@ namespace FLib.WorldCores.Archetypes
         }
 
         /// <summary>
-        /// 
+        /// 获取数据块中所有指定类型的组件的距離前缀型伏。
         /// </summary>
+        /// <typeparam name="T">组件类型，必须是非托管类型</typeparam>
+        /// <returns>整个数据块中该类型组件的距離前缀</returns>
         public Span<T> GetAll<T>() where T : unmanaged
         {
             Debug.Assert(Has(WorldComponentGenericMap<T>.Id));
@@ -164,8 +184,12 @@ namespace FLib.WorldCores.Archetypes
         }
 
         /// <summary>
-        /// 
+        /// 获取数据块中指定实体的所有组件。
         /// </summary>
+        /// <param name="entityIndex">实体的索引位置</param>
+        /// <param name="archetype">原型信息</param>
+        /// <param name="list">用于存储组件的列表，为 null 时会创建新列表</param>
+        /// <returns>包含实体所有组件的列表</returns>
         public IList GetAll(ushort entityIndex, WorldArchetype archetype, IList list = null)
         {
             list ??= new List<object>(Count);

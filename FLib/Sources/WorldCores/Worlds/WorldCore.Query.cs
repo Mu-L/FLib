@@ -12,13 +12,17 @@ namespace FLib.WorldCores
     {
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含单个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1> Query<T1>(in WorldQueryFilter filter = default) where T1 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有一个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">组件类型</typeparam>
         public readonly struct QueryEnumerator<T1> : IEnumerable<(WorldEntity, Ref<T1>)> where T1 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
@@ -67,13 +71,19 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含两个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1, T2> Query<T1, T2>(in WorldQueryFilter filter = default) where T1 : unmanaged where T2 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有两个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
         public readonly struct QueryEnumerator<T1, T2> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>)> where T1 : unmanaged where T2 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
@@ -125,13 +135,21 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含三个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1, T2, T3> Query<T1, T2, T3>(in WorldQueryFilter filter = default) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有三个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
         public readonly struct QueryEnumerator<T1, T2, T3> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
@@ -186,13 +204,23 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含四个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1, T2, T3, T4> Query<T1, T2, T3, T4>(in WorldQueryFilter filter = default) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有四个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
         public readonly struct QueryEnumerator<T1, T2, T3, T4> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
@@ -250,13 +278,25 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含五个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1, T2, T3, T4, T5> Query<T1, T2, T3, T4, T5>(in WorldQueryFilter filter = default) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有五个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
         public readonly struct QueryEnumerator<T1, T2, T3, T4, T5> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
@@ -317,13 +357,27 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含六个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
+        /// <typeparam name="T6">第六个组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1, T2, T3, T4, T5, T6> Query<T1, T2, T3, T4, T5, T6>(in WorldQueryFilter filter = default) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有六个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
+        /// <typeparam name="T6">第六个组件类型</typeparam>
         public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
@@ -387,13 +441,29 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含七个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
+        /// <typeparam name="T6">第六个组件类型</typeparam>
+        /// <typeparam name="T7">第七个组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1, T2, T3, T4, T5, T6, T7> Query<T1, T2, T3, T4, T5, T6, T7>(in WorldQueryFilter filter = default) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有七个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
+        /// <typeparam name="T6">第六个组件类型</typeparam>
+        /// <typeparam name="T7">第七个组件类型</typeparam>
         public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6, T7> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
@@ -460,13 +530,31 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 执行查询，返回包含八个特定类型组件的实体的枚举器。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
+        /// <typeparam name="T6">第六个组件类型</typeparam>
+        /// <typeparam name="T7">第七个组件类型</typeparam>
+        /// <typeparam name="T8">第八个组件类型</typeparam>
+        /// <param name="filter">查询过滤器条件</param>
+        /// <returns>查询枚举器</returns>
         public QueryEnumerator<T1, T2, T3, T4, T5, T6, T7, T8> Query<T1, T2, T3, T4, T5, T6, T7, T8>(in WorldQueryFilter filter = default) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged => new(this, filter);
 
         /// <summary>
-        /// 
+        /// 便利的排查枚举器结构，支持带有八个组件的查询。
         /// </summary>
+        /// <typeparam name="T1">第一个组件类型</typeparam>
+        /// <typeparam name="T2">第二个组件类型</typeparam>
+        /// <typeparam name="T3">第三个组件类型</typeparam>
+        /// <typeparam name="T4">第四个组件类型</typeparam>
+        /// <typeparam name="T5">第五个组件类型</typeparam>
+        /// <typeparam name="T6">第六个组件类型</typeparam>
+        /// <typeparam name="T7">第七个组件类型</typeparam>
+        /// <typeparam name="T8">第八个组件类型</typeparam>
         public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6, T7, T8> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;

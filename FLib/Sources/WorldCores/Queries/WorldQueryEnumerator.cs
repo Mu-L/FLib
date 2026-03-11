@@ -8,7 +8,7 @@ using FLib.WorldCores.Entities;
 namespace FLib.WorldCores.Queries
 {
     /// <summary>
-    /// 
+    /// 世界查询枚举器，支持对所有匹配查询条件的实体进行01。
     /// </summary>
     public readonly struct WorldQueryEnumerator : IEnumerable<WorldEntity>
     {
@@ -25,7 +25,7 @@ namespace FLib.WorldCores.Queries
         }
 
         /// <summary>
-        /// 
+        /// 世界查询枚举器的内部实现，支持对扩展的递次轮询。
         /// </summary>
         public unsafe struct Enumerable : IEnumerator<WorldEntity>
         {
@@ -44,8 +44,9 @@ namespace FLib.WorldCores.Queries
             }
 
             /// <summary>
-            /// 
+            /// 自动挪到下一个匹配的实体。
             /// </summary>
+            /// <returns>如果还有实体再返回 true，否则返回 false</returns>
             public bool MoveNext()
             {
                 if (++_index < _count)

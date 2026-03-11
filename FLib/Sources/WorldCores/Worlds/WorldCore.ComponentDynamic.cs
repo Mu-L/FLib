@@ -12,8 +12,11 @@ namespace FLib.WorldCores
     public partial class WorldCore
     {
         /// <summary>
-        /// 
+        /// 获取实体的动态组件。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>返回对该实体的动态组件的引用</returns>
         public ref T GetDyn<T>(WorldEntity et)
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
@@ -23,8 +26,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 获取实体的指定类型的动态组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="type">组件的类型</param>
+        /// <returns>返回该实体的动态组件实例</returns>
         public object GetDyn(WorldEntity et, Type type)
         {
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
@@ -34,16 +40,25 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 设置实体的动态组件。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <param name="component">要设置的组件值</param>
+        /// <returns>返回组件在动态组件组中的索引</returns>
         public int SetDyn<T>(WorldEntity et, in T component)
         {
             return SetDyn(et, component, ref GetEntityInfo(et));
         }
 
         /// <summary>
-        /// 
+        /// 设置实体的动态组件（使用实体信息引用）。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <param name="component">要设置的组件值</param>
+        /// <param name="eti">实体信息的引用</param>
+        /// <returns>返回组件在动态组件组中的索引</returns>
         public int SetDyn<T>(WorldEntity et, in T component, ref WorldEntityInfo eti)
         {
             Assert(!eti.IsDestroying, et, "entity is destroying");
@@ -65,8 +80,12 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 设置实体的指定类型的动态组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="componentType">组件的类型（若为 null 则使用 component 的实际类型）</param>
+        /// <param name="component">要设置的组件值</param>
+        /// <returns>返回组件在动态组件组中的索引</returns>
         public int SetDyn(WorldEntity et, Type componentType, object component)
         {
             componentType ??= component.GetType();
@@ -89,16 +108,20 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 移除实体的指定类型的动态组件。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
         public void RemoveDyn<T>(WorldEntity et)
         {
             RemoveDyn(et, typeof(T));
         }
 
         /// <summary>
-        /// 
+        /// 移除实体的指定类型的动态组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="type">要移除的组件类型</param>
         public void RemoveDyn(WorldEntity et, Type type)
         {
             Assert(!GetEntityInfo(et).Chunk.Has(WorldComponentRegistry.GetId(type)), et, "cannot remove static component");
@@ -112,16 +135,22 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 检查实体是否拥有指定类型的动态组件。
         /// </summary>
+        /// <typeparam name="T">组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>如果实体拥有该动态组件返回 true，否则返回 false</returns>
         public bool HasDyn<T>(WorldEntity et)
         {
             return HasDyn(et, typeof(T));
         }
 
         /// <summary>
-        /// 
+        /// 检查实体是否拥有指定类型的动态组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="componentType">要检查的组件类型</param>
+        /// <returns>如果实体拥有该动态组件返回 true，否则返回 false</returns>
         public bool HasDyn(WorldEntity et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -132,8 +161,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 确保实体有动态组件索引，不存在则创建。
         /// </summary>
+        /// <param name="componentId">组件的 ID</param>
+        /// <param name="eti">实体信息的引用</param>
+        /// <returns>返回对组件索引的引用</returns>
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private ref int EnsureDynamicComponentIndex(WorldIncrementId componentId, ref WorldEntityInfo eti)
         {
@@ -162,8 +194,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 尝试添加该组件的所有必需组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="eti">实体信息的引用</param>
+        /// <param name="info">组件信息</param>
         private void TryAddRequiredComponents(WorldEntity et, ref WorldEntityInfo eti, in WorldComponentInfo info)
         {
             if (info.Options?.RequiredComponents == null)

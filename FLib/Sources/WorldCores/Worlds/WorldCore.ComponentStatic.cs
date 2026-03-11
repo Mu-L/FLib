@@ -13,8 +13,11 @@ namespace FLib.WorldCores
     public partial class WorldCore
     {
         /// <summary>
-        /// 
+        /// 获取实体的静态管理组件。
         /// </summary>
+        /// <typeparam name="T">管理组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>返回该实体的静态管理组件实例</returns>
         public Mng<T> GetStaMng<T>(WorldEntity et)
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -22,8 +25,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 设置实体的静态管理组件值。
         /// </summary>
+        /// <typeparam name="T">管理组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <param name="val">要设置的值</param>
         public void SetStaMng<T>(WorldEntity et, in T val)
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -31,8 +37,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 获取实体的静态组件值（非管理）。
         /// </summary>
+        /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>返回该实体的静态组件值的Ref包装</returns>
         public unsafe Ref<T> GetSta<T>(WorldEntity et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -40,8 +49,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 获取实体的指定类型的静态组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="componentType">组件的类型</param>
+        /// <returns>返回该实体的静态组件实例</returns>
         public object GetSta(WorldEntity et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -49,8 +61,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 获取实体的静态组件的引用。
         /// </summary>
+        /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>返回对该实体的静态组件的引用</returns>
         public ref T GetStaRef<T>(WorldEntity et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -58,8 +73,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 设置实体的静态组件值。
         /// </summary>
+        /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <param name="val">要设置的组件值</param>
         public void SetSta<T>(WorldEntity et, in T val) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -67,8 +85,11 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 设置实体的共享组件。
         /// </summary>
+        /// <typeparam name="T">共享组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <param name="val">要设置的共享组件值</param>
         public void SetShared<T>(WorldEntity et, in T val) where T : IWorldSharedComponent
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -83,24 +104,33 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 
+        /// 检查实体是否拥有指定类型的静态组件。
         /// </summary>
+        /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>如果实体拥有该组件返回 true，否则返回 false</returns>
         public bool HasSta<T>(WorldEntity et) where T : unmanaged
         {
             return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<T>().Id);
         }
 
         /// <summary>
-        /// 
+        /// 检查实体是否拥有指定类型的静态管理组件。
         /// </summary>
+        /// <typeparam name="T">管理组件的类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>如果实体拥有该管理组件返回 true，否则返回 false</returns>
         public bool HasStaMng<T>(WorldEntity et)
         {
             return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<Mng<T>>().Id);
         }
 
         /// <summary>
-        /// 
+        /// 检查实体是否拥有指定类型的静态组件。
         /// </summary>
+        /// <param name="et">目标实体</param>
+        /// <param name="componentType">组件的类型</param>
+        /// <returns>如果实体拥有该组件返回 true，否则返回 false</returns>
         public bool HasSta(WorldEntity et, Type componentType)
         {
             return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta(componentType).Id);
