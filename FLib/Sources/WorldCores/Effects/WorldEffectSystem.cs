@@ -21,7 +21,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 获取效果容器
         /// </summary>
-        public readonly WorldEffectContainer Container => World.Soa.GetGroup<WorldEffectContainer>()[_containerIndex];
+        public readonly WorldEffectContainer Container => WorldEffectPool.Containers[_containerIndex];
 
         /// <summary>
         /// 获取世界核心实例
@@ -41,7 +41,7 @@ namespace FLib.WorldCores.Effects
         /// <param name="entity">关联的实体</param>
         public void Awake(WorldCore world, WorldEntity entity)
         {
-            _containerIndex = world.SetDyn(entity, WorldEffectPool.RentContainer());
+            _containerIndex = WorldEffectPool.RentContainer();
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace FLib.WorldCores.Effects
             _containerIndex = -1;
             Clear(container);
             world.Assert(container.Effects.Count == 0);
-            WorldEffectPool.FreeContainer(container);
+            WorldEffectPool.FreeContainer(_containerIndex);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace FLib.WorldCores.Effects
                 effect = InitializeEffect(container, WorldEffectPool.Rent(effectType, ref this), evt.AddedBy);
                 if (!Self.DispatchPreEvent(ref evt))
                 {
-                    WorldEffectPool.Free(effect);
+                    FreeEffect(container, effect);
                     return null;
                 }
 
@@ -125,7 +125,7 @@ namespace FLib.WorldCores.Effects
                 switch (effect.Data.AddOption)
                 {
                     case EWorldEffectAddOption.ResetTime:
-                        effect.StartTime = World.Time;
+                        effect.Time.RefreshTime(World.Time);
                         Self.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.AddStack:
@@ -134,7 +134,7 @@ namespace FLib.WorldCores.Effects
                         Self.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.AddStackAndResetTime:
-                        effect.StartTime = World.Time;
+                        effect.Time.RefreshTime(World.Time);
                         AddEffectStackCount(effect, ref evt.AddCount);
                         effect.OnStackCountChange(evt.AddCount);
                         Self.DispatchEvent(evt);
@@ -273,18 +273,6 @@ namespace FLib.WorldCores.Effects
         }
 
         /// <summary>
-        /// 增加效果的层数，确保不超过最大层数限制
-        /// </summary>
-        /// <param name="effect">目标效果</param>
-        /// <param name="addCount">要增加的层数（会被修改为实际增加的层数）</param>
-        private static void AddEffectStackCount(WorldEffect effect, ref ushort addCount)
-        {
-            var oldCount = effect.Data.StackCount;
-            effect.Data.StackCount = (ushort)Math.Clamp(effect.Data.StackCount + addCount, 1, effect.Data.MaxStackCount);
-            addCount = (ushort)(effect.Data.StackCount - oldCount);
-        }
-
-        /// <summary>
         /// 初始化效果实例，设置相关属性并更新标志位
         /// </summary>
         /// <param name="container">效果容器</param>
@@ -297,6 +285,18 @@ namespace FLib.WorldCores.Effects
             FlagMask |= effect.Data.Flags;
             container.AddFlags(effect.Data.Flags.Mask);
             return effect;
+        }
+
+        /// <summary>
+        /// 增加效果的层数，确保不超过最大层数限制
+        /// </summary>
+        /// <param name="effect">目标效果</param>
+        /// <param name="addCount">要增加的层数（会被修改为实际增加的层数）</param>
+        private static void AddEffectStackCount(WorldEffect effect, ref ushort addCount)
+        {
+            var oldCount = effect.Data.StackCount;
+            effect.Data.StackCount = (ushort)Math.Clamp(effect.Data.StackCount + addCount, 1, effect.Data.MaxStackCount);
+            addCount = (ushort)(effect.Data.StackCount - oldCount);
         }
     }
 }

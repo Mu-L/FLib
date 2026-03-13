@@ -62,6 +62,11 @@ namespace FLib.WorldCores
         public WorldUpdater Update2;
 
         /// <summary>
+        /// 当前世界的逻辑时间（帧数 × 时间增量）。
+        /// </summary>
+        public FNum Time;
+        
+        /// <summary>
         /// 当前世界的帧数计数器。
         /// </summary>
         public uint Frame;
@@ -78,11 +83,6 @@ namespace FLib.WorldCores
         internal ushort GenVersion() => unchecked(++VersionIncrement == 0 ? ++VersionIncrement : VersionIncrement);
 
         public bool IsDisposed => Handle.IsEmpty;
-
-        /// <summary>
-        /// 当前世界的逻辑时间（帧数 × 时间增量）。
-        /// </summary>
-        public virtual FNum Time => Frame * WorldGlobalSetting.DeltaTime;
 
         /// <summary>
         /// 初始化一个新的世界核心实例。
@@ -163,6 +163,7 @@ namespace FLib.WorldCores
         public void Update()
         {
             ++Frame;
+            Time = WorldGlobalSetting.DeltaTime;
             Update1.Update(this);
             Update2.Update(this);
         }

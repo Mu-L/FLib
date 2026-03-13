@@ -34,6 +34,14 @@ namespace FLib
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
+
+        public void EnsureCapacity(int capacity)
+        {
+            if (Values.Length >= capacity) return;
+            Array.Resize(ref Values, MathEx.GetNextPowerOfTwo(capacity));
+            Frees.EnsureCapacity(capacity >> 1);
+        }
+
         public readonly ref T GetRef(int index) => ref Values[index];
         void ICollection<T>.Add(T item) => Add(item);
 
@@ -126,10 +134,10 @@ namespace FLib
             public Enumerator(in FixedIndexList<T> source)
             {
                 _values = source.Values;
-                _frees  = source.Frees;
-                _count  = source.Count;
-                _index  = -1;
-                _found  = 0;
+                _frees = source.Frees;
+                _count = source.Count;
+                _index = -1;
+                _found = 0;
                 Current = default;
             }
 
@@ -143,11 +151,20 @@ namespace FLib
                     Current = _values[_index];
                     return true;
                 }
+
                 return false;
             }
 
-            public void Reset() { _index = -1; _found = 0; Current = default; }
-            public void Dispose() { }
+            public void Reset()
+            {
+                _index = -1;
+                _found = 0;
+                Current = default;
+            }
+
+            public void Dispose()
+            {
+            }
         }
     }
 }

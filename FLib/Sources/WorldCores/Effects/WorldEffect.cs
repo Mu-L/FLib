@@ -8,14 +8,15 @@ namespace FLib.WorldCores.Effects
     public unsafe class WorldEffect : IBytesPackable
     {
         internal WorldEffectSystem* SystemPtr;
+        internal int TimeComponentId = -1;
         public WorldEffectData Data;
-        public FNum StartTime;
         public WorldEntity AddedBy;
 
         public ref WorldEffectSystem System => ref *SystemPtr;
         public ref WorldEntityHelper Entity => ref SystemPtr->Self;
         public WorldCore World => SystemPtr->Self.World;
         public bool IsEmpty => SystemPtr == null;
+        public ref WorldEffectTime Time => ref World.Soa.GetGroup<WorldEffectTime>()[TimeComponentId];
 
         /// <summary>
         /// 
@@ -41,6 +42,14 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public virtual void OnStackCountChange(int addCount)
         {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void RemoveSelf(ushort removeCount = ushort.MaxValue)
+        {
+            System.Remove(this, removeCount);
         }
 
         public virtual void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)

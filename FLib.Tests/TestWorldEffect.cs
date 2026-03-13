@@ -18,6 +18,5 @@ public class TestWorldEffect
         using var world = new WorldCore();
         var et = world.BuildEntity().With<WorldEffectSystem>().BuildAsEntityHelper();
         ref var effect = ref et.GetStaRef<WorldEffectSystem>();
-        
     }
 }

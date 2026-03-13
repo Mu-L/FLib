@@ -13,7 +13,7 @@ namespace FLib.WorldCores.Effects
     public static class WorldEffectPool
     {
         public static ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>> AllFrees = new();
-        public static ConcurrentStack<WorldEffectContainer> Containers = new();
+        [ThreadStatic] public static FixedIndexList<WorldEffectContainer> Containers;
 
         /// <summary>
         /// 
@@ -23,6 +23,7 @@ namespace FLib.WorldCores.Effects
             if (!AllFrees.TryGetValue(type, out var frees) || !frees.TryPop(out var effect))
                 effect = (WorldEffect)Activator.CreateInstance(type)!;
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref system);
+            effect.TimeComponentId = system.World.Soa.GetGroup<WorldEffectTime>().Alloc(system.Self, new WorldEffectTime(effect));
             return effect;
         }
 
@@ -31,6 +32,9 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public static unsafe void Free(WorldEffect effect)
         {
+            ref readonly var self = ref effect.System.Self;
+            self.World.Soa.GetGroup<WorldEffectTime>().Free(self.Entity, effect.TimeComponentId, false);
+            effect.TimeComponentId = -1;
             effect.Data = default;
             effect.SystemPtr = null;
             AllFrees.GetOrAdd(effect.GetType(), _ => new ConcurrentStack<WorldEffect>()).Push(effect);
@@ -39,18 +43,20 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public static WorldEffectContainer RentContainer()
+        public static int RentContainer()
         {
-            return Containers.TryPop(out var container) ? container : new WorldEffectContainer();
+            var idx = Containers.Add();
+            Containers[idx] ??= new WorldEffectContainer();
+            return idx;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public static void FreeContainer(WorldEffectContainer container)
+        public static void FreeContainer(int index)
         {
-            container.Clear();
-            Containers.Push(container);
+            Containers[index].Clear();
+            Containers.RemoveAt(index, false);
         }
 
         /// <summary>
@@ -58,8 +64,9 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public static void EnsureCapacity(int entityCapacities, (Type, int)[]? effectCapacities)
         {
+            Containers.EnsureCapacity(entityCapacities);
             for (var i = Containers.Count; i < entityCapacities; i++)
-                Containers.Push(new WorldEffectContainer());
+                Containers.Add(new WorldEffectContainer());
             if (effectCapacities == null)
             {
                 AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>>(WorldGlobalSetting.ThreadConcurrencyLevel, entityCapacities);

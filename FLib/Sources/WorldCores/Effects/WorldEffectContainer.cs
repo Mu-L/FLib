@@ -9,7 +9,7 @@ using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Effects
 {
-    public class WorldEffectContainer : IWorldUpdate, IEnumerable<WorldEffect>
+    public class WorldEffectContainer : IEnumerable<WorldEffect>
     {
         private static readonly byte[] DeBruijn32 = { 0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9 };
         public SlimDictionary<uint, Item> Effects = new(32);
@@ -24,6 +24,9 @@ namespace FLib.WorldCores.Effects
             IEnumerator<WorldEffect> IEnumerable<WorldEffect>.GetEnumerator() => GetEnumerator();
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+            /// <summary>
+            /// 
+            /// </summary>
             public bool TryPopMoreList()
             {
                 if (MoreList.IsEmpty)
@@ -33,6 +36,7 @@ namespace FLib.WorldCores.Effects
                 MoreList.RemoveAt(index);
                 if (MoreList.IsEmpty)
                     MoreList.Dispose();
+
                 return true;
             }
 
@@ -53,7 +57,6 @@ namespace FLib.WorldCores.Effects
                 public bool MoveNext()
                 {
                     if (_item.Single == null) return false;
-
                     if (_index == -2) // first call
                     {
                         _index = -1;
@@ -77,13 +80,6 @@ namespace FLib.WorldCores.Effects
                 {
                 }
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Update(WorldCore world, WorldEntity entity)
-        {
         }
 
         /// <summary>
@@ -137,57 +133,37 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public struct Enumerator : IEnumerator<WorldEffect>
         {
-            private SlimDictionary<uint, Item>.Enumerator _outer;
-            private PooledList<WorldEffect>.Enumerator _inner;
-            private int _state; // 0=next outer, 1=yield single, 2=iterate list
-            public WorldEffect Current { get; private set; }
+            private SlimDictionary<uint, Item>.Enumerator _enumerator;
+            private Item.ItemEnumerator _enumerator2;
+            public WorldEffect Current => _enumerator2.Current;
             object IEnumerator.Current => Current;
 
             internal Enumerator(SlimDictionary<uint, Item> effects)
             {
-                _outer = effects.GetEnumerator();
-                _inner = default;
-                Current = null!;
-                _state = 0;
+                _enumerator = effects.GetEnumerator();
+                _enumerator2 = default;
             }
 
 
             public bool MoveNext()
             {
-                while (true)
+                while (!_enumerator2.MoveNext())
                 {
-                    switch (_state)
-                    {
-                        case 0:
-                            if (!_outer.MoveNext()) return false;
-                            var group = _outer.Current.Value;
-                            if (group.Single != null)
-                            {
-                                Current = group.Single;
-                                _inner = group.MoreList.GetEnumerator();
-                                _state = 2;
-                                return true;
-                            }
-
-                            _inner = group.MoreList.GetEnumerator();
-                            _state = 2;
-                            break;
-
-                        case 2:
-                            if (_inner.MoveNext())
-                            {
-                                Current = _inner.Current!;
-                                return true;
-                            }
-
-                            _state = 0;
-                            break;
-                    }
+                    if (!_enumerator.MoveNext())
+                        return false;
+                    _enumerator2 = _enumerator.Value.GetEnumerator();
                 }
+
+                return true;
             }
 
-            public void Dispose() => _inner.Dispose();
-            public void Reset() => throw new NotSupportedException();
+            public void Dispose()
+            {
+            }
+
+            public void Reset()
+            {
+            }
         }
     }
 }
