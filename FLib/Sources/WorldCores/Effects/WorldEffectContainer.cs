@@ -2,22 +2,27 @@
 
 #nullable enable
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Effects
 {
-    public class WorldEffectContainer : IWorldUpdate
+    public class WorldEffectContainer : IWorldUpdate, IEnumerable<WorldEffect>
     {
         private static readonly byte[] DeBruijn32 = { 0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9 };
         public SlimDictionary<uint, Item> Effects = new(32);
         public byte[] FlagsCount = new byte[32];
 
-        public struct Item
+        public struct Item : IEnumerable<WorldEffect>
         {
             public WorldEffect? Single;
             public PooledList<WorldEffect> MoreList;
+
+            public ItemEnumerator GetEnumerator() => new(this);
+            IEnumerator<WorldEffect> IEnumerable<WorldEffect>.GetEnumerator() => GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
             public bool TryPopMoreList()
             {
@@ -29,6 +34,48 @@ namespace FLib.WorldCores.Effects
                 if (MoreList.IsEmpty)
                     MoreList.Dispose();
                 return true;
+            }
+
+            public struct ItemEnumerator : IEnumerator<WorldEffect>
+            {
+                private readonly Item _item;
+                private int _index; // -1 = before Single, 0+ = MoreList index
+                public WorldEffect Current { get; private set; }
+                object IEnumerator.Current => Current;
+
+                public ItemEnumerator(Item item)
+                {
+                    _item = item;
+                    _index = -2; // not started
+                    Current = null!;
+                }
+
+                public bool MoveNext()
+                {
+                    if (_item.Single == null) return false;
+
+                    if (_index == -2) // first call
+                    {
+                        _index = -1;
+                        Current = _item.Single;
+                        return true;
+                    }
+
+                    _index++;
+                    if (_index < _item.MoreList.Count)
+                    {
+                        Current = _item.MoreList[_index];
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                public void Reset() => _index = -2;
+
+                public void Dispose()
+                {
+                }
             }
         }
 
@@ -80,5 +127,67 @@ namespace FLib.WorldCores.Effects
         /// 
         /// </summary>
         private static int TrailingZeros(uint v) => DeBruijn32[(v & (uint)-(int)v) * 0x077CB531u >> 27];
+
+        public Enumerator GetEnumerator() => new(Effects);
+        IEnumerator<WorldEffect> IEnumerable<WorldEffect>.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public struct Enumerator : IEnumerator<WorldEffect>
+        {
+            private SlimDictionary<uint, Item>.Enumerator _outer;
+            private PooledList<WorldEffect>.Enumerator _inner;
+            private int _state; // 0=next outer, 1=yield single, 2=iterate list
+            public WorldEffect Current { get; private set; }
+            object IEnumerator.Current => Current;
+
+            internal Enumerator(SlimDictionary<uint, Item> effects)
+            {
+                _outer = effects.GetEnumerator();
+                _inner = default;
+                Current = null!;
+                _state = 0;
+            }
+
+
+            public bool MoveNext()
+            {
+                while (true)
+                {
+                    switch (_state)
+                    {
+                        case 0:
+                            if (!_outer.MoveNext()) return false;
+                            var group = _outer.Current.Value;
+                            if (group.Single != null)
+                            {
+                                Current = group.Single;
+                                _inner = group.MoreList.GetEnumerator();
+                                _state = 2;
+                                return true;
+                            }
+
+                            _inner = group.MoreList.GetEnumerator();
+                            _state = 2;
+                            break;
+
+                        case 2:
+                            if (_inner.MoveNext())
+                            {
+                                Current = _inner.Current!;
+                                return true;
+                            }
+
+                            _state = 0;
+                            break;
+                    }
+                }
+            }
+
+            public void Dispose() => _inner.Dispose();
+            public void Reset() => throw new NotSupportedException();
+        }
     }
 }

@@ -22,12 +22,12 @@ namespace FLib.WorldCores.Effects
         /// 获取效果容器
         /// </summary>
         public readonly WorldEffectContainer Container => World.Soa.GetGroup<WorldEffectContainer>()[_containerIndex];
-        
+
         /// <summary>
         /// 获取世界核心实例
         /// </summary>
         public readonly WorldCore World => Self.World;
-        
+
         /// <summary>
         /// 获取系统是否已释放
         /// </summary>
@@ -56,6 +56,33 @@ namespace FLib.WorldCores.Effects
             Clear(container);
             world.Assert(container.Effects.Count == 0);
             WorldEffectPool.FreeContainer(container);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasEffect(uint id)
+        {
+            return Container.Effects.ContainsKey(id);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasFlags(BitFlags flags)
+        {
+            var mask = flags.Mask;
+            return (FlagMask & mask) == mask;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public WorldEffect? Get(uint id)
+        {
+            var effects = Container.Effects;
+            var index = effects.GetEntryIndex(id);
+            return index < 0 ? null : effects.GetEntryValue(index).Single;
         }
 
         /// <summary>

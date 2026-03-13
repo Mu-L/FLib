@@ -30,25 +30,9 @@ namespace FLib
             Frees = new Stack<int>(capacity >> 1);
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            if (Count == 0)
-                yield break;
-            // 先这样实现功能, 后续再优化.
-            var frees = new PooledHashSet<int>();
-            frees.Raw.EnsureCapacity(Frees.Count);
-            frees.Raw.UnionWith(Frees);
-            var offsetIndex = 0;
-            for (var i = 0; i < Values.Length && offsetIndex < Count; i++)
-            {
-                if (frees.Contains(i))
-                    continue;
-                ++offsetIndex;
-                yield return Values[i];
-            }
-        }
-
+        public Enumerator GetEnumerator() => new(this);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
         public readonly ref T GetRef(int index) => ref Values[index];
         void ICollection<T>.Add(T item) => Add(item);
@@ -125,5 +109,45 @@ namespace FLib
         public int IndexOf(in T item) => Array.IndexOf(Values, item);
         public bool Contains(in T item) => IndexOf(item) >= 0;
         public void CopyTo(T[] array, int arrayIndex) => throw new NotSupportedException();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public struct Enumerator : IEnumerator<T>
+        {
+            private readonly T[] _values;
+            private readonly Stack<int> _frees;
+            private readonly int _count;
+            private int _index;
+            private int _found;
+            public T Current { get; private set; }
+            object IEnumerator.Current => Current!;
+
+            public Enumerator(in FixedIndexList<T> source)
+            {
+                _values = source.Values;
+                _frees  = source.Frees;
+                _count  = source.Count;
+                _index  = -1;
+                _found  = 0;
+                Current = default;
+            }
+
+            public bool MoveNext()
+            {
+                while (++_index < _values.Length && _found < _count)
+                {
+                    if (_frees.Contains(_index))
+                        continue;
+                    ++_found;
+                    Current = _values[_index];
+                    return true;
+                }
+                return false;
+            }
+
+            public void Reset() { _index = -1; _found = 0; Current = default; }
+            public void Dispose() { }
+        }
     }
 }
