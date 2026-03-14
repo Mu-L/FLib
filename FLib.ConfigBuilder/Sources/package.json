@@ -6,6 +6,6 @@
   "description": "script",
   "relatedPackages": {},
   "dependencies": {
-    "flib.kernel": "0.0.0",
+    "flib.kernel": "0.0.0"
   }
 }
