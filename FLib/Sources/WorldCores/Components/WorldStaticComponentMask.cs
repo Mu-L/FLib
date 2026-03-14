@@ -38,7 +38,7 @@ namespace FLib.WorldCores.Components
         public static void Clear()
         {
             if (_buffer != null)
-                Array.Clear(_buffer);
+                Array.Clear(_buffer, 0, _buffer.Length);
         }
 
         /// <summary>

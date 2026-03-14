@@ -166,7 +166,9 @@ namespace FLib.WorldCores
         /// <param name="componentId">组件的 ID</param>
         /// <param name="eti">实体信息的引用</param>
         /// <returns>返回对组件索引的引用</returns>
+#if NET6_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
         private ref int EnsureDynamicComponentIndex(WorldIncrementId componentId, ref WorldEntityInfo eti)
         {
             var compId = componentId.Id;

@@ -37,7 +37,9 @@ namespace FLib.WorldCores.SoaComponents
         {
             if (Components.Length >= capacity) return;
             Array.Resize(ref Components, capacity);
+#if NET6_0_OR_GREATER
             Frees.EnsureCapacity(capacity >> 2);
+#endif
         }
 
         /// <summary>
@@ -59,9 +61,7 @@ namespace FLib.WorldCores.SoaComponents
 
             ++Count;
             Components[index] = component;
-            ref var first = ref MemoryMarshal.GetArrayDataReference(Components);
-            first = ref Unsafe.Add(ref first, index);
-            WorldComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref first), World, et);
+            WorldComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
             return index;
         }
 

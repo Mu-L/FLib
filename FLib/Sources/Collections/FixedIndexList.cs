@@ -39,7 +39,9 @@ namespace FLib
         {
             if (Values.Length >= capacity) return;
             Array.Resize(ref Values, MathEx.GetNextPowerOfTwo(capacity));
+#if NET6_0_OR_GREATER
             Frees.EnsureCapacity(capacity >> 1);
+#endif
         }
 
         public readonly ref T GetRef(int index) => ref Values[index];

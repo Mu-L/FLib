@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using FLib.Worlds;
 
 namespace FLib.WorldCores
 {
@@ -30,7 +29,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void Register(MethodInfo methodInfo, int order = 0, object param = null)
         {
-            Register(methodInfo.CreateDelegate<Action<WorldCore, object>>(), order, param);
+            Register((Action<WorldCore, object>)methodInfo.CreateDelegate(typeof(Action<WorldCore, object>)), order, param);
         }
 
         /// <summary>

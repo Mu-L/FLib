@@ -30,7 +30,9 @@ namespace FLib.WorldCores.Queries
         /// <summary>
         /// 
         /// </summary>
+#if NET6_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
         public bool MoveNext()
         {
             if (!_initialized)
@@ -69,7 +71,11 @@ namespace FLib.WorldCores.Queries
         /// <summary>
         /// 
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining
+#if NET6_0_OR_GREATER
+                    | MethodImplOptions.AggressiveOptimization
+#endif
+        )]
         private bool MoveNextChunk()
         {
             while (_chunkEnumerator.MoveNext())

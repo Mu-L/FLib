@@ -98,22 +98,17 @@ namespace FLib.WorldCores.Archetypes
         /// <returns>组件的引用</returns>
         internal ref T GetRef<T>(ushort entityIndex)
         {
-            return ref *Get<T>(entityIndex);
+            return ref Unsafe.AsRef<T>(Get(entityIndex, WorldComponentRegistry.GetMeta<T>()));
         }
 
-#pragma warning disable CS8500
         /// <summary>
-        /// 获取数据块中指定实体的特定类型组件的指针。
+        /// 获取数据块中指定实体的指季类型组件指针。
         /// </summary>
-        /// <typeparam name="T">组件类型，必须是非托管类型</typeparam>
         /// <param name="entityIndex">实体的索引位置</param>
         /// <returns>组件指针</returns>
-        internal T* Get<T>(ushort entityIndex)
+        internal void* Get<T>(ushort entityIndex)
         {
-            Debug.Assert(entityIndex < Count);
-            Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<T>());
-            Debug.Assert(Has(WorldComponentRegistry.GetId<T>()));
-            return (T*)(Buffer + SparseComponentMeta[WorldComponentRegistry.GetId<T>()]) + entityIndex;
+            return Get(entityIndex, WorldComponentRegistry.GetMeta<T>());
         }
 
         /// <summary>

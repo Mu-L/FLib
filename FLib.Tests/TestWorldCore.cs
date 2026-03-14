@@ -9,7 +9,6 @@ using System.Numerics;
 using System.Reflection;
 using FLib.WorldCores.Components;
 using FLib.WorldCores;
-using FLib.Worlds;
 using WorldEntity = FLib.WorldCores.Entities.WorldEntity;
 
 namespace FLib.Tests;

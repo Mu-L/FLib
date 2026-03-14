@@ -44,7 +44,7 @@ namespace FLib.WorldCores
             if (!interfaceType.IsAssignableFrom(type))
                 return null;
             var mi = interfaceType.GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!.MakeGenericMethod(type);
-            return mi.CreateDelegate<LifecycleDelegate>();
+            return (LifecycleDelegate)mi.CreateDelegate(typeof(LifecycleDelegate));
         }
 
 

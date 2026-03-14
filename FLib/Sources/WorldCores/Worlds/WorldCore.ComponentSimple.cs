@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using FLib.WorldCores.Entities;
 using FLib.WorldCores.Components;
 
@@ -26,7 +27,7 @@ namespace FLib.WorldCores
                 return ref Soa.GetGroup<T>()[compIdx];
             }
 
-            return ref *eti.Chunk.Get<T>(eti.IndexInChunk);
+            return ref eti.Chunk.GetRef<T>(eti.IndexInChunk);
         }
 
         /// <summary>

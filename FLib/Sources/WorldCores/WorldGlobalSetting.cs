@@ -34,12 +34,22 @@ namespace FLib.WorldCores
         /// 内存分配
         /// (size, alignment) : pointer
         /// </summary>
-        public static unsafe Func<uint, uint, IntPtr> MemAlloc = (size, align) => (IntPtr)NativeMemory.AlignedAlloc(size, align);
+        public static unsafe Func<uint, uint, IntPtr> MemAlloc = (size, align) =>
+#if UNITY_PROJ
+            (IntPtr)Unity.Collections.LowLevel.Unsafe.UnsafeUtility.Malloc(size, (int)align, Unity.Collections.Allocator.Persistent);
+#else
+            (IntPtr)NativeMemory.AlignedAlloc(size, align);
+#endif
 
         /// <summary>
         /// 内存释放
         /// </summary>
-        public static unsafe Action<IntPtr> MemFree = ptr => NativeMemory.AlignedFree((void*)ptr);
+        public static unsafe Action<IntPtr> MemFree = ptr =>
+#if UNITY_PROJ
+            Unity.Collections.LowLevel.Unsafe.UnsafeUtility.Free((void*)ptr, Unity.Collections.Allocator.Persistent);
+#else
+            NativeMemory.AlignedFree((void*)ptr);
+#endif
 
         /// <summary>
         /// archetype chunk 内存分配器
@@ -57,7 +67,7 @@ namespace FLib.WorldCores
         /// </summary>
         public static int ThreadConcurrencyLevel =
 #if UNITY_PROJ
-            1
+            1;
 #else
             Environment.ProcessorCount;
 #endif

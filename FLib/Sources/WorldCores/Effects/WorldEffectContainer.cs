@@ -13,7 +13,7 @@ namespace FLib.WorldCores.Effects
     {
         private static readonly byte[] DeBruijn32 = { 0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9 };
         public SlimDictionary<uint, Item> Effects = new(32);
-        public byte[] FlagsCount = new byte[32];
+        public byte[] FlagCounts = new byte[32];
 
         public struct Item : IEnumerable<WorldEffect>
         {
@@ -89,7 +89,7 @@ namespace FLib.WorldCores.Effects
         {
             while (flags != 0)
             {
-                FlagsCount[TrailingZeros(flags)]++;
+                FlagCounts[TrailingZeros(flags)]++;
                 flags &= flags - 1;
             }
         }
@@ -103,7 +103,7 @@ namespace FLib.WorldCores.Effects
             while (flags != 0)
             {
                 var bit = TrailingZeros(flags);
-                if (--FlagsCount[bit] == 0)
+                if (--FlagCounts[bit] == 0)
                     clearMask |= 1U << bit;
                 flags &= flags - 1;
             }
@@ -116,7 +116,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public void Clear()
         {
-            Array.Clear(FlagsCount);
+            Array.Clear(FlagCounts, 0, FlagCounts.Length);
         }
 
         /// <summary>
