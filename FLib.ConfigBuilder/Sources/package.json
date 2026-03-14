@@ -4,5 +4,8 @@
   "version": "1.0.0",
   "unity": "2022.3",
   "description": "script",
-  "relatedPackages": {}
+  "relatedPackages": {},
+  "dependencies": {
+    "flib.kernel": "0.0.0",
+  }
 }

@@ -2,7 +2,7 @@
     "name": "FLib.ConfigBuilder",
     "rootNamespace": "",
     "references": [
-        "GUID:b0e8e425a0bffe94d8b7ca93c0c7f590"
+        "GUID:80cfed08a7089dc43b247c4b9d4881d0"
     ],
     "includePlatforms": [
         "Editor"
