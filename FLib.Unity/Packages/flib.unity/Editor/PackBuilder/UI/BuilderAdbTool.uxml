@@ -1,0 +1,24 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:TabView>
+        <ui:Tab label="Common">
+            <ui:TextField label="DeviceName" name="DeviceName" />
+            <ui:VisualElement style="flex-grow: 0; flex-direction: row;">
+                <ui:Button text="Restart" name="Restart" />
+                <ui:Button text="Devices" name="Devices" />
+                <ui:Button text="Install Apk" name="InstallApk" />
+            </ui:VisualElement>
+        </ui:Tab>
+        <ui:Tab label="Connect">
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
+                <ui:Label text="IpPort" style="-unity-text-align: middle-left;" />
+                <ui:TextField name="Ip" style="margin-right: 0; min-width: 100px;" />
+                <ui:IntegerField name="Port" value="38903" style="margin-left: 0; min-width: 60px;" />
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;">
+                    <ui:Button text="Pair" name="Pair" />
+                    <ui:Button text="Connect" name="Connect" />
+                    <ui:Button text="Forward" name="Forward" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:Tab>
+    </ui:TabView>
+</ui:UXML>

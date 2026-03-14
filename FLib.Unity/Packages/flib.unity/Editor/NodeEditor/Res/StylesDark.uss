@@ -1,0 +1,29 @@
+
+#Node #Body {
+    background-color: #505050;
+}
+
+.NodeBodySelected {
+    border-color: #00aa00;
+}
+
+#Node #Arrow {
+    color: #227722;
+    background-color: #505850;
+}
+
+#Node #Comment {
+    color: #666666;
+}
+
+#PropertyPanel {
+    border-color: #111111;
+    background-color: rgba(34, 34, 36, 0.8);
+}
+
+#PropertyPanel Label {
+}
+
+#PropertyPanelContent {
+    border-color: #444;
+}

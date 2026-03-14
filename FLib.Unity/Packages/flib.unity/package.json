@@ -1,0 +1,13 @@
+{
+  "name": "flib.unity",
+  "displayName": "FLib Unity",
+  "version": "1.0.0",
+  "unity": "2022.3",
+  "description": "script",
+  "relatedPackages": {},
+  "dependencies": {
+    "flib.kernel": "0.0.0",
+    "flib.config_builder": "0.0.0",
+    "com.unity.collections": "0.0.0"
+  }
+}

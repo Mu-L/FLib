@@ -1,0 +1,23 @@
+{
+    "name": "FLib.Unity",
+    "rootNamespace": "FLib.Unity",
+    "references": [
+        "GUID:80cfed08a7089dc43b247c4b9d4881d0",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:4307f53044263cf4b835bd812fc161a4",
+        "GUID:d8b63aba1907145bea998dd612889d6b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
