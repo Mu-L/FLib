@@ -70,7 +70,7 @@ namespace VTabs
         const string greyBackground = dir + "Background style/Grey";
 
 
-        const string switchTabShortcut = dir + "Shift-Scroll to switch tab"; // todo moveTab shortcut?
+        const string switchTabShortcut = dir + "Shift-Scroll to switch tab";
         const string addTabShortcut = dir + cmd + "-T to add tab";
         const string closeTabShortcut = dir + cmd + "-W to close tab";
         const string reopenTabShortcut = dir + cmd + "-Shift-T to reopen closed tab";

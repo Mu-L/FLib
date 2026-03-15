@@ -37,7 +37,7 @@ namespace VTabs
                     if (tabs[i] == activeTab) return;
                     if (i + 1 < tabs.Count && tabs[i + 1] == activeTab) return;
 
-                    if (tabEndPositions[i] > stripRect.xMax - 25) return; // todo use tabarearect
+                    if (tabEndPositions[i] > stripRect.xMax - 25) return; 
 
 
                     var dividerGreyscale = isDarkTheme ? .24f : .45f;

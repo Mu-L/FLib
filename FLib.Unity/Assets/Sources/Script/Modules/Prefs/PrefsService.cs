@@ -35,7 +35,7 @@ namespace Modules.Prefs
         {
             key = KeyPrefix + key;
             if (isServer)
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             return Json5.Deserialize<T>(PlayerPrefs.GetString(key));
         }
 
@@ -46,7 +46,7 @@ namespace Modules.Prefs
         {
             key = KeyPrefix + key;
             if (isServer)
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             if (value == null)
                 PlayerPrefs.DeleteKey(key);
             else
@@ -60,7 +60,7 @@ namespace Modules.Prefs
         {
             key = KeyPrefix + key;
             if (isServer)
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             return PlayerPrefs.HasKey(key);
         }
     }

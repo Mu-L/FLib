@@ -112,7 +112,7 @@ namespace VTabs.Libs
 
         }
 
-        public static object InvokeMethod(this object o, string methodName, params object[] parameters) // todo handle null params (can't get their type)
+        public static object InvokeMethod(this object o, string methodName, params object[] parameters)
         {
             var type = o as Type ?? o.GetType();
             var target = o is Type ? null : o;
@@ -578,7 +578,7 @@ namespace VTabs.Libs
             public int size => radius * 2 + (isEvenSize ? 0 : 1);
             public float sigma => 1 - Mathf.Pow(sharpness, .1f) * .99999f;
 
-            public float[,] Array2d() // todo test and use GenerateArray
+            public float[,] Array2d() 
             {
                 float[,] kr = new float[size, size];
 
@@ -766,7 +766,7 @@ namespace VTabs.Libs
 
         public static bool DirectoryExists(this string pathOrDirectory) => Directory.Exists(pathOrDirectory.GetDirectory());
 
-        public static string EnsureDirExists(this string pathOrDirectory) // todo to EnsureDirectoryExists
+        public static string EnsureDirExists(this string pathOrDirectory)
         {
             var directory = pathOrDirectory.GetDirectory();
 
