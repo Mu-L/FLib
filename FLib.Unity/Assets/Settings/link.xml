@@ -1,0 +1,12 @@
+<linker>
+    <assembly fullname="UnityEngine.CoreModule">
+        <type fullname="UnityEngine.SkinnedMeshRenderer" preserve="all"/>
+        <type fullname="UnityEngine.GameObject" preserve="all"/>
+        <type fullname="UnityEngine.Transform" preserve="all"/>
+        <type fullname="UnityEngine.MonoBehaviour" preserve="all"/>
+        <type fullname="UnityEngine.TrailRenderer" preserve="all"/>
+    </assembly>
+    <assembly fullname="UnityEngine.ParticleSystemModule">
+        <type fullname="UnityEngine.ParticleSystem" preserve="all"/>
+    </assembly>
+</linker>

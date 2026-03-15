@@ -1,0 +1,18 @@
+{
+    "name": "Launcher",
+    "rootNamespace": "Modules",
+    "references": [
+        "GUID:80cfed08a7089dc43b247c4b9d4881d0",
+        "GUID:c231adbbbb50ff94b84aebb00cbb0718",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

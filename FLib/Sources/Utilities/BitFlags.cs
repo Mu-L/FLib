@@ -60,7 +60,7 @@ namespace FLib
                     continue;
                 var dict = new Dictionary<string, byte>();
                 for (var i = 0; i < flagNames.Length; i++)
-                    dict.Add(flagNames[i], (byte)i);
+                    dict.TryAdd(flagNames[i], (byte)i);
                 FlagNameBits[group] = new ReadOnlyDictionary<string, byte>(dict);
             }
         }

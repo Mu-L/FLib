@@ -59,7 +59,7 @@ namespace FLib.Unity
                         if (theLastNameIdx > 0)
                             moduleName = moduleName[theLastNameIdx..];
                     }
-                    meta.AssetPath = $"UIPrefabs/{moduleName ?? type.Name}/{type.Name}.prefab";
+                    meta.AssetPath = $"UI/{moduleName ?? type.Name}/{type.Name}.prefab";
                 }
                 uiMetas.Add(type, meta);
             }

@@ -11,10 +11,3 @@
 **/.vsconfig
 **/Publish/
 .DS_Store
-
-
-
-**/*Unity/*.sln*
-**/*Unity/*.csproj
-**/*Unity/Library/
-**/*Unity/UserSettings/
