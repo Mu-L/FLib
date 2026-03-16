@@ -28,10 +28,15 @@ namespace FLib.WorldCores.SoaComponents
         {
         }
 
-        public override void EnsureCapacity(int capacity)
+        public override bool EnsureCapacity(int capacity)
         {
-            base.EnsureCapacity(capacity);
-            Groups.EnsureCapacity(capacity);
+            if (base.EnsureCapacity(capacity))
+            {
+                Groups.EnsureCapacity(capacity);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

@@ -163,7 +163,7 @@ namespace FLib.WorldCores
         public void Update()
         {
             ++Frame;
-            Time = WorldGlobalSetting.DeltaTime;
+            Time += WorldGlobalSetting.DeltaTime;
             Update1.Update(this);
             Update2.Update(this);
         }

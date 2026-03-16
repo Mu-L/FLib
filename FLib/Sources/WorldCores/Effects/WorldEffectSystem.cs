@@ -37,25 +37,23 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果系统，从对象池租用容器并设置到动态组件中
         /// </summary>
-        /// <param name="world">世界核心实例</param>
-        /// <param name="entity">关联的实体</param>
         public void Awake(WorldCore world, WorldEntity entity)
         {
+            Self = entity.AsHelper(world);
             _containerIndex = WorldEffectPool.RentContainer();
         }
 
         /// <summary>
         /// 销毁效果系统，清空所有效果并归还容器到对象池
         /// </summary>
-        /// <param name="world">世界核心实例</param>
-        /// <param name="entity">关联的实体</param>
         public void Destroy(WorldCore world, WorldEntity entity)
         {
             var container = Container;
+            var containerIndex = _containerIndex;
             _containerIndex = -1;
             Clear(container);
             world.Assert(container.Effects.Count == 0);
-            WorldEffectPool.FreeContainer(_containerIndex);
+            WorldEffectPool.FreeContainer(containerIndex);
         }
 
         /// <summary>
@@ -88,11 +86,6 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 添加效果实例到实体
         /// </summary>
-        /// <param name="effectType">效果类型</param>
-        /// <param name="addedBy">添加此效果的实体</param>
-        /// <param name="id">效果 ID</param>
-        /// <param name="addCount">添加的层数（默认 1 层）</param>
-        /// <returns>添加的效果实例，如果添加失败则返回 null</returns>
         public WorldEffect? Add(Type effectType, in WorldEntity addedBy, uint id, ushort addCount = 1)
         {
             World.Assert(!IsDisposed);
@@ -159,9 +152,6 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 移除指定 ID 的效果
         /// </summary>
-        /// <param name="id">效果 ID</param>
-        /// <param name="removeCount">要移除的层数（默认移除所有层）</param>
-        /// <returns>是否成功移除</returns>
         public bool Remove(uint id, ushort removeCount = ushort.MaxValue)
         {
             var container = Container;
@@ -172,18 +162,11 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 移除指定的效果实例
         /// </summary>
-        /// <param name="effect">要移除的效果实例</param>
-        /// <param name="removeCount">要移除的层数（默认移除所有层）</param>
-        /// <returns>是否成功移除</returns>
         public bool Remove(WorldEffect effect, ushort removeCount = ushort.MaxValue) => Remove(Container, effect, removeCount);
 
         /// <summary>
         /// 移除效果实例的内部实现
         /// </summary>
-        /// <param name="container">效果容器</param>
-        /// <param name="effect">要移除的效果实例</param>
-        /// <param name="removeCount">要移除的层数（默认移除所有层）</param>
-        /// <returns>是否成功移除</returns>
         private bool Remove(WorldEffectContainer container, WorldEffect effect, ushort removeCount = ushort.MaxValue)
         {
             var evt = new WorldRemoveEffectEvent { Effect = effect, RemoveCount = removeCount };
@@ -217,16 +200,11 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 清空所有符合条件的效果
         /// </summary>
-        /// <param name="flags">要清空的标志位（默认清空所有）</param>
-        /// <param name="idList">可选，用于存储被清空效果的 ID 列表</param>
         public void Clear(uint flags = uint.MaxValue, IList<uint>? idList = null) => Clear(Container, flags, idList);
 
         /// <summary>
         /// 清空效果的内部实现
         /// </summary>
-        /// <param name="container">效果容器</param>
-        /// <param name="flags">要清空的标志位（默认清空所有）</param>
-        /// <param name="idList">可选，用于存储被清空效果的 ID 列表</param>
         private void Clear(WorldEffectContainer container, uint flags = uint.MaxValue, IList<uint>? idList = null)
         {
             var effectsEnum = container.Effects.GetEnumerator();
@@ -248,8 +226,6 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 释放效果实例，从容器中移除并归还到对象池
         /// </summary>
-        /// <param name="container">效果容器</param>
-        /// <param name="effect">要释放的效果实例</param>
         private void FreeEffect(WorldEffectContainer container, WorldEffect effect)
         {
             FlagMask &= ~container.RemoveFlags(effect.Data.Flags);
@@ -275,10 +251,6 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果实例，设置相关属性并更新标志位
         /// </summary>
-        /// <param name="effect">要初始化的效果实例</param>
-        /// <param name="container">效果容器</param>
-        /// <param name="evt">效果添加事件</param>
-        /// <returns>初始化后的效果实例</returns>
         private WorldEffect InitializeEffect(WorldEffect effect, WorldEffectContainer container, in WorldAddEffectEvent evt)
         {
             effect.AddedBy = evt.AddedBy;
@@ -300,8 +272,6 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 增加效果的层数，确保不超过最大层数限制
         /// </summary>
-        /// <param name="effect">目标效果</param>
-        /// <param name="addCount">要增加的层数（会被修改为实际增加的层数）</param>
         private static void AddEffectStackCount(WorldEffect effect, ref ushort addCount)
         {
             var oldCount = effect.Data.StackCount;

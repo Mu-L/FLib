@@ -126,7 +126,7 @@ namespace FLib
         public struct Enumerator : IEnumerator<T>
         {
             private readonly T[] _values;
-            private readonly Stack<int> _frees;
+            private readonly HashSet<int> _frees;
             private readonly int _count;
             private int _index;
             private int _found;
@@ -136,7 +136,7 @@ namespace FLib
             public Enumerator(in FixedIndexList<T> source)
             {
                 _values = source.Values;
-                _frees = source.Frees;
+                _frees = source.Frees != null ? new HashSet<int>(source.Frees) : null;
                 _count = source.Count;
                 _index = -1;
                 _found = 0;
@@ -147,7 +147,7 @@ namespace FLib
             {
                 while (++_index < _values.Length && _found < _count)
                 {
-                    if (_frees.Contains(_index))
+                    if (_frees?.Contains(_index) == true)
                         continue;
                     ++_found;
                     Current = _values[_index];

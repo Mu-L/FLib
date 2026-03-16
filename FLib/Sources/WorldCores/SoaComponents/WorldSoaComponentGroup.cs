@@ -33,13 +33,14 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 
         /// </summary>
-        public virtual void EnsureCapacity(int capacity)
+        public virtual bool EnsureCapacity(int capacity)
         {
-            if (Components.Length >= capacity) return;
+            if (Components.Length >= capacity) return false;
             Array.Resize(ref Components, capacity);
 #if NET6_0_OR_GREATER
             Frees.EnsureCapacity(capacity >> 2);
 #endif
+            return true;
         }
 
         /// <summary>

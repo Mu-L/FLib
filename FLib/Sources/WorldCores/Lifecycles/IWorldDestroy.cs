@@ -22,7 +22,7 @@ namespace FLib.WorldCores
             }
             catch (Exception e)
             {
-                world.ThrowException(null, entity, e);
+                world.ThrowException($"{typeof(T)}", entity, e);
             }
         }
 

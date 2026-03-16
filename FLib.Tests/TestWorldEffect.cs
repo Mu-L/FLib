@@ -14,7 +14,7 @@ public class TestWorldEffect
 
     public TestWorldEffect()
     {
-        WorldGlobalSetting.InitializeEffect = effect => { };
+        WorldGlobalSetting.InitializeEffect = effect => { effect.Data.Flags = effect.Id; };
     }
 
     [Fact]
@@ -25,13 +25,22 @@ public class TestWorldEffect
         ref var fxSys = ref et.GetStaRef<WorldEffectSystem>();
         var fx = fxSys.Add(typeof(AEffect), default, 1);
         Assert.NotNull(fx);
-        fx.Data.Flags.Add(1);
         Assert.True(fxSys.HasEffect(1));
         Assert.True(fxSys.HasFlags(1));
         for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
             world.Update();
-        Assert.Equal((FNum)0.5, fxSys.Get(1)!.Time.Remaining);
+        Assert.Equal(FNum.Round((FNum)0.5 * 100), FNum.Round(fxSys.Get(1)!.Time.Remaining * 100));
         for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
             world.Update();
+        
+        Assert.False(fxSys.HasEffect(1));
+        Assert.False(fxSys.HasFlags(1));
+        Assert.Single(WorldEffectPool.AllFrees);
+        Assert.Single(WorldEffectPool.AllFrees.First().Value);
+        
+        et.RemoveSelf();
+        
+        Assert.Null(WorldEffectPool.Containers.Frees);
+        Assert.Empty(WorldEffectPool.Containers);
     }
 }

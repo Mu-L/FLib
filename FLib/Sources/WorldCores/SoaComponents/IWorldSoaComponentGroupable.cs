@@ -29,6 +29,6 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 预分配动态组件
         /// </summary>
-        void EnsureCapacity(int count);
+        bool EnsureCapacity(int count);
     }
 }

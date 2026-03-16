@@ -26,10 +26,15 @@ namespace FLib.WorldCores.SoaComponents
             }
         }
 
-        public override void EnsureCapacity(int capacity)
+        public override bool EnsureCapacity(int capacity)
         {
-            base.EnsureCapacity(capacity);
-            Array.Resize(ref ComponentEntities, capacity);
+            if (base.EnsureCapacity(capacity))
+            {
+                Array.Resize(ref ComponentEntities, Components.Length);
+                return true;
+            }
+
+            return false;
         }
 
         public override int Alloc(in WorldEntity et, in T component)

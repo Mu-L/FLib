@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using FLib.WorldCores;
 using FLib.WorldCores.Components;
 
@@ -307,6 +308,12 @@ namespace FLib.WorldCores.Entities
 
         #endregion
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveSelf()
+        {
+            World.RemoveEntity(Entity);
+        }
 
         public static implicit operator WorldEntity(in WorldEntityHelper helper) => helper.Entity;
         public static implicit operator WorldCore(in WorldEntityHelper helper) => helper.World;
