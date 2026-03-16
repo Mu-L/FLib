@@ -91,14 +91,14 @@ namespace FLib
 
         public byte Group
         {
-            readonly get => (byte)(Raw & 0xf);
-            set => Raw = (uint)(Raw & ~0xf) | (uint)(value & 0xf);
+            readonly get => (byte)(Raw >> 28);
+            set => Raw = (Raw & 0x0FFFFFFFu) | ((uint)(value & 0xF) << 28);
         }
 
         public uint Mask
         {
-            readonly get => Raw >> 4;
-            set => Raw = (value << 4) | Group;
+            readonly get => Raw & 0x0FFFFFFFu;
+            set => Raw = (value & 0x0FFFFFFFu) | ((uint)Group << 28);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace FLib
         /// </summary>
         public void Add(in BitFlags flags)
         {
-            Log.Assert(flags.Group == Group)?.Write($"group error {this} add({flags})");
+            Log.Assert(flags.Group == Group)?.Write($"group error add({flags}), cur: {this}");
             Mask |= flags.Mask;
         }
 
@@ -141,7 +141,7 @@ namespace FLib
 
         public readonly bool IsEmpty => Mask == 0;
         public readonly override string ToString() => $"{Group}:{Mask}";
-        public BitFlags(byte group, uint mask) => Raw = (group & 0xfu) | (mask << 4);
+        public BitFlags(byte group, uint mask) => Raw = ((uint)(group & 0xF) << 28) | (mask & 0x0FFFFFFFu);
 
         #endregion
 
