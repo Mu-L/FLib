@@ -65,7 +65,7 @@ namespace FLib.WorldCores
         /// 当前世界的逻辑时间（帧数 × 时间增量）。
         /// </summary>
         public FNum Time;
-        
+
         /// <summary>
         /// 当前世界的帧数计数器。
         /// </summary>
@@ -219,23 +219,16 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 抛出一个世界核心异常。
+        /// 
         /// </summary>
-        /// <param name="msg">异常消息</param>
-        /// <param name="entity">相关联的实体（可选）</param>
-        /// <param name="inner">内部异常</param>
         public virtual void ThrowException(object msg, WorldEntity entity = default, Exception inner = null)
         {
             throw new WorldCoreException(this, entity, msg, inner);
         }
 
         /// <summary>
-        /// 条件断言（仅在 DEBUG 模式下有效）。
+        /// 
         /// </summary>
-        /// <param name="conditional">条件判断</param>
-        /// <param name="entity">相关联的实体（可选）</param>
-        /// <param name="msg">断言失败消息</param>
-        /// <param name="inner">内部异常</param>
         [Conditional("DEBUG")]
         public virtual void Assert(bool conditional, WorldEntity entity = default, object msg = null, Exception inner = null)
         {
@@ -243,10 +236,8 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
-        /// 隐式转换运算符，将世界核心转换为世界句柄。
+        /// 
         /// </summary>
-        /// <param name="world">源世界核心</param>
-        /// <returns>世界句柄</returns>
         public static implicit operator WorldHandle(WorldCore world) => world.Handle;
     }
 }

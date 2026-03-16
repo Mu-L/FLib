@@ -12,6 +12,11 @@ public class TestWorldEffect
         public int Value;
     }
 
+    public TestWorldEffect()
+    {
+        WorldGlobalSetting.InitializeEffect = effect => { };
+    }
+
     [Fact]
     public void Basic()
     {

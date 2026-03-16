@@ -12,6 +12,7 @@ namespace FLib.WorldCores.Effects
         internal int TimeComponentId = -1;
         public WorldEntity AddedBy;
 
+        public uint Id => Data.Id;
         public ref WorldEffectSystem System => ref *SystemPtr;
         public ref WorldEntityHelper Entity => ref SystemPtr->Self;
         public WorldCore World => SystemPtr->Self.World;

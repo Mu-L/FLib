@@ -6,9 +6,9 @@ namespace FLib.WorldCores.Effects
 {
     public struct WorldAddEffectEvent
     {
-        public uint Id;
         public WorldEffect Effect;
-        public WorldEntity AddedBy;
+        public uint Id;
         public ushort AddCount;
+        public WorldEntity AddedBy;
     }
 }

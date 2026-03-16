@@ -104,7 +104,7 @@ namespace FLib.WorldCores.Effects
 
             if (effect == null)
             {
-                effect = InitializeEffect(container, WorldEffectPool.Rent(effectType, ref this), evt.AddedBy);
+                effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), container, evt);
                 if (!Self.DispatchPreEvent(ref evt))
                 {
                     FreeEffect(container, effect);
@@ -140,11 +140,11 @@ namespace FLib.WorldCores.Effects
                         Self.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.MultipleInstance:
-                        item.MoreList.Add(effect = InitializeEffect(container, WorldEffectPool.Rent(effectType, ref this), evt.AddedBy));
+                        item.MoreList.Add(effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), container, evt));
                         break;
                     case EWorldEffectAddOption.Replace:
                         // remove 
-                        effect = item.Single = InitializeEffect(container, WorldEffectPool.Rent(effectType, ref this), evt.AddedBy);
+                        effect = item.Single = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), container, evt);
                         break;
                 }
             }
@@ -275,13 +275,23 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果实例，设置相关属性并更新标志位
         /// </summary>
-        /// <param name="container">效果容器</param>
         /// <param name="effect">要初始化的效果实例</param>
-        /// <param name="addedBy">添加此效果的实体</param>
+        /// <param name="container">效果容器</param>
+        /// <param name="evt">效果添加事件</param>
         /// <returns>初始化后的效果实例</returns>
-        private WorldEffect InitializeEffect(WorldEffectContainer container, WorldEffect effect, in WorldEntity addedBy)
+        private WorldEffect InitializeEffect(WorldEffect effect, WorldEffectContainer container, in WorldAddEffectEvent evt)
         {
-            effect.AddedBy = addedBy;
+            effect.AddedBy = evt.AddedBy;
+            effect.Data.Id = evt.Id;
+            try
+            {
+                WorldGlobalSetting.InitializeEffect.Invoke(effect);
+            }
+            catch (Exception e)
+            {
+                Log.Error?.Write(e);
+            }
+
             FlagMask |= effect.Data.Flags;
             container.AddFlags(effect.Data.Flags.Mask);
             return effect;

@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 using FLib.WorldCores.Behaviors;
+using FLib.WorldCores.Effects;
 
 namespace FLib.WorldCores
 {
@@ -19,6 +20,16 @@ namespace FLib.WorldCores
         /// 每帧时间
         /// </summary>
         public static FNum DeltaTime = FNum.One / FrameRate;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Action<WorldEffect> InitializeEffect = effect => { };
+
+        /// <summary>
+        /// 默认行为类型
+        /// </summary>
+        public static RWAction<WorldBehaviorSystem> DoDefaultBehavior = (ref WorldBehaviorSystem system) => system.Do(WorldBehaviorPool.Behaviors[0].GetType());
 
         /// <summary>
         /// 对齐大小
@@ -55,12 +66,6 @@ namespace FLib.WorldCores
         /// archetype chunk 内存分配器
         /// </summary>
         public static WorldMemoryAllocator ChunkAllocator = new(16 * 1024, 32, 64);
-
-        /// <summary>
-        /// 默认行为类型
-        /// </summary>
-        public static RWAction<WorldBehaviorSystem> DoDefaultBehavior = (ref WorldBehaviorSystem system) => system.Do(WorldBehaviorPool.Behaviors[0].GetType());
-
 
         /// <summary>
         /// 线程并发级别
