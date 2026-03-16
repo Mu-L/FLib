@@ -17,6 +17,16 @@ public class TestWorldEffect
     {
         using var world = new WorldCore();
         var et = world.BuildEntity().With<WorldEffectSystem>().BuildAsEntityHelper();
-        ref var effect = ref et.GetStaRef<WorldEffectSystem>();
+        ref var fxSys = ref et.GetStaRef<WorldEffectSystem>();
+        var fx = fxSys.Add(typeof(AEffect), default, 1);
+        Assert.NotNull(fx);
+        fx.Data.Flags.Add(1);
+        Assert.True(fxSys.HasEffect(1));
+        Assert.True(fxSys.HasFlags(1));
+        for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
+            world.Update();
+        Assert.Equal((FNum)0.5, fxSys.Get(1)!.Time.Remaining);
+        for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
+            world.Update();
     }
 }

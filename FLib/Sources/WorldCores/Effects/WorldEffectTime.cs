@@ -12,6 +12,8 @@ namespace FLib.WorldCores.Effects
         public readonly WorldEffect Effect;
         public FNum EndTime;
 
+        public readonly FNum Remaining => EndTime - Effect.World.Time;
+
         public WorldEffectTime(WorldEffect effect)
         {
             Effect = effect;

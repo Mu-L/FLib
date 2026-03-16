@@ -8,8 +8,8 @@ namespace FLib.WorldCores.Effects
     public unsafe class WorldEffect : IBytesPackable
     {
         internal WorldEffectSystem* SystemPtr;
+        public WorldEffectData Data = WorldEffectData.Default;
         internal int TimeComponentId = -1;
-        public WorldEffectData Data;
         public WorldEntity AddedBy;
 
         public ref WorldEffectSystem System => ref *SystemPtr;
