@@ -1,5 +1,6 @@
 // ==================== qcbf@qq.com | 2026-03-13 ====================
 
+using System.Runtime.CompilerServices;
 using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Effects
@@ -7,6 +8,7 @@ namespace FLib.WorldCores.Effects
     /// <summary>
     /// 
     /// </summary>
+    [SkipLocalsInit]
     public struct WorldEffectTime : IWorldUpdate
     {
         public readonly WorldEffect Effect;
@@ -17,7 +19,7 @@ namespace FLib.WorldCores.Effects
         public WorldEffectTime(WorldEffect effect)
         {
             Effect = effect;
-            EndTime = effect.World.Time + effect.Data.Duration;
+            EndTime = default;
         }
 
         public void Update(WorldCore world, WorldEntity entity)

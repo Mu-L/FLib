@@ -37,8 +37,13 @@ namespace FLib
 #endif
     }
 
-    [Conditional("DEBUG")]
-    public class SkipLocalsInitAttribute : Attribute
+#if !NET6_0_OR_GREATER
+    namespace System.Runtime.CompilerServices
     {
+        [Conditional("DEBUG")]
+        public class SkipLocalsInitAttribute : Attribute
+        {
+        }
     }
+#endif
 }

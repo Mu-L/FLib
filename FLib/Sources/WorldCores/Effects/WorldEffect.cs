@@ -8,7 +8,7 @@ namespace FLib.WorldCores.Effects
     public unsafe class WorldEffect : IBytesPackable
     {
         internal WorldEffectSystem* SystemPtr;
-        public WorldEffectData Data = WorldEffectData.Default;
+        public WorldEffectData Data;
         internal int TimeComponentId = -1;
         public WorldEntity AddedBy;
 
@@ -18,6 +18,24 @@ namespace FLib.WorldCores.Effects
         public WorldCore World => SystemPtr->Self.World;
         public bool IsEmpty => SystemPtr == null;
         public ref WorldEffectTime Time => ref World.Soa.GetGroup<WorldEffectTime>()[TimeComponentId];
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsRemoving
+        {
+            get => Data.Duration == -1;
+            set
+            {
+                World.Assert(value);
+                Data.Duration = -1;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public override string ToString() => Data.ToString();
 
         /// <summary>
         /// 

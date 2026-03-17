@@ -31,7 +31,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 获取系统是否已释放
         /// </summary>
-        public readonly bool IsDisposed => _containerIndex < 0;
+        public readonly bool IsDisposed => (FlagMask & int.MaxValue) != 0x80000000;
 
 
         /// <summary>
@@ -69,8 +69,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public bool HasFlags(BitFlags flags)
         {
-            var mask = flags.Mask;
-            return (FlagMask & mask) == mask;
+            return (FlagMask & flags.Mask) != 0;
         }
 
         /// <summary>
@@ -100,7 +99,7 @@ namespace FLib.WorldCores.Effects
                 effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), container, evt);
                 if (!Self.DispatchPreEvent(ref evt))
                 {
-                    FreeEffect(container, effect);
+                    FreeEffect(container, effect, false);
                     return null;
                 }
 
@@ -162,13 +161,22 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 移除指定的效果实例
         /// </summary>
-        public bool Remove(WorldEffect effect, ushort removeCount = ushort.MaxValue) => Remove(Container, effect, removeCount);
+        public bool Remove(WorldEffect effect, ushort removeCount = ushort.MaxValue)
+        {
+            return Remove(Container, effect, removeCount);
+        }
 
         /// <summary>
         /// 移除效果实例的内部实现
         /// </summary>
         private bool Remove(WorldEffectContainer container, WorldEffect effect, ushort removeCount = ushort.MaxValue)
         {
+            if (effect.IsRemoving)
+            {
+                Log.Warn?.Write($"frequent remove effect {effect}");
+                return true;
+            }
+
             var evt = new WorldRemoveEffectEvent { Effect = effect, RemoveCount = removeCount };
             if (!Self.DispatchPreEvent(ref evt))
             {
@@ -191,7 +199,7 @@ namespace FLib.WorldCores.Effects
             }
             finally
             {
-                FreeEffect(container, effect);
+                FreeEffect(container, effect, true);
             }
 
             return true;
@@ -210,7 +218,7 @@ namespace FLib.WorldCores.Effects
             var effectsEnum = container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
             {
-                if (!effectsEnum.Value.Single!.Data.Flags.All(flags))
+                if (!effectsEnum.Value.Single!.Data.Flags.Any(flags))
                     continue;
                 idList?.Add(effectsEnum.Key);
                 if (!effectsEnum.Value.MoreList.IsEmpty)
@@ -226,9 +234,9 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 释放效果实例，从容器中移除并归还到对象池
         /// </summary>
-        private void FreeEffect(WorldEffectContainer container, WorldEffect effect)
+        private void FreeEffect(WorldEffectContainer container, WorldEffect effect, bool isInvokeDestroy)
         {
-            FlagMask &= ~container.RemoveFlags(effect.Data.Flags);
+            FlagMask &= ~container.RemoveFlags(effect.Data.Flags.Mask);
             ref var item = ref container.Effects[effect.Data.Id];
             try
             {
@@ -241,6 +249,11 @@ namespace FLib.WorldCores.Effects
                     if (!item.MoreList.Remove(effect))
                         World.ThrowException("not found effect instance", Self);
                 }
+
+                effect.IsRemoving = true;
+
+                if (isInvokeDestroy)
+                    effect.Destroy();
             }
             finally
             {
@@ -258,14 +271,19 @@ namespace FLib.WorldCores.Effects
             try
             {
                 WorldGlobalSetting.InitializeEffect.Invoke(effect);
+                World.Assert(effect.Data.Id == evt.Id);
+                if (effect.Data.MaxStackCount == 0)
+                    effect.Data.MaxStackCount = ushort.MaxValue;
+                effect.Time.RefreshTime(World.Time);
             }
             catch (Exception e)
             {
                 Log.Error?.Write(e);
             }
 
-            FlagMask |= effect.Data.Flags;
-            container.AddFlags(effect.Data.Flags.Mask);
+            var mask = effect.Data.Flags.Mask;
+            FlagMask |= mask;
+            container.AddFlags(mask);
             return effect;
         }
 

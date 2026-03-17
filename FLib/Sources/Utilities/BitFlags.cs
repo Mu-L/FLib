@@ -11,7 +11,7 @@ namespace FLib
 {
     /// <summary>
     /// 按位标记
-    /// 上限：15个标记组，每个组27个标记
+    /// 上限：16(0-15)(4bit)个标记组，每个组27(bit)个标记
     /// </summary>
     public struct BitFlags : IBytesSerializable, IJson5Deserializable, IJson5Serializable, IEquatable<BitFlags>
     {
@@ -173,6 +173,9 @@ namespace FLib
         {
             if (Raw == 0)
                 return string.Empty;
+            if (FlagGroupNames == null || FlagGroupNames.Length == 0)
+                return $"[{Group},{Mask}]";
+            
             var allFlagNames = FlagGroupNames[Group];
             using var names = new PooledList<string>();
             var mask = Mask;
