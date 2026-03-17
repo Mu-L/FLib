@@ -31,7 +31,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 获取系统是否已释放
         /// </summary>
-        public readonly bool IsDisposed => (FlagMask & int.MaxValue) != 0x80000000;
+        public readonly bool IsDisposed => (FlagMask & int.MaxValue) == 0x80000000;
 
 
         /// <summary>
@@ -48,12 +48,10 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public void Destroy(WorldCore world, WorldEntity entity)
         {
-            var container = Container;
-            var containerIndex = _containerIndex;
-            _containerIndex = -1;
-            Clear(container);
-            world.Assert(container.Effects.Count == 0);
-            WorldEffectPool.FreeContainer(containerIndex);
+            FlagMask |= 0x80000000;
+            Clear();
+            world.Assert(Container.Effects.Count == 0);
+            WorldEffectPool.FreeContainer(_containerIndex);
         }
 
         /// <summary>
@@ -96,10 +94,10 @@ namespace FLib.WorldCores.Effects
 
             if (effect == null)
             {
-                effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), container, evt);
+                effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt);
                 if (!Self.DispatchPreEvent(ref evt))
                 {
-                    FreeEffect(container, effect, false);
+                    FreeEffect(effect, false);
                     return null;
                 }
 
@@ -132,11 +130,11 @@ namespace FLib.WorldCores.Effects
                         Self.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.MultipleInstance:
-                        item.MoreList.Add(effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), container, evt));
+                        item.MoreList.Add(effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt));
                         break;
                     case EWorldEffectAddOption.Replace:
                         // remove 
-                        effect = item.Single = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), container, evt);
+                        effect = item.Single = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt);
                         break;
                 }
             }
@@ -159,17 +157,9 @@ namespace FLib.WorldCores.Effects
         }
 
         /// <summary>
-        /// 移除指定的效果实例
-        /// </summary>
-        public bool Remove(WorldEffect effect, ushort removeCount = ushort.MaxValue)
-        {
-            return Remove(Container, effect, removeCount);
-        }
-
-        /// <summary>
         /// 移除效果实例的内部实现
         /// </summary>
-        private bool Remove(WorldEffectContainer container, WorldEffect effect, ushort removeCount = ushort.MaxValue)
+        public bool Remove(WorldEffect effect, ushort removeCount = ushort.MaxValue)
         {
             if (effect.IsRemoving)
             {
@@ -199,23 +189,18 @@ namespace FLib.WorldCores.Effects
             }
             finally
             {
-                FreeEffect(container, effect, true);
+                FreeEffect(effect, true);
             }
 
             return true;
         }
 
         /// <summary>
-        /// 清空所有符合条件的效果
-        /// </summary>
-        public void Clear(uint flags = uint.MaxValue, IList<uint>? idList = null) => Clear(Container, flags, idList);
-
-        /// <summary>
         /// 清空效果的内部实现
         /// </summary>
-        private void Clear(WorldEffectContainer container, uint flags = uint.MaxValue, IList<uint>? idList = null)
+        private void Clear(uint flags = uint.MaxValue, IList<uint>? idList = null)
         {
-            var effectsEnum = container.Effects.GetEnumerator();
+            var effectsEnum = Container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
             {
                 if (!effectsEnum.Value.Single!.Data.Flags.Any(flags))
@@ -224,18 +209,19 @@ namespace FLib.WorldCores.Effects
                 if (!effectsEnum.Value.MoreList.IsEmpty)
                 {
                     for (var i = effectsEnum.Value.MoreList.Count - 1; i >= 0; i--)
-                        Remove(container, effectsEnum.Value.MoreList[i]);
+                        Remove(effectsEnum.Value.MoreList[i]);
                 }
 
-                Remove(container, effectsEnum.Value.Single);
+                Remove(effectsEnum.Value.Single);
             }
         }
 
         /// <summary>
         /// 释放效果实例，从容器中移除并归还到对象池
         /// </summary>
-        private void FreeEffect(WorldEffectContainer container, WorldEffect effect, bool isInvokeDestroy)
+        private void FreeEffect(WorldEffect effect, bool isInvokeDestroy)
         {
+            var container = Container;
             FlagMask &= ~container.RemoveFlags(effect.Data.Flags.Mask);
             ref var item = ref container.Effects[effect.Data.Id];
             try
@@ -264,7 +250,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果实例，设置相关属性并更新标志位
         /// </summary>
-        private WorldEffect InitializeEffect(WorldEffect effect, WorldEffectContainer container, in WorldAddEffectEvent evt)
+        private WorldEffect InitializeEffect(WorldEffect effect, in WorldAddEffectEvent evt)
         {
             effect.AddedBy = evt.AddedBy;
             effect.Data.Id = evt.Id;
@@ -283,7 +269,7 @@ namespace FLib.WorldCores.Effects
 
             var mask = effect.Data.Flags.Mask;
             FlagMask |= mask;
-            container.AddFlags(mask);
+            Container.AddFlags(mask);
             return effect;
         }
 
