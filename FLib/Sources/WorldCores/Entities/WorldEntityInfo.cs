@@ -7,7 +7,6 @@ using FLib.WorldCores.Archetypes;
 
 namespace FLib.WorldCores.Entities
 {
-    [SkipLocalsInit]
     public struct WorldEntityInfo
     {
         public static WorldEntityInfo Empty = default;

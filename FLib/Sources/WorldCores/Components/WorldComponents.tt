@@ -20,13 +20,11 @@ namespace FLib.WorldCores
         var genericWheres = string.Join(" ", Enumerable.Range(1, i).Select(n => $"where T{n} : unmanaged"));
 #>
 
-    [SkipLocalsInit]
     public readonly ref struct WorldComponents<<#= genericParams #>> <#= genericWheres #>
     {
 <#= fields #>
         public override string ToString() => $"<#= toStringBody #>]";
 
-        [SkipLocalsInit]
         public WorldComponents(<#= ctorParams #>)
         {
             <#= ctorBody #>;

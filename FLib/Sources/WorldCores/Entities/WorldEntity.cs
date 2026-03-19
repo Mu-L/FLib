@@ -9,7 +9,6 @@ namespace FLib.WorldCores.Entities
     /// <summary>
     /// 
     /// </summary>
-    [SkipLocalsInit]
     public readonly struct WorldEntity : IEquatable<WorldEntity>
     {
         public readonly ushort Id;

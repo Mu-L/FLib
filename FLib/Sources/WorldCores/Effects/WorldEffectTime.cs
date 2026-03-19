@@ -8,7 +8,6 @@ namespace FLib.WorldCores.Effects
     /// <summary>
     /// 
     /// </summary>
-    [SkipLocalsInit]
     public struct WorldEffectTime : IWorldUpdate
     {
         public readonly WorldEffect Effect;
