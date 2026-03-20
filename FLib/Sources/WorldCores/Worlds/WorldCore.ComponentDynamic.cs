@@ -61,13 +61,13 @@ namespace FLib.WorldCores
         /// <returns>返回组件在动态组件组中的索引</returns>
         public int SetDyn<T>(WorldEntity et, in T component, ref WorldEntityInfo eti)
         {
-            Assert(!eti.IsDestroying, et, "entity is destroying");
             Assert(!WorldComponentRegistry.GetInfo(typeof(T)).IsShared, et);
             var id = WorldComponentRegistry.GetId<T>();
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
             var group = Soa.GetGroup<T>();
             if (slot < 0)
             {
+                Assert(!eti.IsDestroying, et, "entity is destroying");
                 TryAddRequiredComponents(et, ref eti, WorldComponentRegistry.GetInfo(typeof(T)));
                 slot = group.Alloc(et, component);
             }
@@ -125,7 +125,7 @@ namespace FLib.WorldCores
         public void RemoveDyn(WorldEntity et, Type type)
         {
             Assert(!GetEntityInfo(et).Chunk.Has(WorldComponentRegistry.GetId(type)), et, "cannot remove static component");
-            Assert(!GetEntityInfo(et).IsDestroying, et, "entity is destroying");
+            // Assert(!GetEntityInfo(et).IsDestroying, et, "entity is destroying");
             ref readonly var eti = ref GetEntityInfo(et);
             ref var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
             var id = WorldComponentRegistry.GetId(type).Id;

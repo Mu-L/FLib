@@ -11,7 +11,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 执行顺序, 越大越先执行。
         /// </summary>
-        public readonly short Order;
+        public readonly short UpdateOrder;
 
         /// <summary>
         /// 
@@ -26,14 +26,14 @@ namespace FLib.WorldCores
         public WorldComponentOptionAttribute(EComponentOption options)
         {
             RequiredComponents = null;
-            Order = 0;
+            UpdateOrder = 0;
             Options = options;
         }
 
-        public WorldComponentOptionAttribute(short order = 0, EComponentOption options = EComponentOption.None, Type[]? requiredComponents = null)
+        public WorldComponentOptionAttribute(short updateOrder = 0, EComponentOption options = EComponentOption.None, Type[]? requiredComponents = null)
         {
             RequiredComponents = requiredComponents;
-            Order = order;
+            UpdateOrder = updateOrder;
             Options = options;
         }
     }

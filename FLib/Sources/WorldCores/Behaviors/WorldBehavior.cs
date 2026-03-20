@@ -21,9 +21,8 @@ namespace FLib.WorldCores.Behaviors
 
         public byte TypeId { get; internal set; }
         public uint StartFrame { get; internal set; }
-        public byte Priority { get; internal set; }
-        public abstract uint Mask { get; }
-
+        public virtual byte Priority { get; internal set; }
+        public virtual uint Mask => 0;
 
         public virtual byte GetInitialPriority() => 0;
         public virtual bool CheckDo() => !System.IsRunning(Mask);

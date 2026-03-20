@@ -17,7 +17,7 @@ namespace FLib.WorldCores.SoaComponents
 
         public WorldUpdateSoaComponentGroup(WorldCore world) : base(world)
         {
-            var order = WorldComponentRegistry.GetInfo<T>().Options?.Order ?? 0;
+            var order = WorldComponentRegistry.GetInfo<T>().Options?.UpdateOrder ?? 0;
             world.Update2.Register(WorldUpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), order, this);
             if (typeof(IWorldStart).IsAssignableFrom(typeof(T)))
             {

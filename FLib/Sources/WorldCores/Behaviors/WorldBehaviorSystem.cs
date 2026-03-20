@@ -10,7 +10,7 @@ using FLib.WorldCores.Entities;
 namespace FLib.WorldCores.Behaviors
 {
     [WorldComponentOption(options: EComponentOption.RejectSoa)]
-    public struct WorldBehaviorSystem : IWorldAwake
+    public struct WorldBehaviorSystem : IWorldAwake, IWorldDestroy
     {
         public WorldEntityHelper Self;
         public uint Mask;
@@ -30,6 +30,11 @@ namespace FLib.WorldCores.Behaviors
             SecondaryId = PrimaryId = -1;
             Self = new WorldEntityHelper(world, entity);
             WorldGlobalSetting.DoDefaultBehavior(ref this);
+        }
+
+        void IWorldDestroy.Destroy(WorldCore world, WorldEntity entity)
+        {
+            StopAll(true, false);
         }
 
         /// <summary>
