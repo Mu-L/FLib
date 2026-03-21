@@ -24,8 +24,6 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 获取动态组件组
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public WorldSoaComponentGroup<T> GetGroup<T>()
         {
             var id = WorldComponentRegistry.GetId<T>().Id;
@@ -37,18 +35,23 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 获取动态组件组
         /// </summary>
-        /// <param name="componentType"></param>
-        /// <returns></returns>
         public IWorldSoaComponentGroupable GetGroup(Type componentType)
         {
-            var id = WorldComponentRegistry.GetId(componentType);
+            return GetGroup(WorldComponentRegistry.GetId(componentType));
+        }
+
+        /// <summary>
+        /// 获取动态组件组
+        /// </summary>
+        public IWorldSoaComponentGroupable GetGroup(WorldIncrementId id)
+        {
             if (id >= Groups.Length)
             {
                 Array.Resize(ref Groups, id + 1);
-                return Groups[id] = CreateGroup(componentType);
+                return Groups[id] = CreateGroup(WorldComponentRegistry.GetType(id));
             }
 
-            return Groups[id] ??= CreateGroup(componentType);
+            return Groups[id] ??= CreateGroup(WorldComponentRegistry.GetType(id));
         }
 
         /// <summary>

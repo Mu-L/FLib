@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using FLib.WorldCores.Entities;
+using FLib.WorldCores.SoaComponents;
 
 namespace FLib.WorldCores.Behaviors
 {
@@ -11,8 +12,9 @@ namespace FLib.WorldCores.Behaviors
     /// </summary>
     public abstract unsafe class WorldBehavior
     {
-        internal WorldBehaviorSystem* SystemPtr;
         internal int Id;
+        internal WorldBehaviorSystem* SystemPtr;
+        public WorldSoaComponentManaged ComponentManaged;
 
         public ref WorldBehaviorSystem System => ref *SystemPtr;
         public ref WorldEntityHelper Entity => ref SystemPtr->Self;
@@ -20,7 +22,7 @@ namespace FLib.WorldCores.Behaviors
         public bool IsEmpty => SystemPtr == null;
 
         public byte TypeId { get; internal set; }
-        public uint StartFrame { get; protected internal set; }
+        public FNum StartTime { get; protected internal set; }
         public virtual byte Priority { get; protected internal set; }
         public abstract uint Mask { get; }
 

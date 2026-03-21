@@ -101,7 +101,7 @@ namespace FLib.WorldCores.Behaviors
         {
             var bhv = WorldBehaviorPool.Rent(behaviorType);
             bhv.SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this);
-            bhv.StartFrame = World.Frame;
+            bhv.StartTime = World.Time;
             (bhv as IWorldBehaviorParameterizable)?.InitializeParam();
 
             if (!CheckDo(ref evt, bhv, true))
@@ -325,8 +325,16 @@ namespace FLib.WorldCores.Behaviors
         private void Stop(WorldBehavior bhv, bool isPrimary)
         {
             Mask &= ~bhv.Mask;
-            Self.DispatchEvent(new WorldStopBehaviorEvent(ref this, bhv, isPrimary));
-            WorldBehaviorPool.Free(bhv);
+            try
+            {
+                bhv.OnDestroy();
+                bhv.ComponentManaged.Dispose();
+                Self.DispatchEvent(new WorldStopBehaviorEvent(ref this, bhv, isPrimary));
+            }
+            finally
+            {
+                WorldBehaviorPool.Free(bhv);
+            }
         }
 
         /// <summary>

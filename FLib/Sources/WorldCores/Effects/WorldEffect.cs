@@ -1,6 +1,7 @@
 // ==================== qcbf@qq.com | 2026-03-09 ====================
 
 using FLib.WorldCores.Entities;
+using FLib.WorldCores.SoaComponents;
 
 namespace FLib.WorldCores.Effects
 {
@@ -11,6 +12,7 @@ namespace FLib.WorldCores.Effects
         public WorldEffectData Data;
         internal int TimeComponentId = -1;
         public WorldEntity AddedBy;
+        public WorldSoaComponentManaged ComponentManaged;
 
         public uint Id => Data.Id;
         public ref WorldEffectSystem System => ref *SystemPtr;

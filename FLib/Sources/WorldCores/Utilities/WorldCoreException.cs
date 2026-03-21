@@ -10,6 +10,10 @@ namespace FLib.WorldCores
         public WorldCore World;
         public WorldEntity Entity;
 
+        public WorldCoreException(in WorldEntityHelper entity, object msg, Exception inner = null) : this(entity.World, entity.Entity, msg, inner)
+        {
+        }
+
         public WorldCoreException(WorldCore world, object msg, Exception inner = null) : base(msg.ToString(), inner)
         {
             World = world;

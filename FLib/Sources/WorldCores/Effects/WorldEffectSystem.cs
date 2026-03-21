@@ -237,12 +237,12 @@ namespace FLib.WorldCores.Effects
                 }
 
                 effect.IsRemoving = true;
-
                 if (isInvokeDestroy)
                     effect.OnDestroy();
             }
             finally
             {
+                effect.ComponentManaged.Dispose();
                 WorldEffectPool.Free(effect);
             }
         }

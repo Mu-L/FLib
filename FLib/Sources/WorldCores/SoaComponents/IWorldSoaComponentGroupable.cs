@@ -19,7 +19,7 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 释放动态组件
         /// </summary>
-        void Free(in WorldEntity et, int hash, bool onEntityDestroyed);
+        void Free(in WorldEntity et, int index, bool onEntityDestroyed);
 
         // /// <summary>
         // /// 
