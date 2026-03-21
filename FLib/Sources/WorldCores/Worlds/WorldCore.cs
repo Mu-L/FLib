@@ -94,7 +94,7 @@ namespace FLib.WorldCores
             Update1 = new WorldUpdater();
             ArchetypeGroup = new WorldArchetypeGroup(this);
             Soa = new WorldSoaComponentGroupManager(this);
-            Entities = new WorldEntityContainer(entityCapacity);
+            Entities = new WorldEntityContainer(this, entityCapacity);
             DynamicComponentSparse = new(entityCapacity >> 1);
 
             var isLocking = false;

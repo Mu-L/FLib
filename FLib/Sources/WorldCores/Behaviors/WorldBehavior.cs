@@ -59,7 +59,7 @@ namespace FLib.WorldCores.Behaviors
     /// </summary>
     public abstract class WorldBehavior<TParam> : WorldBehavior, IWorldBehaviorParameterizable
     {
-        [ThreadStatic] internal static TParam NewParam;
+        [ThreadStatic] protected internal static TParam NewParam;
         public TParam Param;
         public virtual void InitializeParam() => Param = NewParam;
     }

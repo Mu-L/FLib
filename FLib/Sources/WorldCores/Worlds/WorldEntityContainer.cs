@@ -9,19 +9,21 @@ namespace FLib.WorldCores
 {
     public struct WorldEntityContainer
     {
+        public readonly WorldCore World;
         public WorldEntityInfo[] EntityInfos;
-        public FEvent?[] Events;
+        public EntityEvent?[] Events;
         public int Count;
         public Stack<ushort> Frees;
 
         public readonly ref WorldEntityInfo this[ushort index] => ref EntityInfos[index];
         public readonly ref WorldEntityInfo this[int index] => ref EntityInfos[index];
 
-        public WorldEntityContainer(int entityCapacity)
+        public WorldEntityContainer(WorldCore world, int entityCapacity)
         {
+            World = world;
             Count = 0;
             EntityInfos = new WorldEntityInfo[entityCapacity];
-            Events = new FEvent[entityCapacity];
+            Events = new EntityEvent[entityCapacity];
             Frees = new Stack<ushort>(entityCapacity >> 1);
         }
 
@@ -49,8 +51,9 @@ namespace FLib.WorldCores
                 id = checked((ushort)Count++);
             }
 
-            Events[id] ??= new FEvent();
             EntityInfos[id] = entityInfo;
+            if (Events[id] != null)
+                Events[id]!.Entity = new WorldEntityHelper(World, new WorldEntity(id, entityInfo.Version));
             return id;
         }
 
@@ -67,11 +70,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly FEvent? DispatchEvent(ushort id) => Events[id];
+        public readonly EntityEvent? DispatchEvent(ushort id) => Events[id];
 
         /// <summary>
         /// 
         /// </summary>
-        public readonly FEvent Event(ushort id) => Events[id] ??= new FEvent();
+        public readonly EntityEvent Event(ushort id) => Events[id] ??= new EntityEvent { Entity = new WorldEntityHelper(World, new WorldEntity(id, EntityInfos[id].Version)) };
     }
 }

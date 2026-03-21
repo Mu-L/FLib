@@ -59,7 +59,7 @@ namespace FLib.WorldCores
         /// <param name="component">要设置的组件值</param>
         /// <param name="eti">实体信息的引用</param>
         /// <returns>返回组件在动态组件组中的索引</returns>
-        public int SetDyn<T>(WorldEntity et, in T component, ref WorldEntityInfo eti)
+        internal int SetDyn<T>(WorldEntity et, in T component, ref WorldEntityInfo eti)
         {
             Assert(!WorldComponentRegistry.GetInfo(typeof(T)).IsShared, et);
             var id = WorldComponentRegistry.GetId<T>();
