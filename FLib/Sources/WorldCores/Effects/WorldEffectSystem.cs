@@ -239,6 +239,7 @@ namespace FLib.WorldCores.Effects
                 effect.IsRemoving = true;
                 if (isInvokeDestroy)
                     effect.OnDestroy();
+                WorldGlobalSetting.UninitializeEffect?.Invoke(effect);
             }
             finally
             {

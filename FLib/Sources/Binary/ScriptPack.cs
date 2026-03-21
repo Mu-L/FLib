@@ -31,7 +31,7 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public virtual void Set(object script)
+        public void Set(object script)
         {
             Type = script.GetType();
             UserInstance = script;

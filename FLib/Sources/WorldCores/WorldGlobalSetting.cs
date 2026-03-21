@@ -27,6 +27,11 @@ namespace FLib.WorldCores
         public static Action<WorldEffect> InitializeEffect = effect => { };
 
         /// <summary>
+        /// 
+        /// </summary>
+        public static Action<WorldEffect> UninitializeEffect = effect => { };
+
+        /// <summary>
         /// 默认行为类型
         /// </summary>
         public static RWAction<WorldBehaviorSystem> DoDefaultBehavior = (ref WorldBehaviorSystem system) => system.Do(WorldBehaviorPool.Behaviors[0].GetType());

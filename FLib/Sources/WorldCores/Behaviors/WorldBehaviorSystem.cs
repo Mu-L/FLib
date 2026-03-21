@@ -291,7 +291,7 @@ namespace FLib.WorldCores.Behaviors
         {
             e.Behavior = bhv;
             e.IsFirst = isFirst;
-            return bhv.CheckDo() && Self.DispatchPreEvent(ref e);
+            return bhv.CheckDo(isFirst) && Self.DispatchPreEvent(ref e);
         }
 
         /// <summary>

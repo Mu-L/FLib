@@ -27,7 +27,7 @@ namespace FLib.WorldCores.Behaviors
         public virtual byte InitialPriority => 0;
         public abstract uint Mask { get; }
 
-        public virtual bool CheckDo() => !System.IsRunning(Mask);
+        public virtual bool CheckDo(bool isFirst) => isFirst;
 
         public virtual bool CheckPriority(WorldBehavior target) => target.Priority >= Priority;
         public virtual bool CheckFriend(WorldBehavior targetBehavior) => false;
