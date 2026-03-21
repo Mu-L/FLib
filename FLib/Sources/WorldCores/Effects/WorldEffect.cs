@@ -48,11 +48,11 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Awake()
+        public virtual void OnAwake()
         {
         }
 
-        public virtual void Destroy()
+        public virtual void OnDestroy()
         {
         }
 

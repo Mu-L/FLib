@@ -20,9 +20,9 @@ namespace FLib.WorldCores.Behaviors
         public bool IsEmpty => SystemPtr == null;
 
         public byte TypeId { get; internal set; }
-        public uint StartFrame { get; internal set; }
-        public virtual byte Priority { get; internal set; }
-        public virtual uint Mask => 0;
+        public uint StartFrame { get; protected internal set; }
+        public virtual byte Priority { get; protected internal set; }
+        public abstract uint Mask { get; }
 
         public virtual byte GetInitialPriority() => 0;
         public virtual bool CheckDo() => !System.IsRunning(Mask);
@@ -35,11 +35,11 @@ namespace FLib.WorldCores.Behaviors
         {
         }
 
-        public virtual void Awake(bool isFirst)
+        public virtual void OnAwake(bool isFirst)
         {
         }
 
-        public virtual void Destroy()
+        public virtual void OnDestroy()
         {
         }
     }

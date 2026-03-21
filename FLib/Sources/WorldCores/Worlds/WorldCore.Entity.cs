@@ -94,8 +94,8 @@ namespace FLib.WorldCores
                     ref var denseIndex = ref sparse[i];
                     if (denseIndex < 0) continue;
                     var type = WorldComponentRegistry.GetType(new WorldIncrementId(i + 1));
-                    denseIndex = -1;
                     Soa.GetGroup(type).Free(et, denseIndex, true);
+                    denseIndex = -1;
                 }
             }
 

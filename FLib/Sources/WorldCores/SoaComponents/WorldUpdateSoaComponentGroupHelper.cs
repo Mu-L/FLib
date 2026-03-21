@@ -29,7 +29,7 @@ namespace FLib.WorldCores.SoaComponents
                 }
 
                 ref var comp = ref group.Components[i];
-                comp.Update(world, et);
+                comp.OnUpdate(world, et);
             }
         }
 
@@ -46,7 +46,7 @@ namespace FLib.WorldCores.SoaComponents
                 ref var comp = ref group.Components[i];
                 try
                 {
-                    comp.Start(world, et);
+                    comp.OnStart(world, et);
                     WorldComponentEvents<T>.OnStart?.Invoke(world, et, ref comp);
                 }
                 catch (Exception e)

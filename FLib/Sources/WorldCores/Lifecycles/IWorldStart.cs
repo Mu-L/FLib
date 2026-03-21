@@ -6,6 +6,6 @@ namespace FLib.WorldCores
 {
     public interface IWorldStart
     {
-        void Start(WorldCore world, WorldEntity entity);
+        void OnStart(WorldCore world, WorldEntity entity);
     }
 }

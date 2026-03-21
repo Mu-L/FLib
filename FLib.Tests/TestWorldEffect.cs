@@ -11,7 +11,7 @@ public class TestWorldEffect
     {
         public int Value;
 
-        public override void Destroy()
+        public override void OnDestroy()
         {
             RemoveSelf();
         }

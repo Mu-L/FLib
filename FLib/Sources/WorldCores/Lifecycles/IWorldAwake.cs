@@ -27,7 +27,7 @@ namespace FLib.WorldCores
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
-                comp.Awake(world, entity);
+                comp.OnAwake(world, entity);
                 WorldComponentEvents<T>.OnAwake?.Invoke(world, entity, ref comp);
             }
             catch (Exception e)
@@ -51,6 +51,6 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        void Awake(WorldCore world, WorldEntity entity);
+        void OnAwake(WorldCore world, WorldEntity entity);
     }
 }

@@ -17,7 +17,7 @@ namespace FLib.WorldCores
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
-                comp.Destroy(world, entity);
+                comp.OnDestroy(world, entity);
                 WorldComponentEvents<T>.OnDestroy?.Invoke(world, entity, ref comp);
             }
             catch (Exception e)
@@ -29,6 +29,6 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        void Destroy(WorldCore world, WorldEntity entity);
+        void OnDestroy(WorldCore world, WorldEntity entity);
     }
 }

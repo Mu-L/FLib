@@ -37,7 +37,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果系统，从对象池租用容器并设置到动态组件中
         /// </summary>
-        public void Awake(WorldCore world, WorldEntity entity)
+        public void OnAwake(WorldCore world, WorldEntity entity)
         {
             Self = entity.AsHelper(world);
             _containerIndex = WorldEffectPool.RentContainer();
@@ -46,7 +46,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 销毁效果系统，清空所有效果并归还容器到对象池
         /// </summary>
-        public void Destroy(WorldCore world, WorldEntity entity)
+        public void OnDestroy(WorldCore world, WorldEntity entity)
         {
             FlagMask |= 0x80000000;
             Clear();
@@ -140,7 +140,7 @@ namespace FLib.WorldCores.Effects
             }
 
             AddEffectStackCount(evt.Effect, ref evt.AddCount);
-            evt.Effect.Awake();
+            evt.Effect.OnAwake();
             evt.Effect.OnStackCountChange(evt.AddCount);
             Self.DispatchEvent(evt);
             return evt.Effect;
@@ -239,7 +239,7 @@ namespace FLib.WorldCores.Effects
                 effect.IsRemoving = true;
 
                 if (isInvokeDestroy)
-                    effect.Destroy();
+                    effect.OnDestroy();
             }
             finally
             {
