@@ -7,12 +7,13 @@ namespace FLib.WorldCores.TimeLogic
     [BytesPackGenHoldKey(2), Comment("基础片段")]
     public class TimeLogicClip : IBytesPackable
     {
-        public TimeLogicTrack Track;
+        [NonSerialized] public TimeLogicTrack Track;
+        
         [Comment("名称")] public string Name;
         [Comment("是否禁用")] public bool IsDisable;
+        [Comment("开始帧")] public int BeginFrame;
+        [Comment("结束帧")] public int EndFrame;
 
-        public virtual int BeginFrame { get; set; }
-        public virtual int EndFrame { get; set; }
         public TimeLogicRuntime Runtime => Track.Runtime;
         public int CurrentFrame => Runtime.CurrentFrame;
         public int CurrentClipFrame => Runtime.CurrentFrame - BeginFrame;
@@ -47,7 +48,9 @@ namespace FLib.WorldCores.TimeLogic
         {
         }
 
-        public T GetExternalReference<T>(in ExternalReferenceField<T> field) where T : class => field.Index < 0 || field.Index >= Runtime.ExternalReferences.GetArraySize() ? null : Runtime.ExternalReferences[field.Index] as T;
+        public T GetExternalReference<T>(in ExternalReferenceField<T> field) where T : class =>
+            field.Index < 0 || field.Index >= Runtime.ExternalReferences.GetArraySize() ? null : Runtime.ExternalReferences[field.Index] as T;
+
         public bool TryGetExternalReference<T>(in ExternalReferenceField<T> field, out T val) where T : class => (val = GetExternalReference(field)) != null;
 
         public T GetSelfOrExternalReference<T>(in ExternalReferenceField<T> target) where T : class

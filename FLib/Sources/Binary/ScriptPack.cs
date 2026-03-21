@@ -221,7 +221,7 @@ namespace FLib
 
         public new T Create(bool isThrowOnException = true) => (T)base.Create(isThrowOnException);
 
-        //为了处理实例的类型里面有配置序列号期间额外处理，所以需要在最后的时候再写入一次最新的实例。
+        //为了处理实例的类型里面有配置序列化期间额外处理，所以需要在最后的时候再写入一次最新的实例。
         void IConfigPostBuildProcessable.OnConfigPostBuildProcess(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts) => base.Set(base.UserInstance);
     }
 }

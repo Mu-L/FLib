@@ -8,15 +8,27 @@ namespace FLib.WorldCores.TimeLogic
     [BytesPackGenHoldKey(2), Comment("基础轨道")]
     public class TimeLogicTrack : IBytesPackable
     {
-        public TimeLogicRuntime Runtime;
         [Comment("名称")] public string Name;
         [Comment("是否禁用")] public bool IsDisable;
-        public TimeLogicClip[] Clips = Array.Empty<TimeLogicClip>();
+        public ScriptPack<TimeLogicClip>[] ClipPacks = Array.Empty<ScriptPack<TimeLogicClip>>();
 
-        public TimeLogicClip CurrentClip
+        [NonSerialized] public TimeLogicRuntime Runtime;
+        [NonSerialized] public TimeLogicClip[] Clips;
+
+        public TimeLogicClip CurrentClip { get; private set; }
+
+        internal TimeLogicTrack Initialize(TimeLogicRuntime runtime)
         {
-            get;
-            private set;
+            Runtime = runtime;
+            Clips = new TimeLogicClip[ClipPacks.Length];
+            for (var i = 0; i < ClipPacks.Length; i++)
+            {
+                var clip = ClipPacks[i].Create();
+                clip.Track = this;
+                Clips[i] = clip;
+            }
+
+            return this;
         }
 
         /// <summary>
@@ -54,6 +66,7 @@ namespace FLib.WorldCores.TimeLogic
                         CurrentClip.Update();
                         return;
                     }
+
                     CurrentClip.End();
                     CurrentClip = null;
                 }
@@ -77,6 +90,7 @@ namespace FLib.WorldCores.TimeLogic
                     {
                         Log.Error?.Write($"{Runtime.Name} {CommentAttribute.TryGetLabel(CurrentClip?.GetType())} {Runtime.UserData} {e}");
                     }
+
                     break;
                 }
             }
@@ -101,7 +115,7 @@ namespace FLib.WorldCores.TimeLogic
             key.Push(ref writer, 1);
             writer.Push(IsDisable);
             writer.Push(Name);
-            writer.PushScript(Clips);
+            BytesPack.Pack(ClipPacks, ref writer);
         }
 
         public virtual void Z_BytesPackRead(int key, ref BytesReader reader)
@@ -110,9 +124,7 @@ namespace FLib.WorldCores.TimeLogic
             {
                 IsDisable = reader.Read<bool>();
                 Name = reader.ReadString();
-                Clips = reader.ReadScripts<TimeLogicClip>();
-                foreach (var track in Clips)
-                    track.Track = this;
+                BytesPack.Unpack(ref ClipPacks, ref reader);
             }
         }
     }
