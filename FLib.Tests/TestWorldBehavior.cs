@@ -28,13 +28,16 @@ public class MoveBehavior : WorldBehavior<MoveBehavior.ParamData>
     }
 
     public override bool CheckFriend(WorldBehavior targetBehavior) => targetBehavior is IdleBehavior;
-    public override byte GetInitialPriority() => Param.Priority;
+
+    public override byte InitialPriority => Param.Priority;
+
     public override uint Mask => (uint)EBehaviors.Move;
 }
 
 public class ZBehavior : WorldBehavior
 {
-    public override byte GetInitialPriority() => byte.MaxValue;
+    public override byte InitialPriority => byte.MaxValue;
+
     public override uint Mask => (uint)EBehaviors.Idle;
 }
 

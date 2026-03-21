@@ -24,9 +24,9 @@ namespace FLib.WorldCores.Behaviors
         public byte TypeId { get; internal set; }
         public FNum StartTime { get; protected internal set; }
         public virtual byte Priority { get; protected internal set; }
+        public virtual byte InitialPriority => 0;
         public abstract uint Mask { get; }
 
-        public virtual byte GetInitialPriority() => 0;
         public virtual bool CheckDo() => !System.IsRunning(Mask);
 
         public virtual bool CheckPriority(WorldBehavior target) => target.Priority >= Priority;
