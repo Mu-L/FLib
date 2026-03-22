@@ -70,10 +70,10 @@ namespace FLib.WorldCores.Archetypes
         /// </summary>
         /// <param name="entityIndex">实体的索引位置</param>
         /// <returns>实体指针</returns>
-        public WorldEntity* GetEntity(int entityIndex)
+        public WorldEntityId* GetEntity(int entityIndex)
         {
             Debug.Assert(entityIndex < Count);
-            return (WorldEntity*)Buffer + entityIndex;
+            return (WorldEntityId*)Buffer + entityIndex;
         }
 
         /// <summary>
@@ -81,9 +81,9 @@ namespace FLib.WorldCores.Archetypes
         /// </summary>
         /// <param name="array">用于存储实体的数组，为 null 时会创建新数组</param>
         /// <returns>包含数据块中所有实体的数组</returns>
-        public IList<WorldEntity> GetAllEntities(IList<WorldEntity> array = null)
+        public IList<WorldEntityId> GetAllEntities(IList<WorldEntityId> array = null)
         {
-            array ??= new WorldEntity[Count];
+            array ??= new WorldEntityId[Count];
             var count = Math.Min(array.Count, Count);
             for (var i = 0; i < count; i++)
                 array[i] = *GetEntity(i);

@@ -14,12 +14,12 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 分配一个动态组件
         /// </summary>
-        int Alloc(in WorldEntity et, object component);
+        int Alloc(in WorldEntityId et, object component);
 
         /// <summary>
         /// 释放动态组件
         /// </summary>
-        void Free(in WorldEntity et, int index, bool onEntityDestroyed);
+        void Free(in WorldEntityId et, int index, bool onEntityDestroyed);
 
         // /// <summary>
         // /// 

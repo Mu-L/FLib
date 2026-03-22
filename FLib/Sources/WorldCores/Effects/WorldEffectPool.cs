@@ -23,7 +23,7 @@ namespace FLib.WorldCores.Effects
             if (!AllFrees.TryGetValue(type, out var frees) || !frees.TryPop(out var effect))
                 effect = (WorldEffect)Activator.CreateInstance(type)!;
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref system);
-            effect.TimeComponentId = system.World.Soa.GetGroup<WorldEffectTime>().Alloc(system.Self, new WorldEffectTime(effect));
+            effect.TimeComponentId = system.World.Soa.GetGroup<WorldEffectTime>().Alloc(system.Entity, new WorldEffectTime(effect));
             return effect;
         }
 
@@ -32,8 +32,8 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public static unsafe void Free(WorldEffect effect)
         {
-            ref readonly var self = ref effect.System.Self;
-            self.World.Soa.GetGroup<WorldEffectTime>().Free(self.Entity, effect.TimeComponentId, false);
+            ref readonly var self = ref effect.System.Entity;
+            self.World.Soa.GetGroup<WorldEffectTime>().Free(self.EntityId, effect.TimeComponentId, false);
             effect.TimeComponentId = -1;
             effect.Data = default;
             effect.SystemPtr = null;

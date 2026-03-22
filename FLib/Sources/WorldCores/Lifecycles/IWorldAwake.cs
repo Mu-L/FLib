@@ -12,7 +12,7 @@ namespace FLib.WorldCores
     /// <summary>
     /// 
     /// </summary>
-    public delegate void LifecycleDelegate(ref byte ptr, WorldCore world, WorldEntity entity);
+    public delegate void LifecycleDelegate(ref byte ptr, WorldCore world, WorldEntityId eId);
 
     /// <summary>
     /// 组件自身作为system, 组件自身收到awake的调用
@@ -22,17 +22,17 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        internal static void Awake<T>(ref byte ptr, WorldCore world, WorldEntity entity) where T : IWorldAwake
+        internal static void Awake<T>(ref byte ptr, WorldCore world, WorldEntityId eId) where T : IWorldAwake
         {
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
-                comp.OnAwake(world, entity);
-                WorldComponentEvents<T>.OnAwake?.Invoke(world, entity, ref comp);
+                comp.OnAwake(world, eId);
+                WorldComponentEvents<T>.OnAwake?.Invoke(world, eId, ref comp);
             }
             catch (Exception e)
             {
-                world.ThrowException(typeof(T), entity, e);
+                world.ThrowException(typeof(T), eId, e);
             }
         }
 
@@ -51,6 +51,6 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        void OnAwake(WorldCore world, WorldEntity entity);
+        void OnAwake(WorldCore world, WorldEntityId eId);
     }
 }

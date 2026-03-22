@@ -11,7 +11,7 @@ namespace FLib.WorldCores.SoaComponents
     public class WorldUpdateSoaComponentGroup<T> : WorldSoaComponentGroup<T>
     {
         // 后续考虑改为再包一层，保持components紧凑。
-        public WorldEntity[] ComponentEntities;
+        public WorldEntityId[] ComponentEntities;
 
         public HashSet<int> StartComponentIndexes;
 
@@ -37,7 +37,7 @@ namespace FLib.WorldCores.SoaComponents
             return false;
         }
 
-        public override int Alloc(in WorldEntity et, in T component)
+        public override int Alloc(in WorldEntityId et, in T component)
         {
             var index = base.Alloc(et, component);
             ComponentEntities[index] = et;
@@ -45,7 +45,7 @@ namespace FLib.WorldCores.SoaComponents
             return index;
         }
 
-        public override void Free(in WorldEntity et, int index, bool onEntityDestroyed)
+        public override void Free(in WorldEntityId et, int index, bool onEntityDestroyed)
         {
             base.Free(et, index, onEntityDestroyed);
             ComponentEntities[index] = default;

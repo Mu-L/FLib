@@ -69,7 +69,7 @@ namespace FLib.WorldCores.Entities
         /// 
         /// </summary>
         /// <param name="initMemory">是否初始化内存, false:性能会更高,但会导致字段不是默认值</param>
-        public WorldEntity Build(bool initMemory = true)
+        public WorldEntityId Build(bool initMemory = true)
         {
             var et = World.CreateEntity(this, WorldStaticComponentMask.HashCode(), initMemory);
             Components.Dispose();
@@ -80,11 +80,11 @@ namespace FLib.WorldCores.Entities
         /// 
         /// </summary>
         /// <param name="initMemory">是否初始化内存, false:性能会更高,但会导致字段不是默认值</param>
-        public WorldEntityHelper BuildAsEntityHelper(bool initMemory = true)
+        public WorldEntity BuildAsEntityHelper(bool initMemory = true)
         {
             var et = World.CreateEntity(this, WorldStaticComponentMask.HashCode(), initMemory);
             Components.Dispose();
-            return new WorldEntityHelper(World, et);
+            return new WorldEntity(World, et);
         }
 
         [Conditional("DEBUG")]

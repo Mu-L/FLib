@@ -8,9 +8,9 @@ namespace FLib.WorldCores
     public class WorldCoreException : Exception
     {
         public WorldCore World;
-        public WorldEntity Entity;
+        public WorldEntityId EntityId;
 
-        public WorldCoreException(in WorldEntityHelper entity, object msg, Exception inner = null) : this(entity.World, entity.Entity, msg, inner)
+        public WorldCoreException(in WorldEntity entity, object msg, Exception inner = null) : this(entity.World, entity.EntityId, msg, inner)
         {
         }
 
@@ -19,12 +19,12 @@ namespace FLib.WorldCores
             World = world;
         }
 
-        public WorldCoreException(WorldCore world, WorldEntity entity, object msg, Exception inner = null) : base(msg.ToString(), inner)
+        public WorldCoreException(WorldCore world, WorldEntityId eId, object msg, Exception inner = null) : base(msg.ToString(), inner)
         {
             World = world;
-            Entity = entity;
+            EntityId = eId;
         }
 
-        public override string Message => Entity.IsEmpty ? $"[{World.Frame}]{base.Message}" : $"[{World.Frame}][{Entity.ToString()}]{base.Message}";
+        public override string Message => EntityId.IsEmpty ? $"[{World.Frame}]{base.Message}" : $"[{World.Frame}][{EntityId.ToString()}]{base.Message}";
     }
 }

@@ -19,26 +19,26 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1> : IEnumerable<(WorldEntity, Ref<T1>)> where T1 : unmanaged 
+        public readonly struct QueryEnumerator<T1> : IEnumerable<(WorldEntityId, Ref<T1>)> where T1 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>)> IEnumerable<(WorldEntity, Ref<T1>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>)> IEnumerable<(WorldEntityId, Ref<T1>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
-                public (WorldEntity, Ref<T1>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index));
+                public (WorldEntityId, Ref<T1>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
@@ -74,27 +74,27 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1, T2> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>)> where T1 : unmanaged where T2 : unmanaged 
+        public readonly struct QueryEnumerator<T1, T2> : IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>)> where T1 : unmanaged where T2 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>)> IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>)> IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
-                public (WorldEntity, Ref<T1>, Ref<T2>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index));
+                public (WorldEntityId, Ref<T1>, Ref<T2>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
@@ -132,28 +132,28 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1, T2, T3> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged 
+        public readonly struct QueryEnumerator<T1, T2, T3> : IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>)> IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>)> IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
-                public (WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index));
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
@@ -193,29 +193,29 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1, T2, T3, T4> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged 
+        public readonly struct QueryEnumerator<T1, T2, T3, T4> : IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)> IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)> IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
 				private T4* _component4;
-                public (WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index));
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
@@ -257,30 +257,30 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged 
+        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5> : IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)> IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)> IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
 				private T4* _component4;
 				private T5* _component5;
-                public (WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index));
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
@@ -324,31 +324,31 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged 
+        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6> : IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)> IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)> IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().WithAll<T6>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
 				private T4* _component4;
 				private T5* _component5;
 				private T6* _component6;
-                public (WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index));
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
@@ -394,24 +394,24 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6, T7> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged 
+        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6, T7> : IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)> IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)> IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().WithAll<T6>().WithAll<T7>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
@@ -419,7 +419,7 @@ namespace FLib.WorldCores
 				private T5* _component5;
 				private T6* _component6;
 				private T7* _component7;
-                public (WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index));
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
@@ -467,24 +467,24 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6, T7, T8> : IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged 
+        public readonly struct QueryEnumerator<T1, T2, T3, T4, T5, T6, T7, T8> : IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)> where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)> IEnumerable<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)> IEnumerable<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world).WithAll<T1>().WithAll<T2>().WithAll<T3>().WithAll<T4>().WithAll<T5>().WithAll<T6>().WithAll<T7>().WithAll<T8>().Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
                 private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
@@ -493,7 +493,7 @@ namespace FLib.WorldCores
 				private T6* _component6;
 				private T7* _component7;
 				private T8* _component8;
-                public (WorldEntity, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index), new Ref<T8>(_component8 + _index));
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index), new Ref<T8>(_component8 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {

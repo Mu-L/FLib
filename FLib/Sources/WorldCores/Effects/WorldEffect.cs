@@ -11,13 +11,13 @@ namespace FLib.WorldCores.Effects
         internal WorldEffectSystem* SystemPtr;
         public WorldEffectData Data;
         internal int TimeComponentId = -1;
-        public WorldEntity AddedBy;
+        public WorldEntityId AddedBy;
         public WorldSoaComponentManaged ComponentManaged;
 
         public uint Id => Data.Id;
         public ref WorldEffectSystem System => ref *SystemPtr;
-        public ref WorldEntityHelper Entity => ref SystemPtr->Self;
-        public WorldCore World => SystemPtr->Self.World;
+        public ref WorldEntity Entity => ref SystemPtr->Entity;
+        public WorldCore World => SystemPtr->Entity.World;
         public bool IsEmpty => SystemPtr == null;
         public ref WorldEffectTime Time => ref World.Soa.GetGroup<WorldEffectTime>()[TimeComponentId];
 
@@ -42,7 +42,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public virtual bool Check(in WorldEntity createBy, uint id, int addCount)
+        public virtual bool Check(in WorldEntityId createBy, uint id, int addCount)
         {
             return true;
         }

@@ -161,6 +161,6 @@ namespace FLib.WorldCores.TimeLogic
     /// </summary>
     public class EntityTimeLogicRuntime : TimeLogicRuntime
     {
-        public WorldEntityHelper Entity;
+        public WorldEntity Entity;
     }
 }

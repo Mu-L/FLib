@@ -19,12 +19,12 @@ namespace FLib.WorldCores
 
         public override string ToString() => Val.ToString();
 
-        public void OnAwake(WorldCore world, WorldEntity entity)
+        public void OnAwake(WorldCore world, WorldEntityId eId)
         {
             Set(default);
         }
 
-        public void OnDestroy(WorldCore world, WorldEntity entity)
+        public void OnDestroy(WorldCore world, WorldEntityId eId)
         {
             if (_index == 0) return;
             _objects.RemoveAt(_index - 1);

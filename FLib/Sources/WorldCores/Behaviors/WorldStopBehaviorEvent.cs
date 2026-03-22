@@ -14,7 +14,7 @@ namespace FLib.WorldCores.Behaviors
         public readonly bool IsPrimary;
 
         public ref WorldBehaviorSystem System => ref *SystemPtr;
-        public ref WorldEntityHelper Entity => ref SystemPtr->Self;
+        public ref WorldEntity Entity => ref SystemPtr->Self;
         public WorldCore World => SystemPtr->Self.World;
         public bool IsEmpty => SystemPtr == null;
 

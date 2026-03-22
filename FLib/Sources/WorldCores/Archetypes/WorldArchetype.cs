@@ -68,9 +68,9 @@ namespace FLib.WorldCores.Archetypes
             Index = index;
             MaxComponentId = builder.MaxComponentId;
             ComponentMask = new ulong[BitArrayOperator.GetBitsLength(MaxComponentId.Raw)];
-            EntitiesPerChunk = (int)(WorldGlobalSetting.ChunkAllocator.ChunkSize / (builder.ComponentsSize + sizeof(WorldEntity)));
+            EntitiesPerChunk = (int)(WorldGlobalSetting.ChunkAllocator.ChunkSize / (builder.ComponentsSize + sizeof(WorldEntityId)));
             SparseComponentOffset = new uint[MaxComponentId.Raw];
-            var offset = (uint)MathEx.AlignUp(EntitiesPerChunk * sizeof(WorldEntity), WorldGlobalSetting.ComponentAlign);
+            var offset = (uint)MathEx.AlignUp(EntitiesPerChunk * sizeof(WorldEntityId), WorldGlobalSetting.ComponentAlign);
             using var tempComponents = new PooledList<WorldComponentMeta>();
             for (ushort i = 0; i < builder.ComponentTypes.Count; i++)
             {
@@ -90,12 +90,12 @@ namespace FLib.WorldCores.Archetypes
         /// <summary>
         /// 
         /// </summary>
-        public WorldEntity CreateEntity(out WorldEntityInfo entityInfo, in ReadOnlySpan<WorldQuerySharedComponent> sharedComponents = default)
+        public WorldEntityId CreateEntity(out WorldEntityInfo entityInfo, in ReadOnlySpan<WorldQuerySharedComponent> sharedComponents = default)
         {
             var chunk = GetChunk(sharedComponents);
             var chunkEntityIndex = chunk.Count++;
             entityInfo = new WorldEntityInfo(World.GenVersion(), Index, chunkEntityIndex, chunk);
-            return *chunk.GetEntity(entityInfo.IndexInChunk) = new WorldEntity(World.Entities.Add(entityInfo), entityInfo.Version);
+            return *chunk.GetEntity(entityInfo.IndexInChunk) = new WorldEntityId(World.Entities.Add(entityInfo), entityInfo.Version);
         }
 
         /// <summary>

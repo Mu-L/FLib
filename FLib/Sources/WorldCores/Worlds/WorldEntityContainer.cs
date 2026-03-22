@@ -53,7 +53,7 @@ namespace FLib.WorldCores
 
             EntityInfos[id] = entityInfo;
             if (Events[id] != null)
-                Events[id]!.Entity = new WorldEntityHelper(World, new WorldEntity(id, entityInfo.Version));
+                Events[id]!.Entity = new WorldEntity(World, new WorldEntityId(id, entityInfo.Version));
             return id;
         }
 
@@ -75,6 +75,6 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly EntityEvent Event(ushort id) => Events[id] ??= new EntityEvent { Entity = new WorldEntityHelper(World, new WorldEntity(id, EntityInfos[id].Version)) };
+        public readonly EntityEvent Event(ushort id) => Events[id] ??= new EntityEvent { Entity = new WorldEntity(World, new WorldEntityId(id, EntityInfos[id].Version)) };
     }
 }

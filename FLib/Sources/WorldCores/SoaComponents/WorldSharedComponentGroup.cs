@@ -42,7 +42,7 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 
         /// </summary>
-        public override int Alloc(in WorldEntity et, in T component)
+        public override int Alloc(in WorldEntityId et, in T component)
         {
             var hash = component.GetHashCode();
             Alloc(et, component, hash);
@@ -52,7 +52,7 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 
         /// </summary>
-        public void Alloc(in WorldEntity et, in T component, int hash)
+        public void Alloc(in WorldEntityId et, in T component, int hash)
         {
             ref var r = ref Groups.GetOrAddValueRef(hash);
             if (r.RefCount == 0)
@@ -64,7 +64,7 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 
         /// </summary>
-        public override void Free(in WorldEntity et, int hash, bool onEntityDestroyed)
+        public override void Free(in WorldEntityId et, int hash, bool onEntityDestroyed)
         {
             var idx = Groups.GetEntryIndex(hash);
             if (idx < 0) return;

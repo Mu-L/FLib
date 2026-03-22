@@ -16,7 +16,7 @@ using FLib.WorldCores.Behaviors;
 
 namespace FLib.WorldCores
 {
-    public partial class WorldCore : FEvent, IDisposable, IEnumerable<WorldEntity>
+    public partial class WorldCore : FEvent, IDisposable, IEnumerable<WorldEntityId>
     {
         /// <summary>
         /// 所有世界核心实例的全局列表。
@@ -124,14 +124,14 @@ namespace FLib.WorldCores
         /// 获取世界中所有实体的枚举器。
         /// </summary>
         /// <returns>实体的枚举器</returns>
-        public IEnumerator<WorldEntity> GetEnumerator()
+        public IEnumerator<WorldEntityId> GetEnumerator()
         {
             var count = Entities.Count;
             for (ushort i = 0; count > 0; i++)
             {
                 if (Entities[i].IsEmpty) continue;
                 --count;
-                yield return new WorldEntity(i, Entities[i].Version);
+                yield return new WorldEntityId(i, Entities[i].Version);
             }
         }
 
@@ -221,18 +221,18 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public virtual void ThrowException(object msg, WorldEntity entity = default, Exception inner = null)
+        public virtual void ThrowException(object msg, WorldEntityId eId = default, Exception inner = null)
         {
-            throw new WorldCoreException(this, entity, msg, inner);
+            throw new WorldCoreException(this, eId, msg, inner);
         }
 
         /// <summary>
         /// 
         /// </summary>
         [Conditional("DEBUG")]
-        public virtual void Assert(bool conditional, WorldEntity entity = default, object msg = null, Exception inner = null)
+        public virtual void Assert(bool conditional, WorldEntityId eId = default, object msg = null, Exception inner = null)
         {
-            if (!conditional) ThrowException("[world assert failed]" + msg, entity, inner);
+            if (!conditional) ThrowException("[world assert failed]" + msg, eId, inner);
         }
 
         /// <summary>

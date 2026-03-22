@@ -12,7 +12,7 @@ namespace FLib.WorldCores.SoaComponents
     /// </summary>
     public struct WorldSoaComponentManaged : IDisposable
     {
-        public WorldEntityHelper Entity;
+        public WorldEntity Entity;
         public PooledList<ComponentHandle> Components;
 
         public WorldCore World => Entity.World;
@@ -21,7 +21,7 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         ///  
         /// </summary>
-        public WorldSoaComponentManaged(WorldEntityHelper entity)
+        public WorldSoaComponentManaged(WorldEntity entity)
         {
             Entity = entity;
             Components = default;
@@ -32,7 +32,7 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         public int Add<T>(in T component)
         {
-            var idx = World.Soa.GetGroup<T>().Alloc(Entity.Entity, component);
+            var idx = World.Soa.GetGroup<T>().Alloc(Entity.EntityId, component);
             Components.Add(new ComponentHandle(idx, WorldComponentRegistry.GetId<T>()));
             return idx;
         }

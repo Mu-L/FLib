@@ -18,7 +18,7 @@ namespace FLib.WorldCores
         /// <typeparam name="T">组件的类型</typeparam>
         /// <param name="et">目标实体</param>
         /// <returns>返回该实体的组件引用</returns>
-        public unsafe ref T Get<T>(WorldEntity et)
+        public ref T Get<T>(WorldEntityId et)
         {
             ref readonly var eti = ref GetEntityInfo(et);
             if (eti.HasDynamicComponent && !eti.Chunk.Has<T>())
@@ -36,7 +36,7 @@ namespace FLib.WorldCores
         /// <param name="et">目标实体</param>
         /// <param name="componentType">组件的类型</param>
         /// <returns>返回该实体的组件实例</returns>
-        public object Get(WorldEntity et, Type componentType)
+        public object Get(WorldEntityId et, Type componentType)
         {
             ref readonly var eti = ref GetEntityInfo(et);
             return eti.HasDynamicComponent && !eti.Chunk.Has(WorldComponentRegistry.GetId(componentType)) ? GetDyn(et, componentType) : GetSta(et, componentType);
@@ -48,7 +48,7 @@ namespace FLib.WorldCores
         /// <typeparam name="T">组件的类型</typeparam>
         /// <param name="et">目标实体</param>
         /// <param name="component">要设置的组件值</param>
-        public void Set<T>(WorldEntity et, in T component)
+        public void Set<T>(WorldEntityId et, in T component)
         {
             ref var eti = ref GetEntityInfo(et);
             if (!eti.Chunk.Has<T>())
@@ -67,7 +67,7 @@ namespace FLib.WorldCores
         /// </summary>
         /// <typeparam name="T">组件的类型</typeparam>
         /// <param name="et">目标实体</param>
-        public void Remove<T>(WorldEntity et) => RemoveDyn<T>(et);
+        public void Remove<T>(WorldEntityId et) => RemoveDyn<T>(et);
 
         /// <summary>
         /// 检查实体是否拥有指定类型的组件。
@@ -75,7 +75,7 @@ namespace FLib.WorldCores
         /// <typeparam name="T">组件的类型</typeparam>
         /// <param name="et">目标实体</param>
         /// <returns>如果实体拥有该组件返回 true，否则返回 false</returns>
-        public bool Has<T>(WorldEntity et)
+        public bool Has<T>(WorldEntityId et)
         {
             ref var eti = ref GetEntityInfo(et);
             var compId = WorldComponentGenericMap<T>.Id;
@@ -97,7 +97,7 @@ namespace FLib.WorldCores
         /// <param name="et">目标实体</param>
         /// <param name="result">用于存储组件的列表，为 null 时会创建新的列表</param>
         /// <returns>包含该实体所有组件的列表</returns>
-        public IList GetAll(WorldEntity et, IList result = null)
+        public IList GetAll(WorldEntityId et, IList result = null)
         {
             result ??= new List<object>();
             ref readonly var eti = ref GetEntityInfo(et);

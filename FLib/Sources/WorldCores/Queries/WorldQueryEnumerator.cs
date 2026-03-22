@@ -10,12 +10,12 @@ namespace FLib.WorldCores.Queries
     /// <summary>
     /// 世界查询枚举器，支持对所有匹配查询条件的实体进行01。
     /// </summary>
-    public readonly struct WorldQueryEnumerator : IEnumerable<WorldEntity>
+    public readonly struct WorldQueryEnumerator : IEnumerable<WorldEntityId>
     {
         public readonly WorldQueryFilter Filter;
         public Enumerable GetEnumerator() => new(Filter);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        IEnumerator<WorldEntity> IEnumerable<WorldEntity>.GetEnumerator() => GetEnumerator();
+        IEnumerator<WorldEntityId> IEnumerable<WorldEntityId>.GetEnumerator() => GetEnumerator();
 
         public WorldQueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
         {
@@ -27,13 +27,13 @@ namespace FLib.WorldCores.Queries
         /// <summary>
         /// 世界查询枚举器的内部实现，支持对扩展的递次轮询。
         /// </summary>
-        public unsafe struct Enumerable : IEnumerator<WorldEntity>
+        public unsafe struct Enumerable : IEnumerator<WorldEntityId>
         {
             public WorldChunkQueryEnumerator ChunkEnumerator;
             private int _index;
             private int _count;
-            private WorldEntity* _entity;
-            public WorldEntity Current => *(_entity + _index);
+            private WorldEntityId* _entity;
+            public WorldEntityId Current => *(_entity + _index);
             object IEnumerator.Current => Current;
 
             public Enumerable(WorldQueryFilter filter)

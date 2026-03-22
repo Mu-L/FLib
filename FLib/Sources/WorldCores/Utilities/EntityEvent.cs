@@ -6,6 +6,6 @@ namespace FLib.WorldCores
 {
     public class EntityEvent : FEvent
     {
-        public WorldEntityHelper Entity;
+        public WorldEntity Entity;
     }
 }

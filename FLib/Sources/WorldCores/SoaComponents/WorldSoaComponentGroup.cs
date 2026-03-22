@@ -46,12 +46,12 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 
         /// </summary>
-        int IWorldSoaComponentGroupable.Alloc(in WorldEntity et, object component) => Alloc(et, (T)component);
+        int IWorldSoaComponentGroupable.Alloc(in WorldEntityId et, object component) => Alloc(et, (T)component);
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual int Alloc(in WorldEntity et, in T component)
+        public virtual int Alloc(in WorldEntityId et, in T component)
         {
             if (!Frees.TryPop(out var index))
             {
@@ -69,7 +69,7 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Free(in WorldEntity et, int index, bool onEntityDestroyed)
+        public virtual void Free(in WorldEntityId et, int index, bool onEntityDestroyed)
         {
             try
             {

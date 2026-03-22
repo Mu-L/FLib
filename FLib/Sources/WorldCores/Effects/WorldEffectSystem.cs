@@ -14,7 +14,7 @@ namespace FLib.WorldCores.Effects
     [WorldComponentOption(EComponentOption.AlwaysReceiveDestroy)]
     public struct WorldEffectSystem : IWorldAwake, IWorldDestroy
     {
-        public WorldEntityHelper Self;
+        public WorldEntity Entity;
         public uint FlagMask;
         private int _containerIndex;
 
@@ -26,7 +26,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 获取世界核心实例
         /// </summary>
-        public readonly WorldCore World => Self.World;
+        public readonly WorldCore World => Entity.World;
 
         /// <summary>
         /// 获取系统是否已释放
@@ -37,16 +37,16 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果系统，从对象池租用容器并设置到动态组件中
         /// </summary>
-        public void OnAwake(WorldCore world, WorldEntity entity)
+        public void OnAwake(WorldCore world, WorldEntityId eId)
         {
-            Self = entity.AsHelper(world);
+            Entity = eId.AsEntity(world);
             _containerIndex = WorldEffectPool.RentContainer();
         }
 
         /// <summary>
         /// 销毁效果系统，清空所有效果并归还容器到对象池
         /// </summary>
-        public void OnDestroy(WorldCore world, WorldEntity entity)
+        public void OnDestroy(WorldCore world, WorldEntityId eId)
         {
             FlagMask |= 0x80000000;
             Clear();
@@ -83,19 +83,19 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 添加效果实例到实体
         /// </summary>
-        public WorldEffect? Add(Type effectType, in WorldEntity addedBy, uint id, ushort addCount = 1)
+        public WorldEffect? Add(Type effectType, in WorldEntityId addedBy, uint id, ushort addCount = 1)
         {
             World.Assert(!IsDisposed);
             var container = Container;
             var effects = container.Effects;
             ref var item = ref effects.GetOrAddValueRef(id);
-            var evt = new WorldAddEffectEvent { AddCount = addCount, AddedBy = addedBy.IsEmpty ? Self : addedBy, Id = id, Effect = item.Single };
+            var evt = new WorldAddEffectEvent { AddCount = addCount, AddedBy = addedBy.IsEmpty ? Entity : addedBy, Id = id, Effect = item.Single };
             ref var effect = ref evt.Effect;
 
             if (effect == null)
             {
                 effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt);
-                if (!Self.DispatchPreEvent(ref evt))
+                if (!Entity.DispatchPreEvent(ref evt))
                 {
                     FreeEffect(effect, false);
                     return null;
@@ -110,24 +110,24 @@ namespace FLib.WorldCores.Effects
             }
             else
             {
-                if (!Self.DispatchPreEvent(ref evt))
+                if (!Entity.DispatchPreEvent(ref evt))
                     return null;
                 switch (effect.Data.AddOption)
                 {
                     case EWorldEffectAddOption.ResetTime:
                         effect.Time.RefreshTime(World.Time);
-                        Self.DispatchEvent(evt);
+                        Entity.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.AddStack:
                         AddEffectStackCount(effect, ref evt.AddCount);
                         effect.OnStackCountChange(evt.AddCount);
-                        Self.DispatchEvent(evt);
+                        Entity.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.AddStackAndResetTime:
                         effect.Time.RefreshTime(World.Time);
                         AddEffectStackCount(effect, ref evt.AddCount);
                         effect.OnStackCountChange(evt.AddCount);
-                        Self.DispatchEvent(evt);
+                        Entity.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.MultipleInstance:
                         item.MoreList.Add(effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt));
@@ -142,7 +142,7 @@ namespace FLib.WorldCores.Effects
             AddEffectStackCount(evt.Effect, ref evt.AddCount);
             evt.Effect.OnAwake();
             evt.Effect.OnStackCountChange(evt.AddCount);
-            Self.DispatchEvent(evt);
+            Entity.DispatchEvent(evt);
             return evt.Effect;
         }
 
@@ -168,7 +168,7 @@ namespace FLib.WorldCores.Effects
             }
 
             var evt = new WorldRemoveEffectEvent { Effect = effect, RemoveCount = removeCount };
-            if (!Self.DispatchPreEvent(ref evt))
+            if (!Entity.DispatchPreEvent(ref evt))
             {
                 World.Assert(evt.RemoveCount < ushort.MaxValue, msg: "cannot stop remove");
                 return false;
@@ -179,13 +179,13 @@ namespace FLib.WorldCores.Effects
 
             if (effect.Data.StackCount > 0)
             {
-                Self.DispatchEvent(evt);
+                Entity.DispatchEvent(evt);
                 return true;
             }
 
             try
             {
-                Self.DispatchEvent(evt);
+                Entity.DispatchEvent(evt);
             }
             finally
             {
@@ -233,7 +233,7 @@ namespace FLib.WorldCores.Effects
                 else
                 {
                     if (!item.MoreList.Remove(effect))
-                        World.ThrowException("not found effect instance", Self);
+                        World.ThrowException("not found effect instance", Entity);
                 }
 
                 effect.IsRemoving = true;

@@ -1,0 +1,32 @@
+// ==================== qcbf@qq.com |2025-12-11 ====================
+
+using System;
+using System.Runtime.CompilerServices;
+using FLib.WorldCores;
+
+namespace FLib.WorldCores.Entities
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public readonly struct WorldEntityId : IEquatable<WorldEntityId>
+    {
+        public readonly ushort Id;
+        public readonly ushort Version;
+        public bool IsEmpty => Version == 0;
+        public override string ToString() => Id.ToString();
+
+        public WorldEntityId(ushort id, ushort version)
+        {
+            Id = id;
+            Version = version;
+        }
+
+        public WorldEntity AsEntity(WorldHandle world) => new(world, this);
+        public bool Equals(WorldEntityId other) => this == other;
+        public override bool Equals(object obj) => obj is WorldEntityId other && Equals(other);
+        public override int GetHashCode() => HashCode.Combine(Id, Version);
+        public static bool operator ==(in WorldEntityId left, in WorldEntityId right) => left.Id == right.Id && left.Version == right.Version;
+        public static bool operator !=(in WorldEntityId left, in WorldEntityId right) => left.Id != right.Id || left.Version != right.Version;
+    }
+}

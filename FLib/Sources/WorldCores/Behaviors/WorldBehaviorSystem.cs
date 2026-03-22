@@ -12,7 +12,7 @@ namespace FLib.WorldCores.Behaviors
     [WorldComponentOption(options: EComponentOption.RejectSoa)]
     public struct WorldBehaviorSystem : IWorldAwake, IWorldDestroy
     {
-        public WorldEntityHelper Self;
+        public WorldEntity Self;
         public uint Mask;
         public int PrimaryId;
         public int SecondaryId;
@@ -25,14 +25,14 @@ namespace FLib.WorldCores.Behaviors
 
         public override string ToString() => $"{Self}, {Primary}, {Secondary}";
 
-        void IWorldAwake.OnAwake(WorldCore world, WorldEntity entity)
+        void IWorldAwake.OnAwake(WorldCore world, WorldEntityId eId)
         {
             SecondaryId = PrimaryId = -1;
-            Self = new WorldEntityHelper(world, entity);
+            Self = new WorldEntity(world, eId);
             WorldGlobalSetting.DoDefaultBehavior(ref this);
         }
 
-        void IWorldDestroy.OnDestroy(WorldCore world, WorldEntity entity)
+        void IWorldDestroy.OnDestroy(WorldCore world, WorldEntityId eId)
         {
             StopAll(true, false);
         }

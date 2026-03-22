@@ -9,7 +9,7 @@ using System.Numerics;
 using System.Reflection;
 using FLib.WorldCores.Components;
 using FLib.WorldCores;
-using WorldEntity = FLib.WorldCores.Entities.WorldEntity;
+using FLib.WorldCores.Entities;
 
 namespace FLib.Tests;
 
@@ -25,9 +25,9 @@ public struct Team
     public byte TestAlign2;
     public override string ToString() => Value.ToString();
 
-    public void ComponentUpdate(WorldCore world, WorldEntity entity)
+    public void ComponentUpdate(WorldCore world, WorldEntityId eId)
     {
-        ++world.Get<Actor>(entity).Id;
+        ++world.Get<Actor>(eId).Id;
         ++Value;
     }
 }
@@ -55,21 +55,21 @@ public struct Managed : IWorldAwake, IWorldDestroy, IWorldUpdate, IWorldStart
     public uint StartFrame;
     public uint UpdateFrame;
 
-    public void OnAwake(WorldCore world, WorldEntity entity)
+    public void OnAwake(WorldCore world, WorldEntityId eId)
     {
         Values = [nameof(OnAwake)];
         AwakeFrame = world.Frame;
     }
 
-    public void OnStart(WorldCore world, WorldEntity entity)
+    public void OnStart(WorldCore world, WorldEntityId eId)
     {
         Values.Add(nameof(OnStart));
         StartFrame = world.Frame;
     }
 
-    public void OnDestroy(WorldCore world, WorldEntity entity) => Values.Add(nameof(OnDestroy));
+    public void OnDestroy(WorldCore world, WorldEntityId eId) => Values.Add(nameof(OnDestroy));
 
-    public void OnUpdate(WorldCore world, WorldEntity entity)
+    public void OnUpdate(WorldCore world, WorldEntityId eId)
     {
         Values.Add(nameof(OnUpdate));
         UpdateFrame = world.Frame;

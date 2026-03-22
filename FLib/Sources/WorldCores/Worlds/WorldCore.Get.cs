@@ -12,7 +12,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public WorldComponents<T1, T2> GetSta<T1, T2>(in WorldEntity et) where T1 : unmanaged where T2 : unmanaged
+        public WorldComponents<T1, T2> GetSta<T1, T2>(in WorldEntityId et) where T1 : unmanaged where T2 : unmanaged
         {
             ref readonly var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, et, "version error");
@@ -24,7 +24,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public WorldComponents<T1, T2, T3> GetSta<T1, T2, T3>(in WorldEntity et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged
+        public WorldComponents<T1, T2, T3> GetSta<T1, T2, T3>(in WorldEntityId et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged
         {
             ref readonly var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, et, "version error");
@@ -36,7 +36,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public WorldComponents<T1, T2, T3, T4> GetSta<T1, T2, T3, T4>(in WorldEntity et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged
+        public WorldComponents<T1, T2, T3, T4> GetSta<T1, T2, T3, T4>(in WorldEntityId et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged
         {
             ref readonly var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, et, "version error");
@@ -48,7 +48,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public WorldComponents<T1, T2, T3, T4, T5> GetSta<T1, T2, T3, T4, T5>(in WorldEntity et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged
+        public WorldComponents<T1, T2, T3, T4, T5> GetSta<T1, T2, T3, T4, T5>(in WorldEntityId et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged
         {
             ref readonly var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, et, "version error");
@@ -60,7 +60,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public WorldComponents<T1, T2, T3, T4, T5, T6> GetSta<T1, T2, T3, T4, T5, T6>(in WorldEntity et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged
+        public WorldComponents<T1, T2, T3, T4, T5, T6> GetSta<T1, T2, T3, T4, T5, T6>(in WorldEntityId et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged
         {
             ref readonly var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, et, "version error");
@@ -72,7 +72,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public WorldComponents<T1, T2, T3, T4, T5, T6, T7> GetSta<T1, T2, T3, T4, T5, T6, T7>(in WorldEntity et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged
+        public WorldComponents<T1, T2, T3, T4, T5, T6, T7> GetSta<T1, T2, T3, T4, T5, T6, T7>(in WorldEntityId et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged
         {
             ref readonly var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, et, "version error");
@@ -84,7 +84,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public WorldComponents<T1, T2, T3, T4, T5, T6, T7, T8> GetSta<T1, T2, T3, T4, T5, T6, T7, T8>(in WorldEntity et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged
+        public WorldComponents<T1, T2, T3, T4, T5, T6, T7, T8> GetSta<T1, T2, T3, T4, T5, T6, T7, T8>(in WorldEntityId et) where T1 : unmanaged where T2 : unmanaged where T3 : unmanaged where T4 : unmanaged where T5 : unmanaged where T6 : unmanaged where T7 : unmanaged where T8 : unmanaged
         {
             ref readonly var eti = ref Entities[et.Id];
             Assert(eti.Version == et.Version, et, "version error");
