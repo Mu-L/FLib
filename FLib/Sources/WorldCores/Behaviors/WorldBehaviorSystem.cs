@@ -122,7 +122,7 @@ namespace FLib.WorldCores.Behaviors
                 {
                     if (bhv.CheckFriend(primary))
                     {
-                        Swap(primary, behaviorType, ref SecondaryId);
+                        Swap(primary, behaviorType, out SecondaryId);
                     }
                     else
                     {
@@ -310,7 +310,7 @@ namespace FLib.WorldCores.Behaviors
                 if (secondary != null)
                 {
                     SecondaryId = -1;
-                    Swap(secondary, bhvType, ref PrimaryId);
+                    Swap(secondary, bhvType, out PrimaryId);
                 }
                 else if (isDoDefault)
                 {
@@ -340,7 +340,7 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 
         /// </summary>
-        private void Swap(WorldBehavior bhv, Type conflictType, ref int to)
+        private void Swap(WorldBehavior bhv, Type conflictType, out int to)
         {
             to = bhv.Id;
             bhv.OnSwap(conflictType);
