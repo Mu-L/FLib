@@ -255,6 +255,14 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
+        /// 获取指定类型的行为实例。
+        /// </summary>
+        public T? Get<T>() where T : WorldBehavior
+        {
+            return Primary as T ?? Secondary as T;
+        }
+
+        /// <summary>
         /// 检查标记组合是否全部被当前行为掩码包含。
         /// </summary>
         public readonly bool IsRunning(uint mask)
