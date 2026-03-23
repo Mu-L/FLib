@@ -83,7 +83,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 添加效果实例到实体
         /// </summary>
-        public WorldEffect? Add(Type effectType, in WorldEntityId addedBy, uint id, ushort addCount = 1)
+        public WorldEffect? Add(in WorldEntityId addedBy, uint id, ushort addCount = 1)
         {
             World.Assert(!IsDisposed);
             var container = Container;

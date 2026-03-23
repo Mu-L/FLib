@@ -12,33 +12,7 @@ namespace FLib.WorldCores.Effects
 {
     public static class WorldEffectPool
     {
-        public static ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>> AllFrees = new();
         [ThreadStatic] public static FixedIndexList<WorldEffectContainer> Containers;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static unsafe WorldEffect Rent(Type type, ref WorldEffectSystem system)
-        {
-            if (!AllFrees.TryGetValue(type, out var frees) || !frees.TryPop(out var effect))
-                effect = (WorldEffect)Activator.CreateInstance(type)!;
-            effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref system);
-            effect.TimeComponentId = system.World.Soa.GetGroup<WorldEffectTime>().Alloc(system.Entity, new WorldEffectTime(effect));
-            return effect;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static unsafe void Free(WorldEffect effect)
-        {
-            ref readonly var self = ref effect.System.Entity;
-            self.World.Soa.GetGroup<WorldEffectTime>().Free(self.EntityId, effect.TimeComponentId, false);
-            effect.TimeComponentId = -1;
-            effect.Data = default;
-            effect.SystemPtr = null;
-            AllFrees.GetOrAdd(effect.GetType(), _ => new ConcurrentStack<WorldEffect>()).Push(effect);
-        }
 
         /// <summary>
         /// 

@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using FLib.WorldCores.Behaviors;
 using FLib.WorldCores.Effects;
+using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores
 {
@@ -22,14 +23,14 @@ namespace FLib.WorldCores
         public static FNum DeltaTime = FNum.One / FrameRate;
 
         /// <summary>
-        /// 
+        /// 根据id创建效果
         /// </summary>
-        public static Action<WorldEffect> InitializeEffect = effect => { };
+        public static CreateEffectDelegate CreateEffect = (in WorldBehaviorSystem system, in WorldEntityId by, uint id, ushort count) => throw new NotSupportedException();
 
         /// <summary>
-        /// 
+        /// 销毁效果
         /// </summary>
-        public static Action<WorldEffect> UninitializeEffect = effect => { };
+        public static Action<WorldEffect> DestroyEffect = effect => throw new NotSupportedException();
 
         /// <summary>
         /// 默认行为类型
@@ -82,4 +83,6 @@ namespace FLib.WorldCores
             Environment.ProcessorCount;
 #endif
     }
+
+    public delegate WorldEffect CreateEffectDelegate(in WorldBehaviorSystem system, in WorldEntityId addedBy, uint id, ushort addCount = 1);
 }
