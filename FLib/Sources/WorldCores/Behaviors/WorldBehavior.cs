@@ -22,8 +22,8 @@ namespace FLib.WorldCores.Behaviors
         public bool IsEmpty => SystemPtr == null;
 
         public byte TypeId { get; internal set; }
-        public FNum StartTime { get; protected internal set; }
-        public virtual byte Priority { get; protected internal set; }
+        public FNum StartTime { get; set; }
+        public virtual byte Priority { get; set; }
         public virtual byte InitialPriority => 0;
         public abstract uint Mask { get; }
 
