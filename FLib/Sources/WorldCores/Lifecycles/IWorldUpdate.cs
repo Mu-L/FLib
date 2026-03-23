@@ -6,6 +6,6 @@ namespace FLib.WorldCores
 {
     public interface IWorldUpdate
     {
-        void OnUpdate(WorldCore world, WorldEntityId eId);
+        void OnUpdate(WorldCore world, WorldEntityId entityId);
     }
 }

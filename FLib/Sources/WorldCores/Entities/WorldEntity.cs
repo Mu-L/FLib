@@ -66,6 +66,11 @@ namespace FLib.WorldCores.Entities
         public Ref<T> GetSta<T>() where T : unmanaged => World.GetSta<T>(EntityId);
 
         /// <summary>
+        /// 获取实体的静态组件值（非管理）。如果没有则返回默认值。
+        /// </summary>
+        public Ref<T> GetStaOrEmpty<T>() where T : unmanaged => World.GetStaOrEmpty<T>(EntityId);
+
+        /// <summary>
         /// 获取实体的静态组件并返回对组件的引用。
         /// </summary>
         public ref T GetStaRef<T>() where T : unmanaged => ref World.GetStaRef<T>(EntityId);

@@ -9,6 +9,7 @@ namespace FLib.WorldCores
     {
         internal readonly T* ValuePtr;
         public ref T Val => ref *ValuePtr;
+        public bool IsEmpty => ValuePtr == null;
         public Ref(void* valuePtr) => ValuePtr = (T*)valuePtr;
         public Ref(T* valuePtr) => ValuePtr = valuePtr;
         public override string ToString() => Val.ToString();

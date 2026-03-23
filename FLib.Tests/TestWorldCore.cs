@@ -69,7 +69,7 @@ public struct Managed : IWorldAwake, IWorldDestroy, IWorldUpdate, IWorldStart
 
     public void OnDestroy(WorldCore world, WorldEntityId eId) => Values.Add(nameof(OnDestroy));
 
-    public void OnUpdate(WorldCore world, WorldEntityId eId)
+    public void OnUpdate(WorldCore world, WorldEntityId entityId)
     {
         Values.Add(nameof(OnUpdate));
         UpdateFrame = world.Frame;

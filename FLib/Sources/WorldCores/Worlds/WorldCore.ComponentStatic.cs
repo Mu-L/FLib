@@ -49,6 +49,17 @@ namespace FLib.WorldCores
         }
 
         /// <summary>
+        /// 获取实体的静态组件值（非管理）。如果没有则返回默认值。
+        /// </summary>
+        /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
+        /// <param name="et">目标实体</param>
+        /// <returns>返回该实体的静态组件值的Ref包装, 如果没有则返回默认值</returns>
+        public Ref<T> GetStaOrEmpty<T>(WorldEntityId et) where T : unmanaged
+        {
+            return HasSta<T>(et) ? GetSta<T>(et) : default;
+        }
+
+        /// <summary>
         /// 获取实体的指定类型的静态组件。
         /// </summary>
         /// <param name="et">目标实体</param>
