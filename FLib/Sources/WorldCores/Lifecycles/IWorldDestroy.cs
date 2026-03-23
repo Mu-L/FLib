@@ -12,23 +12,23 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        internal static void Destroy<T>(ref byte ptr, WorldCore world, WorldEntityId eId) where T : IWorldDestroy
+        internal static void Destroy<T>(ref byte ptr, WorldCore world, WorldEntityId entityId) where T : IWorldDestroy
         {
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
-                comp.OnDestroy(world, eId);
-                WorldComponentEvents<T>.OnDestroy?.Invoke(world, eId, ref comp);
+                comp.OnDestroy(world, entityId);
+                WorldComponentEvents<T>.OnDestroy?.Invoke(world, entityId, ref comp);
             }
             catch (Exception e)
             {
-                world.ThrowException($"{typeof(T)}", eId, e);
+                world.ThrowException($"{typeof(T)}", entityId, e);
             }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        void OnDestroy(WorldCore world, WorldEntityId eId);
+        void OnDestroy(WorldCore world, WorldEntityId entityId);
     }
 }

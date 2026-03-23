@@ -22,17 +22,17 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        internal static void Awake<T>(ref byte ptr, WorldCore world, WorldEntityId eId) where T : IWorldAwake
+        internal static void Awake<T>(ref byte ptr, WorldCore world, WorldEntityId entityId) where T : IWorldAwake
         {
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
-                comp.OnAwake(world, eId);
-                WorldComponentEvents<T>.OnAwake?.Invoke(world, eId, ref comp);
+                comp.OnAwake(world, entityId);
+                WorldComponentEvents<T>.OnAwake?.Invoke(world, entityId, ref comp);
             }
             catch (Exception e)
             {
-                world.ThrowException(typeof(T), eId, e);
+                world.ThrowException(typeof(T), entityId, e);
             }
         }
 
@@ -51,6 +51,6 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        void OnAwake(WorldCore world, WorldEntityId eId);
+        void OnAwake(WorldCore world, WorldEntityId entityId);
     }
 }

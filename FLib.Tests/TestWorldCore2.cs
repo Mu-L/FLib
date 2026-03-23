@@ -12,9 +12,9 @@ public class TestWorldCore2
     {
         public int Value;
 
-        public void OnDestroy(WorldCore world, WorldEntityId eId)
+        public void OnDestroy(WorldCore world, WorldEntityId entityId)
         {
-            world.Set(eId, new Comp2() { Value = Value * 10 });
+            world.Set(entityId, new Comp2() { Value = Value * 10 });
         }
     }
 
@@ -23,11 +23,11 @@ public class TestWorldCore2
     {
         public int Value;
 
-        public void OnDestroy(WorldCore world, WorldEntityId eId)
+        public void OnDestroy(WorldCore world, WorldEntityId entityId)
         {
             Value *= 10;
-            world.Get<Comp2>(eId);
-            world.Set(eId, new Comp1() { Value = Value * 10 });
+            world.Get<Comp2>(entityId);
+            world.Set(entityId, new Comp1() { Value = Value * 10 });
         }
     }
 

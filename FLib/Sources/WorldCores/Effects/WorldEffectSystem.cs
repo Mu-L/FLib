@@ -37,16 +37,16 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果系统，从对象池租用容器并设置到动态组件中
         /// </summary>
-        public void OnAwake(WorldCore world, WorldEntityId eId)
+        public void OnAwake(WorldCore world, WorldEntityId entityId)
         {
-            Entity = eId.AsEntity(world);
+            Entity = entityId.AsEntity(world);
             _containerIndex = WorldEffectPool.RentContainer();
         }
 
         /// <summary>
         /// 销毁效果系统，清空所有效果并归还容器到对象池
         /// </summary>
-        public void OnDestroy(WorldCore world, WorldEntityId eId)
+        public void OnDestroy(WorldCore world, WorldEntityId entityId)
         {
             FlagMask |= 0x80000000;
             Clear();

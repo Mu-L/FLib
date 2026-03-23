@@ -25,14 +25,14 @@ namespace FLib.WorldCores.Behaviors
 
         public override string ToString() => $"{Self}, {Primary}, {Secondary}";
 
-        void IWorldAwake.OnAwake(WorldCore world, WorldEntityId eId)
+        void IWorldAwake.OnAwake(WorldCore world, WorldEntityId entityId)
         {
             SecondaryId = PrimaryId = -1;
-            Self = new WorldEntity(world, eId);
+            Self = new WorldEntity(world, entityId);
             WorldGlobalSetting.DoDefaultBehavior(ref this);
         }
 
-        void IWorldDestroy.OnDestroy(WorldCore world, WorldEntityId eId)
+        void IWorldDestroy.OnDestroy(WorldCore world, WorldEntityId entityId)
         {
             StopAll(true, false);
         }

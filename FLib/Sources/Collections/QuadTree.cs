@@ -60,7 +60,7 @@ namespace FLib.Collections
         {
             if (!Root.Rect.Contains(position))
                 return -1;
-            var objIdx = Objects.Add(new ObjectData() { Position = position, Obj = obj });
+            var objIdx = Objects.Add(new ObjectData() { Position = position, Data = obj });
             Root.AddOrChildren(objIdx, group);
             return objIdx;
         }
@@ -120,10 +120,10 @@ namespace FLib.Collections
         public struct ObjectData
         {
             public FVector2 Position;
-            public T Obj;
+            public T Data;
             public int NodeId;
             public byte Group;
-            public override string ToString() => $"{Position}|{Obj}|{Group}";
+            public override string ToString() => $"{Position}|{Data}|{Group}";
         }
 
         /// <summary>
