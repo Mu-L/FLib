@@ -35,6 +35,7 @@ namespace FLib.WorldCores.Components
         /// </summary>
         public static WorldComponentMeta GetMeta<T>()
         {
+            // 考虑直接通过静态构造函数初始化, 避免这次的运行时if开销是否需要?
             return WorldComponentGenericMap<T>.IsEmpty ? WorldComponentGenericMap<T>.Init(Register(typeof(T), SizeOf<T>())) : WorldComponentGenericMap<T>.Meta;
         }
 

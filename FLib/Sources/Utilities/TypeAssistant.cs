@@ -1,4 +1,4 @@
-//==================={By Qcbf|qcbf@qq.com|4/29/2022 3:14:28 PM}===================
+// ==================={By Qcbf|qcbf@qq.com|4/29/2022 3:14:28 PM}===================
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 
 namespace FLib
 {
@@ -26,6 +27,7 @@ namespace FLib
     [ObjectInjectionReceiver(nameof(TypeAssistant), nameof(ReceiveInjection))]
     public static class TypeAssistant
     {
+        internal static int _idGen;
         [NonSerialized] public static Assembly[] AllAssemblies = { typeof(TypeAssistant).Assembly };
         public static ReadOnlyDictionary<string, Type> CustomTypeMap;
         [ThreadStatic] private static Dictionary<string, Type> _typeFinderBuffer;
@@ -255,5 +257,12 @@ namespace FLib
             if (t == typeof(double)) return "double";
             return t == typeof(Type) ? "type" : t.ToString();
         }
+    }
+
+    // ReSharper disable once UnusedTypeParameter
+    public static class TypeId<T>
+    {
+        // ReSharper disable once StaticMemberInGenericType
+        public static readonly int Id = Interlocked.Increment(ref TypeAssistant._idGen);
     }
 }

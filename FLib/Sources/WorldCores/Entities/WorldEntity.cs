@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
-using FLib.WorldCores;
 using FLib.WorldCores.Components;
 
 namespace FLib.WorldCores.Entities
@@ -11,7 +10,7 @@ namespace FLib.WorldCores.Entities
     /// <summary>
     /// 
     /// </summary>
-    public readonly struct WorldEntity
+    public readonly struct WorldEntity : IEquatable<WorldEntity>
     {
         public readonly WorldHandle WorldHandle;
         public readonly WorldEntityId EntityId;
@@ -308,14 +307,15 @@ namespace FLib.WorldCores.Entities
 
         #endregion
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveSelf()
-        {
-            World.RemoveEntity(EntityId);
-        }
+        public void RemoveSelf() => World.RemoveEntity(EntityId);
 
+        public override int GetHashCode() => HashCode.Combine(WorldHandle, EntityId);
         public static implicit operator WorldEntityId(in WorldEntity helper) => helper.EntityId;
         public static implicit operator WorldCore(in WorldEntity helper) => helper.World;
+        public static bool operator ==(in WorldEntity left, in WorldEntity right) => left.EntityId == right.EntityId && left.World == right.World;
+        public static bool operator !=(in WorldEntity left, in WorldEntity right) => left.EntityId != right.EntityId || left.World != right.World;
+        public bool Equals(WorldEntity other) => WorldHandle.Equals(other.WorldHandle) && EntityId.Equals(other.EntityId);
+        public override bool Equals(object obj) => obj is WorldEntity other && Equals(other);
     }
 }

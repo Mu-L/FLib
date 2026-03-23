@@ -42,7 +42,7 @@ namespace FLib
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public virtual void DispatchEvent<T>(in T evtData, object dispatcher = null) => DispatchEventById(typeof(T).GetHashCode(), evtData, dispatcher);
+        public virtual void DispatchEvent<T>(in T evtData, object dispatcher = null) => DispatchEventById(TypeId<T>.Id, evtData, dispatcher);
 
         /// <summary>
         /// 
@@ -98,7 +98,7 @@ namespace FLib
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public virtual bool DispatchPreEvent<T>(ref T evtData, object dispatcher = null) => DispatchPreEventById(typeof(T).GetHashCode(), ref evtData, dispatcher);
+        public virtual bool DispatchPreEvent<T>(ref T evtData, object dispatcher = null) => DispatchPreEventById(TypeId<T>.Id, ref evtData, dispatcher);
 
         /// <summary>
         ///
@@ -213,7 +213,7 @@ namespace FLib
         /// </summary>
         public FEventListenHelper<T> ListenEvent<T>(PostEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
         {
-            var id = typeof(T).GetHashCode();
+            var id = TypeId<T>.Id;
             ListenEventImpl(id, handler, priority, isListenOnce);
             return new FEventListenHelper<T>(this, id, handler);
         }
@@ -235,7 +235,7 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public void ListenPreEvent<T>(PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false) => ListenEventImpl(typeof(T).GetHashCode(), handler, priority, isListenOnce);
+        public void ListenPreEvent<T>(PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false) => ListenEventImpl(TypeId<T>.Id, handler, priority, isListenOnce);
 
         /// <summary>
         ///
@@ -268,12 +268,12 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public void UnlistenEvent<T>(PostEventHandler<T> handler) => UnlistenEventImpl(typeof(T).GetHashCode(), handler);
+        public void UnlistenEvent<T>(PostEventHandler<T> handler) => UnlistenEventImpl(TypeId<T>.Id, handler);
 
         /// <summary>
         ///
         /// </summary>
-        public void UnlistenEvent<T>(PreEventHandler<T> handler) => UnlistenEventImpl(typeof(T).GetHashCode(), handler);
+        public void UnlistenEvent<T>(PreEventHandler<T> handler) => UnlistenEventImpl(TypeId<T>.Id, handler);
 
         /// <summary>
         /// 
@@ -325,12 +325,12 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public bool IsListenEvent<T>(PostEventHandler<T> handler) => IsListenEventImpl(typeof(T).GetHashCode(), handler);
+        public bool IsListenEvent<T>(PostEventHandler<T> handler) => IsListenEventImpl(TypeId<T>.Id, handler);
 
         /// <summary>
         ///
         /// </summary>
-        public bool IsListenEvent<T>(PreEventHandler<T> handler) => IsListenEventImpl(typeof(T).GetHashCode(), handler);
+        public bool IsListenEvent<T>(PreEventHandler<T> handler) => IsListenEventImpl(TypeId<T>.Id, handler);
 
         /// <summary>
         ///

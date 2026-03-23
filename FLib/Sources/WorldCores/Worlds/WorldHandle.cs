@@ -1,10 +1,11 @@
 // ==================== qcbf@qq.com | 2026-03-03 ====================
 
+using System;
 using System.Runtime.CompilerServices;
 
 namespace FLib.WorldCores
 {
-    public readonly struct WorldHandle
+    public readonly struct WorldHandle : IEquatable<WorldHandle>
     {
         public readonly ushort Index;
         public readonly ushort Version;
@@ -31,5 +32,12 @@ namespace FLib.WorldCores
             Index = index;
             Version = version;
         }
+
+        public override int GetHashCode() => HashCode.Combine(Index, Version);
+
+        public static bool operator ==(in WorldHandle left, in WorldHandle right) => left.Index == right.Index && left.Version == right.Version;
+        public static bool operator !=(in WorldHandle left, in WorldHandle right) => left.Index != right.Index || left.Version != right.Version;
+        public bool Equals(WorldHandle other) => Index == other.Index && Version == other.Version;
+        public override bool Equals(object obj) => obj is WorldHandle other && Equals(other);
     }
 }
