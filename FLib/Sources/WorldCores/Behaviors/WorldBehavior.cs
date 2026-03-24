@@ -30,7 +30,7 @@ namespace FLib.WorldCores.Behaviors
         public virtual bool CheckDo(bool isFirst) => isFirst;
 
         public virtual bool CheckPriority(WorldBehavior target) => target.Priority >= Priority;
-        public virtual bool CheckFriend(WorldBehavior targetBehavior) => false;
+        public virtual bool CheckFriend(WorldBehavior targetBehavior, bool isFirst) => false;
 
 
         public virtual void OnSwap(Type conflictType)

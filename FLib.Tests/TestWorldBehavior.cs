@@ -27,7 +27,7 @@ public class MoveBehavior : WorldBehavior<MoveBehavior.ParamData>
         public byte Priority;
     }
 
-    public override bool CheckFriend(WorldBehavior targetBehavior) => targetBehavior is IdleBehavior;
+    public override bool CheckFriend(WorldBehavior targetBehavior, bool isFirst) => targetBehavior is IdleBehavior;
 
     public override byte InitialPriority => Param.Priority;
 

@@ -120,7 +120,7 @@ namespace FLib.WorldCores.Behaviors
             {
                 if (primary.CheckPriority(bhv))
                 {
-                    if (bhv.CheckFriend(primary))
+                    if (bhv.CheckFriend(primary, true))
                     {
                         Swap(primary, behaviorType, out SecondaryId);
                     }
@@ -128,13 +128,13 @@ namespace FLib.WorldCores.Behaviors
                     {
                         stopBhvPrimary = primary;
                         var secondary = Secondary;
-                        if (secondary != null && !bhv.CheckFriend(secondary))
+                        if (secondary != null && !bhv.CheckFriend(secondary, true))
                         {
                             stopBhvSecondary = secondary;
                         }
                     }
                 }
-                else if (primary.CheckFriend(bhv))
+                else if (primary.CheckFriend(bhv, false))
                 {
                     var secondary = Secondary;
                     if (secondary?.CheckPriority(bhv) != false)

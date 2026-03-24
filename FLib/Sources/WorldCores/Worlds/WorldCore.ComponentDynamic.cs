@@ -73,7 +73,16 @@ namespace FLib.WorldCores
             }
             else
             {
-                group[slot] = component;
+                ref readonly var info = ref WorldComponentRegistry.GetInfo<T>();
+                if (info.Awake != null || info.Destroy != null)
+                {
+                    group.Free(et, slot, false);
+                    slot = group.Alloc(et, component);
+                }
+                else
+                {
+                    group[slot] = component;
+                }
             }
 
             return slot;
