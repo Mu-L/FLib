@@ -18,7 +18,7 @@ namespace FLib.WorldCores.Effects
         public WorldEffectTime(WorldEffect effect)
         {
             Effect = effect;
-            EndTime = default;
+            EndTime = Effect.World.Time + Effect.Data.Duration;
         }
 
         public void OnUpdate(WorldCore world, WorldEntityId entityId)

@@ -25,12 +25,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 根据id创建效果
         /// </summary>
-        public static CreateEffectDelegate CreateEffect = (in WorldBehaviorSystem system, in WorldEntityId by, uint id, ushort count) => throw new NotSupportedException();
+        public static EffectHandlerDelegate CreateEffect = (in WorldEffectSystem system, in WorldEntityId by, uint id, ushort count) => throw new NotSupportedException();
 
         /// <summary>
         /// 销毁效果
         /// </summary>
-        public static Action<WorldEffect> DestroyEffect = effect => throw new NotSupportedException();
+        public static DestroyHandlerDelegate DestroyEffect = (in WorldEffectSystem system, WorldEffect effect) => { };
 
         /// <summary>
         /// 默认行为类型
@@ -84,5 +84,7 @@ namespace FLib.WorldCores
 #endif
     }
 
-    public delegate WorldEffect CreateEffectDelegate(in WorldBehaviorSystem system, in WorldEntityId addedBy, uint id, ushort addCount = 1);
+    public delegate WorldEffect EffectHandlerDelegate(in WorldEffectSystem system, in WorldEntityId addedBy, uint id, ushort addCount = 1);
+
+    public delegate void DestroyHandlerDelegate(in WorldEffectSystem system, WorldEffect effect);
 }

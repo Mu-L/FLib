@@ -10,11 +10,11 @@ namespace FLib.WorldCores.Effects
     {
         internal WorldEffectSystem* SystemPtr;
         public WorldEffectData Data;
-        internal int TimeComponentId = -1;
-        public WorldEntityId AddedBy;
         public WorldSoaComponentManaged ComponentManaged;
+        public WorldEntityId AddedBy;
+        public uint Id;
+        internal int TimeComponentId = -1;
 
-        public uint Id => Data.Id;
         public ref WorldEffectSystem System => ref *SystemPtr;
         public ref WorldEntity Entity => ref SystemPtr->Entity;
         public WorldCore World => SystemPtr->Entity.World;

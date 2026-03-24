@@ -36,25 +36,11 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public static void EnsureCapacity(int entityCapacities, (Type, int)[]? effectCapacities)
+        public static void EnsureCapacity(int entityCapacities)
         {
             Containers.EnsureCapacity(entityCapacities);
             for (var i = Containers.Count; i < entityCapacities; i++)
                 Containers.Add(new WorldEffectContainer());
-            if (effectCapacities == null)
-            {
-                AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>>(WorldGlobalSetting.ThreadConcurrencyLevel, entityCapacities);
-            }
-            else
-            {
-                AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<WorldEffect>>(WorldGlobalSetting.ThreadConcurrencyLevel, effectCapacities.Sum(v => v.Item2));
-                foreach (var (type, count) in effectCapacities)
-                {
-                    var stack = AllFrees[type] = new ConcurrentStack<WorldEffect>();
-                    for (var i = 0; i < count; i++)
-                        stack.Push((WorldEffect)TypeAssistant.New(type));
-                }
-            }
         }
     }
 }

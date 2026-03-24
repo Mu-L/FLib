@@ -94,10 +94,10 @@ namespace FLib.WorldCores.Effects
 
             if (effect == null)
             {
-                effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt);
+                effect = CreateEffect(evt);
                 if (!Entity.DispatchPreEvent(ref evt))
                 {
-                    FreeEffect(effect, false);
+                    DestroyEffect(effect, false);
                     return null;
                 }
 
@@ -130,11 +130,11 @@ namespace FLib.WorldCores.Effects
                         Entity.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.MultipleInstance:
-                        item.MoreList.Add(effect = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt));
+                        item.MoreList.Add(effect = CreateEffect(evt));
                         break;
                     case EWorldEffectAddOption.Replace:
-                        // remove 
-                        effect = item.Single = InitializeEffect(WorldEffectPool.Rent(effectType, ref this), evt);
+                        Remove(effect);
+                        effect = item.Single = CreateEffect(evt);
                         break;
                 }
             }
@@ -189,7 +189,7 @@ namespace FLib.WorldCores.Effects
             }
             finally
             {
-                FreeEffect(effect, true);
+                DestroyEffect(effect, true);
             }
 
             return true;
@@ -217,18 +217,18 @@ namespace FLib.WorldCores.Effects
         }
 
         /// <summary>
-        /// 释放效果实例，从容器中移除并归还到对象池
+        /// 释放效果实例
         /// </summary>
-        private void FreeEffect(WorldEffect effect, bool isInvokeDestroy)
+        private unsafe void DestroyEffect(WorldEffect effect, bool isInvokeDestroy)
         {
             var container = Container;
             FlagMask &= ~container.RemoveFlags(effect.Data.Flags.Mask);
-            ref var item = ref container.Effects[effect.Data.Id];
+            ref var item = ref container.Effects[effect.Id];
             try
             {
                 if (item.Single == effect && !item.TryPopMoreList())
                 {
-                    container.Effects.Remove(effect.Data.Id);
+                    container.Effects.Remove(effect.Id);
                 }
                 else
                 {
@@ -239,38 +239,35 @@ namespace FLib.WorldCores.Effects
                 effect.IsRemoving = true;
                 if (isInvokeDestroy)
                     effect.OnDestroy();
-                WorldGlobalSetting.UninitializeEffect?.Invoke(effect);
             }
             finally
             {
                 effect.ComponentManaged.Dispose();
-                WorldEffectPool.Free(effect);
+                World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
+                effect.TimeComponentId = -1;
+                effect.SystemPtr = null;
+                WorldGlobalSetting.DestroyEffect(this, effect);
             }
         }
 
         /// <summary>
-        /// 初始化效果实例，设置相关属性并更新标志位
+        /// 
         /// </summary>
-        private WorldEffect InitializeEffect(WorldEffect effect, in WorldAddEffectEvent evt)
+        private unsafe WorldEffect CreateEffect(in WorldAddEffectEvent evt)
         {
+            var effect = WorldGlobalSetting.CreateEffect(this, evt.AddedBy, evt.Id, evt.AddCount);
+            effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref this);
             effect.AddedBy = evt.AddedBy;
-            effect.Data.Id = evt.Id;
-            try
-            {
-                WorldGlobalSetting.InitializeEffect.Invoke(effect);
-                World.Assert(effect.Data.Id == evt.Id);
-                if (effect.Data.MaxStackCount == 0)
-                    effect.Data.MaxStackCount = ushort.MaxValue;
-                effect.Time.RefreshTime(World.Time);
-            }
-            catch (Exception e)
-            {
-                Log.Error?.Write(e);
-            }
+            effect.Id = evt.Id;
+            if (effect.Data.MaxStackCount == 0)
+                effect.Data.MaxStackCount = ushort.MaxValue;
+            effect.TimeComponentId = World.Soa.GetGroup<WorldEffectTime>().Alloc(Entity, new WorldEffectTime(effect));
+            effect.Time.RefreshTime(World.Time);
 
             var mask = effect.Data.Flags.Mask;
             FlagMask |= mask;
             Container.AddFlags(mask);
+
             return effect;
         }
 

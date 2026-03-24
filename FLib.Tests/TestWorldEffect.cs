@@ -19,7 +19,7 @@ public class TestWorldEffect
 
     public TestWorldEffect()
     {
-        WorldGlobalSetting.InitializeEffect = effect => { effect.Data = new WorldEffectData { Id = effect.Data.Id, MaxStackCount = 1, Duration = 1, Flags = 1 }; };
+        WorldGlobalSetting.CreateEffect = (in system, in by, id, count) => new AEffect { Data = new WorldEffectData { MaxStackCount = 1, Duration = 1, Flags = 1 } };
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class TestWorldEffect
         using var world = new WorldCore();
         var et = world.BuildEntity().With<WorldEffectSystem>().BuildAsEntityHelper();
         ref var fxSys = ref et.GetStaRef<WorldEffectSystem>();
-        var fx = fxSys.Add(typeof(AEffect), default, 1);
+        var fx = fxSys.Add(default, 1);
         Assert.NotNull(fx);
         Assert.True(fxSys.HasEffect(1));
         Assert.True(fxSys.HasFlags(1));
@@ -40,10 +40,8 @@ public class TestWorldEffect
 
         Assert.False(fxSys.HasEffect(1));
         Assert.False(fxSys.HasFlags(1));
-        Assert.Single(WorldEffectPool.AllFrees);
-        Assert.Single(WorldEffectPool.AllFrees.First().Value);
 
-        fxSys.Add(typeof(AEffect), default, 1);
+        fxSys.Add(default, 1);
         et.RemoveSelf();
 
         Assert.Null(WorldEffectPool.Containers.Frees);

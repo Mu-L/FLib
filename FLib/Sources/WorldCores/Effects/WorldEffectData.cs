@@ -4,12 +4,11 @@ namespace FLib.WorldCores.Effects
 {
     public struct WorldEffectData
     {
-        public uint Id;
+        public FNum Duration;
         public ushort MaxStackCount;
         public ushort StackCount;
-        public FNum Duration;
-        public BitFlags Flags;
         public EWorldEffectAddOption AddOption;
+        public BitFlags Flags;
 
         public override string ToString() => Json5.Serialize(this);
     }
