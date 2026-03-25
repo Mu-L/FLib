@@ -14,10 +14,10 @@ namespace FLib.WorldCores.SoaComponents
     {
         public WorldEntity Entity;
         public PooledList<ComponentHandle> Components;
-
+        
         public WorldCore World => Entity.World;
         public bool IsEmpty => !Components.IsInitialized;
-
+        
         /// <summary>
         ///  
         /// </summary>
@@ -26,7 +26,7 @@ namespace FLib.WorldCores.SoaComponents
             Entity = entity;
             Components = default;
         }
-
+        
         /// <summary>
         /// 添加一个动态组件
         /// </summary>
@@ -36,7 +36,7 @@ namespace FLib.WorldCores.SoaComponents
             Components.Add(new ComponentHandle(idx, WorldComponentRegistry.GetId<T>()));
             return idx;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -48,10 +48,18 @@ namespace FLib.WorldCores.SoaComponents
                 if (item.TypeId == id)
                     return ref World.Soa.GetGroup<T>()[item.Index];
             }
-
+            
             throw new WorldCoreException(Entity, $"{Entity} has no component {typeof(T)}");
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public ref T Get<T>(int index)
+        {
+            return ref ((WorldSoaComponentGroup<T>)World.Soa.GetGroup(Components[index].TypeId))[Components[index].Index];
+        }
+        
         /// <summary>
         /// 
         /// </summary>
