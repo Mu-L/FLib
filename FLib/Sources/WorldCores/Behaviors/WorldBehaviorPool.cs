@@ -14,12 +14,12 @@ namespace FLib.WorldCores.Behaviors
     {
         public static WorldBehavior[] Behaviors = new WorldBehavior[256];
         public static ConcurrentDictionary<Type, ConcurrentStack<int>> AllFrees = new(WorldGlobalSetting.ThreadConcurrencyLevel, 256);
-
+        
         private static readonly object SyncLock = new();
         private static int _count;
-
+        
         public static int Count => _count;
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -27,7 +27,7 @@ namespace FLib.WorldCores.Behaviors
         {
             if (AllFrees.TryGetValue(behaviorType, out var frees) && frees.TryPop(out var index))
                 return Behaviors[index];
-
+            
             if (_count >= Behaviors.Length)
             {
                 lock (SyncLock)
@@ -36,19 +36,20 @@ namespace FLib.WorldCores.Behaviors
                         Array.Resize(ref Behaviors, Behaviors.Length * 2);
                 }
             }
-
+            
             return NewBehavior(behaviorType);
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
         public static unsafe void Free(WorldBehavior behavior)
         {
             behavior.SystemPtr = null;
+            ++behavior.Version;
             AllFrees.GetOrAdd(behavior.GetType(), _ => new ConcurrentStack<int>()).Push(behavior.Id);
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -66,7 +67,7 @@ namespace FLib.WorldCores.Behaviors
                     stack.Push(NewBehavior(type).Id);
             }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
