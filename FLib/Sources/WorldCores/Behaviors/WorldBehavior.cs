@@ -51,18 +51,19 @@ namespace FLib.WorldCores.Behaviors
     /// <summary>
     /// 
     /// </summary>
-    public interface IWorldBehaviorParameterizable
-    {
-        void InitializeParam();
-    }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    public abstract class WorldBehavior<TParam> : WorldBehavior, IWorldBehaviorParameterizable
+    public abstract class WorldBehavior<TParam> : WorldBehavior
     {
         [ThreadStatic] protected internal static TParam NewParam;
         public TParam Param;
-        public virtual void InitializeParam() => Param = NewParam;
+        
+        public override void OnAwake(bool isFirst)
+        {
+            Param = NewParam;
+        }
+        
+        public override void OnDestroy()
+        {
+            Param = default;
+        }
     }
 }
