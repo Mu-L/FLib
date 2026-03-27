@@ -19,11 +19,12 @@ public struct Player
     public string Name;
 }
 
-public struct Team
+[BytesPackGen]
+public partial struct Team
 {
-    public byte Value;
-    public byte TestAlign1;
-    public byte TestAlign2;
+    [BytesPackGenField] public byte Value;
+    [BytesPackGenField] public byte TestAlign1;
+    [BytesPackGenField] public byte TestAlign2;
     public override string ToString() => Value.ToString();
     
     public void ComponentUpdate(WorldCore world, WorldEntityId eId)
