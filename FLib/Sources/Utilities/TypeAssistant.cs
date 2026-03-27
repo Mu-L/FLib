@@ -244,17 +244,17 @@ namespace FLib
 
         public static string GetTypeName(Type t)
         {
-            if (t == typeof(byte)) return "byte";
-            if (t == typeof(short)) return "short";
-            if (t == typeof(int)) return "int";
-            if (t == typeof(long)) return "long";
-            if (t == typeof(sbyte)) return "sbyte";
-            if (t == typeof(ushort)) return "ushort";
-            if (t == typeof(ulong)) return "ulong";
-            if (t == typeof(string)) return "string";
-            if (t == typeof(char)) return "char";
-            if (t == typeof(float)) return "float";
-            if (t == typeof(double)) return "double";
+            if (t == typeof(byte)) return "b";
+            if (t == typeof(short)) return "s";
+            if (t == typeof(int)) return "i";
+            if (t == typeof(long)) return "l";
+            if (t == typeof(sbyte)) return "sb";
+            if (t == typeof(ushort)) return "us";
+            if (t == typeof(ulong)) return "ul";
+            if (t == typeof(string)) return "str";
+            if (t == typeof(char)) return "c";
+            if (t == typeof(float)) return "f";
+            if (t == typeof(double)) return "d";
             return t == typeof(Type) ? "type" : t.ToString();
         }
     }

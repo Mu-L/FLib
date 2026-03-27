@@ -12,26 +12,25 @@ namespace FLib.WorldCores.TimeLogic
     public class TimeLogicRuntime : IBytesPackable
     {
         [NonSerialized] public object UserData;
-
+        
         /// <summary>
         /// obj is TimeLogicTrack or TimeLogicClip
         /// 返回 false 表示阻止执行
         /// </summary>
         [NonSerialized] public Func<object, bool> ExecuteVerifyHandler;
-
-        public ScriptPack<TimeLogicTrack>[] TrackPacks = Array.Empty<ScriptPack<TimeLogicTrack>>();
+        
         public bool IsLoop = true;
         public int EndFrame;
         public string Name;
         public byte FrameRate = 30;
         private FNum _currentFrame;
         private FNum _frameDelta;
-        [NonSerialized] public TimeLogicTrack[] Tracks;
-
+        public TimeLogicTrack[] Tracks;
+        
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
         public ExternalReferenceStorer ExternalReferences;
-
+        
         public int CurrentFrame
         {
             get => (int)_currentFrame;
@@ -43,9 +42,9 @@ namespace FLib.WorldCores.TimeLogic
                 UpdateCurrentFrame();
             }
         }
-
+        
         public override string ToString() => $"{Name},{CurrentFrame}";
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -54,11 +53,8 @@ namespace FLib.WorldCores.TimeLogic
             if (Tracks != null)
                 return;
             _frameDelta = FNum.One / FrameRate;
-            Tracks = new TimeLogicTrack[TrackPacks.Length];
-            for (var i = 0; i < TrackPacks.Length; i++) 
-                Tracks[i] = TrackPacks[i].Create().Initialize(this);
         }
-
+        
         /// <summary>
         ///  
         /// </summary>
@@ -67,7 +63,7 @@ namespace FLib.WorldCores.TimeLogic
             _frameDelta = FNum.One / frameRate;
             FrameRate = frameRate;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -75,11 +71,11 @@ namespace FLib.WorldCores.TimeLogic
         {
             if (isResetFrame)
                 _currentFrame = 0;
-            foreach (var track in TrackPacks)
+            foreach (var track in Tracks)
             {
                 try
                 {
-                    track.UserInstance.Stop();
+                    track.Stop();
                 }
                 catch (Exception e)
                 {
@@ -87,7 +83,7 @@ namespace FLib.WorldCores.TimeLogic
                 }
             }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -112,7 +108,7 @@ namespace FLib.WorldCores.TimeLogic
                 UpdateCurrentFrame();
             }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -125,14 +121,14 @@ namespace FLib.WorldCores.TimeLogic
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
                     track.Update();
             }
-
+            
             foreach (var track in Tracks)
             {
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
                     track.LateUpdate();
             }
         }
-
+        
         public virtual void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {
             key.Push(ref writer, 1);
@@ -140,9 +136,9 @@ namespace FLib.WorldCores.TimeLogic
             writer.Push(FrameRate);
             writer.Push(IsLoop);
             writer.PushVInt(EndFrame);
-            BytesPack.Pack(TrackPacks, ref writer);
+            writer.PushScript(Tracks);
         }
-
+        
         public virtual void Z_BytesPackRead(int key, ref BytesReader reader)
         {
             if (key == 1)
@@ -151,11 +147,13 @@ namespace FLib.WorldCores.TimeLogic
                 FrameRate = reader.Read<byte>();
                 IsLoop = reader.Read<bool>();
                 EndFrame = (int)reader.ReadVInt();
-                BytesPack.Unpack(ref TrackPacks, ref reader);
+                Tracks = reader.ReadScripts<TimeLogicTrack>();
+                foreach (var item in Tracks)
+                    item.Runtime = this;
             }
         }
     }
-
+    
     /// <summary>
     /// 
     /// </summary>
