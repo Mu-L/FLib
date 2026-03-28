@@ -1,15 +1,16 @@
 // ==================== qcbf@qq.com | 2026-03-21 ====================
 
-using FLib.WorldCores;
-
-namespace FLib.Sources.WorldCores.Components
+namespace FLib.WorldCores.SoaComponents
 {
-    public readonly struct ComponentHandle
+    /// <summary>
+    /// 
+    /// </summary>
+    public readonly struct WorldSoaComponentHandle
     {
         public readonly int Index;
         public readonly WorldIncrementId TypeId;
-
-        public ComponentHandle(int index, WorldIncrementId typeId)
+        
+        public WorldSoaComponentHandle(int index, WorldIncrementId typeId)
         {
             Index = index;
             TypeId = typeId;

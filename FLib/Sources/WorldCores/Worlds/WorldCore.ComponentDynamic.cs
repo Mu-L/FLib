@@ -95,9 +95,9 @@ namespace FLib.WorldCores
         /// <param name="componentType">组件的类型（若为 null 则使用 component 的实际类型）</param>
         /// <param name="component">要设置的组件值</param>
         /// <returns>返回组件在动态组件组中的索引</returns>
-        public int SetDyn(WorldEntityId et, Type componentType, object component)
+        public int SetDyn(WorldEntityId et, Type? componentType, object? component)
         {
-            componentType ??= component.GetType();
+            componentType ??= component!.GetType();
             Assert(!WorldComponentRegistry.GetInfo(componentType).IsShared, et);
             var id = WorldComponentRegistry.GetId(componentType);
             ref var eti = ref GetEntityInfo(et);

@@ -1,7 +1,7 @@
 // ==================== qcbf@qq.com | 2026-03-21 ====================
 
 using System;
-using FLib.Sources.WorldCores.Components;
+using FLib.WorldCores.SoaComponents;
 using FLib.WorldCores.Components;
 using FLib.WorldCores.Entities;
 
@@ -13,7 +13,7 @@ namespace FLib.WorldCores.SoaComponents
     public struct WorldSoaComponentManaged : IDisposable
     {
         public WorldEntity Entity;
-        public PooledList<ComponentHandle> Components;
+        public PooledList<WorldSoaComponentHandle> Components;
         
         public WorldCore World => Entity.World;
         public bool IsEmpty => !Components.IsInitialized;
@@ -33,7 +33,7 @@ namespace FLib.WorldCores.SoaComponents
         public int Add<T>(in T component)
         {
             var idx = World.Soa.GetGroup<T>().Alloc(Entity.EntityId, component);
-            Components.Add(new ComponentHandle(idx, WorldComponentRegistry.GetId<T>()));
+            Components.Add(new WorldSoaComponentHandle(idx, WorldComponentRegistry.GetId<T>()));
             return idx;
         }
         

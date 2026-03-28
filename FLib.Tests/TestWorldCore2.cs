@@ -36,7 +36,7 @@ public class TestWorldCore2
     public void Test()
     {
         using var world = new WorldCore();
-        var et = world.BuildEntity().Build();
+        var et = world.CreateEntity().Build();
         world.Set(et, new Comp1() { Value = 123 });
         world.Remove<Comp1>(et);
         Assert.Equal(123 * 10, ((Comp2)world.GetAll(et)[0]!).Value);

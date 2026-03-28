@@ -149,15 +149,6 @@ namespace FLib.WorldCores
         public WorldQueryEnumerator Query(in WorldQueryFilter filter = default) => new(this, filter);
 
         /// <summary>
-        /// 创建一个新的实体生成器。
-        /// </summary>
-        /// <returns>实体生成器实例</returns>
-        public WorldEntityBuilder BuildEntity()
-        {
-            return new WorldEntityBuilder(this);
-        }
-
-        /// <summary>
         /// 执行一次世界更新，包含增加帧数和运行所有更新器。
         /// </summary>
         public void Update()

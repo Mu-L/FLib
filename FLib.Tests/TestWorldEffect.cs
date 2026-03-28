@@ -26,7 +26,7 @@ public class TestWorldEffect
     public void Basic()
     {
         using var world = new WorldCore();
-        var et = world.BuildEntity().With<WorldEffectSystem>().BuildAsEntity();
+        var et = world.CreateEntity().With<WorldEffectSystem>().BuildAsEntity();
         ref var fxSys = ref et.GetStaRef<WorldEffectSystem>();
         var fx = fxSys.Add(default, 1);
         Assert.NotNull(fx);

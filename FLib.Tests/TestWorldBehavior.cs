@@ -52,7 +52,7 @@ public class TestWorldBehavior
     public void TestBasic()
     {
         using var world = new WorldCore();
-        var et = world.BuildEntity().With<WorldBehaviorSystem>().BuildAsEntity();
+        var et = world.CreateEntity().With<WorldBehaviorSystem>().BuildAsEntity();
         ref var bSys = ref et.Get<WorldBehaviorSystem>();
         Assert.Equal(typeof(IdleBehavior), bSys.Primary?.GetType());
         Assert.True(bSys.HasPrimary);
