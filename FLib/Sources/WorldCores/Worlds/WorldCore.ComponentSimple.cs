@@ -26,10 +26,10 @@ namespace FLib.WorldCores
                 var compIdx = DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[WorldComponentRegistry.GetId<T>()];
                 return ref Soa.GetGroup<T>()[compIdx];
             }
-
+            
             return ref eti.Chunk.GetRef<T>(eti.IndexInChunk);
         }
-
+        
         /// <summary>
         /// 获取实体的指定类型的组件。
         /// </summary>
@@ -41,7 +41,7 @@ namespace FLib.WorldCores
             ref readonly var eti = ref GetEntityInfo(et);
             return eti.HasDynamicComponent && !eti.Chunk.Has(WorldComponentRegistry.GetId(componentType)) ? GetDyn(et, componentType) : GetSta(et, componentType);
         }
-
+        
         /// <summary>
         /// 设置实体的组件值（如果组件不存在则添加为动态组件）。
         /// </summary>
@@ -61,14 +61,14 @@ namespace FLib.WorldCores
                 eti.Chunk.GetRef<T>(eti.IndexInChunk) = component;
             }
         }
-
+        
         /// <summary>
         /// 移除实体的指定类型的组件。
         /// </summary>
         /// <typeparam name="T">组件的类型</typeparam>
         /// <param name="et">目标实体</param>
         public void Remove<T>(WorldEntityId et) => RemoveDyn<T>(et);
-
+        
         /// <summary>
         /// 检查实体是否拥有指定类型的组件。
         /// </summary>
@@ -81,16 +81,16 @@ namespace FLib.WorldCores
             var compId = WorldComponentGenericMap<T>.Id;
             if (compId.IsEmpty)
                 return false;
-
+            
             if (eti.HasDynamicComponent && !eti.Chunk.Has<T>())
             {
                 ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
                 return compId < sparse.Count && sparse[compId] >= 0;
             }
-
+            
             return BitArrayOperator.GetBit(ArchetypeGroup[eti.ArchetypeIndex].ComponentMask, compId);
         }
-
+        
         /// <summary>
         /// 获取实体的所有组件实例。
         /// </summary>
@@ -102,9 +102,9 @@ namespace FLib.WorldCores
             result ??= new List<object>();
             ref readonly var eti = ref GetEntityInfo(et);
             eti.Chunk.GetAll(eti.IndexInChunk, eti.GetArchetype(this), result);
-
+            
             eti.Chunk.GetAllShared(this, result);
-
+            
             if (eti.HasDynamicComponent)
             {
                 var sparse = DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
@@ -115,7 +115,7 @@ namespace FLib.WorldCores
                     result.Add(GetDyn(et, WorldComponentRegistry.GetType(new WorldIncrementId(i + 1))));
                 }
             }
-
+            
             return result;
         }
     }

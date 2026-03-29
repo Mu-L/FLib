@@ -117,6 +117,27 @@ namespace FLib.WorldCores
         }
         
         /// <summary>
+        /// 设置实体的动态组件（使用脚本包）。
+        /// </summary>
+        public void SetDyn(WorldEntityId et, in ScriptPackBytes script)
+        {
+            var type = TypeAssistant.GetType(script.TypeName);
+            var index = SetDyn(et, type, TypeAssistant.New(type));
+            WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
+        }
+        
+        /// <summary>
+        /// 设置实体的动态组件（使用脚本包）。
+        /// </summary>
+        public void SetDyn(WorldEntityId et, in ReadOnlySpan<ScriptPackBytes> scripts)
+        {
+            if (scripts.IsEmpty)
+                return;
+            foreach (var item in scripts)
+                SetDyn(et, item);
+        }
+        
+        /// <summary>
         /// 移除实体的指定类型的动态组件。
         /// </summary>
         /// <typeparam name="T">组件的类型</typeparam>

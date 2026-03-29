@@ -10,22 +10,27 @@ namespace FLib.WorldCores.SoaComponents
     {
         WorldCore World { get; }
         Array Components { get; }
-
+        
         /// <summary>
         /// 分配一个动态组件
         /// </summary>
         int Alloc(in WorldEntityId et, object component);
-
+        
         /// <summary>
         /// 释放动态组件
         /// </summary>
         void Free(in WorldEntityId et, int index, bool onEntityDestroyed);
-
+        
+        /// <summary>
+        /// 获取动态组件指针
+        /// </summary>
+        ref byte GetPointer(int index);
+        
         // /// <summary>
         // /// 
         // /// </summary>
         // bool Has(Entity et, int index);
-
+        
         /// <summary>
         /// 预分配动态组件
         /// </summary>

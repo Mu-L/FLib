@@ -15,21 +15,21 @@ namespace FLib.WorldCores.SoaComponents
         public Stack<int> Frees = new();
         public int Count;
         internal T[] Components = Array.Empty<T>();
-
+        
         public WorldCore World { get; set; }
         Array IWorldSoaComponentGroupable.Components => Components;
-
+        
         public virtual ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Components[index];
         }
-
+        
         public WorldSoaComponentGroup(WorldCore world)
         {
             World = world;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -42,12 +42,20 @@ namespace FLib.WorldCores.SoaComponents
 #endif
             return true;
         }
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public ref byte GetPointer(int index)
+        {
+            return ref Unsafe.As<T, byte>(ref Components[index]);
+        }
+        
         /// <summary>
         /// 
         /// </summary>
         int IWorldSoaComponentGroupable.Alloc(in WorldEntityId et, object component) => Alloc(et, (T)component);
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -59,13 +67,13 @@ namespace FLib.WorldCores.SoaComponents
                     EnsureCapacity(MathEx.GetNextPowerOfTwo(Count + 1));
                 index = Count;
             }
-
+            
             ++Count;
             Components[index] = component;
             WorldComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
             return index;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>

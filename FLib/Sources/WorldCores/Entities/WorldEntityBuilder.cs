@@ -17,6 +17,9 @@ namespace FLib.WorldCores.Entities
         public WorldEntityId EntityId;
         internal PooledList<WorldComponentMeta> Components;
         
+        
+        public WorldEntity Entity => EntityId.AsEntity(World);
+        
         /// <summary>
         /// 
         /// </summary>
@@ -57,7 +60,7 @@ namespace FLib.WorldCores.Entities
         /// 
         /// </summary>
         /// <param name="initMemory">是否初始化内存, false:性能会更高,但会导致字段不是默认值</param>
-        public WorldEntityId PrepareEntity(bool initMemory = true)
+        public WorldEntityBuilder PrepareEntity(bool initMemory = true)
         {
             var hash = WorldStaticComponentMask.HashCode();
             if (!World.ArchetypeGroup.ArchetypeMap.TryGetValue(hash, out var archetype))
@@ -79,7 +82,7 @@ namespace FLib.WorldCores.Entities
                 }
             }
             
-            return EntityId;
+            return this;
         }
         
         /// <summary>

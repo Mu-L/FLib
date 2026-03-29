@@ -15,9 +15,10 @@ namespace FLib.WorldCores.Components
         public readonly LifecycleDelegate? Destroy;
         public readonly WorldComponentOptionAttribute? Options;
         public readonly bool IsShared;
-
+        public readonly IBytesPackGenericWrapper? BytesPackWrapper;
+        
         public bool HasLifecycle => Awake != null || Destroy != null;
-
+        
         public WorldComponentInfo(WorldComponentMeta meta, Type type)
         {
             IsShared = typeof(IWorldSharedComponent).IsAssignableFrom(type);
@@ -26,10 +27,13 @@ namespace FLib.WorldCores.Components
             Options = type.GetCustomAttribute<WorldComponentOptionAttribute>();
             Awake = IWorldAwake.CreateLifecycleDelegate(typeof(IWorldAwake), type, nameof(IWorldAwake.Awake));
             Destroy = IWorldAwake.CreateLifecycleDelegate(typeof(IWorldDestroy), type, nameof(IWorldDestroy.Destroy));
+            BytesPackWrapper = typeof(IBytesPackable).IsAssignableFrom(type)
+                ? (IBytesPackGenericWrapper?)TypeAssistant.New(typeof(BytesPackGenericWrapper<>).MakeGenericType(type))
+                : null;
         }
-
+        
         public bool Op(EComponentOption option) => Options != null && (Options.Options & option) == option;
-
+        
         public static implicit operator WorldComponentMeta(in WorldComponentInfo info) => info.Meta;
     }
 }
