@@ -43,7 +43,7 @@ namespace FLib.WorldCores
         /// 创建一个新的实体生成器。
         /// </summary>
         /// <returns>实体生成器实例</returns>
-        public WorldEntityBuilder CreateEntity()
+        public WorldEntityBuilder CreateEntityBuilder()
         {
             return new WorldEntityBuilder(this);
         }

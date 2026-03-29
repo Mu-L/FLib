@@ -88,19 +88,19 @@ public class TestWorldCore
     {
         var world = new WorldCore();
         
-        var et = world.CreateEntity().Build();
+        var et = world.CreateEntityBuilder().Build();
         Assert.False(world.Has<Player>(et));
         world.RemoveEntity(et);
         
         WorldComponentRegistry.GetMeta<Buff>();
-        var player1 = world.CreateEntity().WithMng<Player>().With<Team>().With<Actor>().Build();
+        var player1 = world.CreateEntityBuilder().WithMng<Player>().With<Team>().With<Actor>().Build();
         world.SetSta(player1, new Team { Value = 5 });
         world.SetStaMng(player1, new Player { Name = "p1" });
         
-        var player2 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().Build();
+        var player2 = world.CreateEntityBuilder().With<Team>().With<Actor>().WithMng<Player>().Build();
         world.Set(player2, new Team { Value = 10 });
         
-        var enemy1 = world.CreateEntity().With<Enemy>().With<Team>().With<Actor>().Build();
+        var enemy1 = world.CreateEntityBuilder().With<Enemy>().With<Team>().With<Actor>().Build();
         world.Set(enemy1, new Team { Value = 100 });
         
         Assert.Equal(world.Entities[player1.Id].ArchetypeIndex, world.Entities[player2.Id].ArchetypeIndex);
@@ -127,7 +127,7 @@ public class TestWorldCore
         Assert.Equal(1, world.GetEntityInfo(player2).Chunk.Count);
         
         // managed
-        player1 = world.CreateEntity().WithMng<Player>().With<Team>().With<Actor>().Build();
+        player1 = world.CreateEntityBuilder().WithMng<Player>().With<Team>().With<Actor>().Build();
         world.SetSta(player1, new Team { Value = 6 });
         Assert.Equal(6, world.GetSta<Team>(player1).Val.Value);
         Assert.Equal(10, world.Get<Team>(player2).Value);
@@ -168,7 +168,7 @@ public class TestWorldCore
     public void SharedComponent()
     {
         using var world = new WorldCore();
-        var et1 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
+        var et1 = world.CreateEntityBuilder().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         Assert.Equal(0, world.GetEntityInfo(et1).Chunk.AllSharedComponentsHash);
         
         world.SetSta(et1, new Team { Value = 10 });
@@ -177,7 +177,7 @@ public class TestWorldCore
         Assert.NotEqual(0, world.GetEntityInfo(et1).Chunk.AllSharedComponentsHash);
         Assert.Equal(10, world.Get<Team>(et1).Value);
         
-        var et2 = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
+        var et2 = world.CreateEntityBuilder().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         world.SetSta(et2, new Team { Value = 10 });
         world.SetShared(et2, new Shared(10));
         
@@ -194,7 +194,7 @@ public class TestWorldCore
     {
         using var world = new WorldCore();
         world.Update();
-        var et = world.CreateEntity().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
+        var et = world.CreateEntityBuilder().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
         world.Set(et, new Managed());
         world.Set(et, new Player { Name = "abc" });
         
