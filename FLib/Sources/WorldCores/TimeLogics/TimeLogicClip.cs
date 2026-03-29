@@ -14,7 +14,7 @@ namespace FLib.WorldCores.TimeLogic
         [Comment("开始帧")] public int BeginFrame;
         [Comment("结束帧")] public int EndFrame;
 
-        public TimeLogicRuntime Runtime => Track.Runtime;
+        public TimeLogic Runtime => Track.Runtime;
         public int CurrentFrame => Runtime.CurrentFrame;
         public int CurrentClipFrame => Runtime.CurrentFrame - BeginFrame;
         public FNum CurrentClipTime => (FNum)CurrentClipFrame / Runtime.FrameRate;

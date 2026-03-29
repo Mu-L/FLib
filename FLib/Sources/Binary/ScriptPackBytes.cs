@@ -72,12 +72,12 @@ namespace FLib
         
         public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
         {
-            return ScriptPackInstance.JsonSerializeImpl(CreateInstance());
+            return ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
         }
         
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options)
         {
-            if (ScriptPackInstance.JsonDeserializeImpl(ref nodes, out var instance) && instance != null)
+            if (ScriptPackInstance.JsonDeserializeImpl(ref nodes, out var instance, null) && instance != null)
             {
                 this = new ScriptPackBytes(instance);
                 return true;

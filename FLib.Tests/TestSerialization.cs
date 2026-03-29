@@ -9,7 +9,7 @@ public class TestSerialization
     [Fact]
     public void TimeLogic()
     {
-        var tl = new TimeLogicRuntime
+        var tl = new TimeLogic
         {
             Name = "tl",
             EndFrame = 10,
@@ -17,6 +17,10 @@ public class TestSerialization
         };
         
         var json = Json5.Serialize(tl);
+        Assert.Equal(json, Json5.Serialize(Json5.Deserialize<TimeLogic>(json)));
+        
+        var bytes = BytesPack.Pack(tl);
+        Assert.Equal(bytes, BytesPack.Pack(BytesPack.Unpack<TimeLogic>(bytes)));
     }
     
     

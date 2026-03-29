@@ -9,7 +9,7 @@ using FLib.WorldCores.TimeLogic;
 namespace FLib.WorldCores.TimeLogic
 {
     [BytesPackGenHoldKey(2)]
-    public class TimeLogicRuntime : IBytesPackable
+    public class TimeLogic : IBytesPackable
     {
         [NonSerialized] public object UserData;
         
@@ -25,7 +25,7 @@ namespace FLib.WorldCores.TimeLogic
         public byte FrameRate = 30;
         private FNum _currentFrame;
         private FNum _frameDelta;
-        public TimeLogicTrack[] Tracks;
+        public ScriptPackInstance<TimeLogicTrack>[] Tracks;
         
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
@@ -75,11 +75,11 @@ namespace FLib.WorldCores.TimeLogic
             {
                 try
                 {
-                    track.Stop();
+                    track.Instance.Stop();
                 }
                 catch (Exception e)
                 {
-                    Log.Error?.Write($"{Name} {CommentAttribute.TryGetLabel(track?.GetType())} {e}");
+                    Log.Error?.Write($"{Name} {CommentAttribute.TryGetLabel(track.Instance?.GetType())} {e}");
                 }
             }
         }
@@ -116,14 +116,16 @@ namespace FLib.WorldCores.TimeLogic
         {
             TryInitialize();
             IsEndFrame = false;
-            foreach (var track in Tracks)
+            foreach (var pack in Tracks)
             {
+                var track = pack.Instance;
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
                     track.Update();
             }
             
-            foreach (var track in Tracks)
+            foreach (var pack in Tracks)
             {
+                var track = pack.Instance;
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
                     track.LateUpdate();
             }
@@ -136,7 +138,7 @@ namespace FLib.WorldCores.TimeLogic
             writer.Push(FrameRate);
             writer.Push(IsLoop);
             writer.PushVInt(EndFrame);
-            writer.PushScript(Tracks);
+            BytesPack.Pack(Tracks, ref writer);
         }
         
         public virtual void Z_BytesPackRead(int key, ref BytesReader reader)
@@ -147,9 +149,9 @@ namespace FLib.WorldCores.TimeLogic
                 FrameRate = reader.Read<byte>();
                 IsLoop = reader.Read<bool>();
                 EndFrame = (int)reader.ReadVInt();
-                Tracks = reader.ReadScripts<TimeLogicTrack>();
+                BytesPack.Unpack(ref Tracks, ref reader);
                 foreach (var item in Tracks)
-                    item.Runtime = this;
+                    item.Instance.Runtime = this;
             }
         }
     }
@@ -157,7 +159,7 @@ namespace FLib.WorldCores.TimeLogic
     /// <summary>
     /// 
     /// </summary>
-    public class EntityTimeLogicRuntime : TimeLogicRuntime
+    public class EntityTimeLogic : TimeLogic
     {
         public WorldEntity Entity;
     }

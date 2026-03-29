@@ -206,7 +206,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        private static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        public static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
         {
             IEnumerator iterator;
             try
@@ -266,42 +266,47 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        private static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        public static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
         {
             // ReSharper disable AssignNullToNotNullAttribute
             strbuf.Append('{');
             var iterator = dict.GetEnumerator();
             if (iterator.MoveNext())
-                SerializePushKeyValue(iterator.Key, iterator.Value, strbuf, indent, opData);
+            {
+                PushDictKey(iterator.Key, strbuf, indent, opData);
+                PushValue(iterator.Value, strbuf, indent, opData);
+            }
+            
             while (iterator.MoveNext())
             {
                 strbuf.Append(',');
-                SerializePushKeyValue(iterator.Key, iterator.Value, strbuf, indent, opData);
+                PushDictKey(iterator.Key, strbuf, indent, opData);
+                PushValue(iterator.Value, strbuf, indent, opData);
             }
             
             strbuf.Append('}');
-            return;
-            
-            static void SerializePushKeyValue(object key, object? value, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void PushDictKey(object key, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        {
+            if ((opData.Options & EJson5SerializeOption.DictDontWriteEmptyKeyWithColonChar) == 0 || key is not string strKey || !string.IsNullOrWhiteSpace(strKey))
             {
-                if ((opData.Options & EJson5SerializeOption.DictDontWriteEmptyKeyWithColonChar) == 0 || key is not string strKey || !string.IsNullOrWhiteSpace(strKey))
-                {
-                    if (opData.Op(EJson5SerializeOption.Compatible))
-                        strbuf.Append('"');
-                    strbuf.Append(key);
-                    if (opData.Op(EJson5SerializeOption.Compatible))
-                        strbuf.Append('"');
-                    strbuf.Append(':');
-                }
-                
-                PushValue(value, strbuf, indent, opData);
+                if (opData.Op(EJson5SerializeOption.Compatible))
+                    strbuf.Append('"');
+                strbuf.Append(key);
+                if (opData.Op(EJson5SerializeOption.Compatible))
+                    strbuf.Append('"');
+                strbuf.Append(':');
             }
         }
         
         /// <summary>
         /// 
         /// </summary>
-        private static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
         {
             var t = obj.GetType();
             var declaringType = (opData.Options & EJson5SerializeOption.LogText) == 0
@@ -348,29 +353,23 @@ namespace FLib
                 {
                     var customJson = serializer.JsonSerialize(obj, fieldName, indent, opData);
                     if (customJson != null)
-                        PushKey(opData, strbuf, fieldName, indent).Append(customJson);
+                    {
+                        PushDictKey(fieldName, strbuf, indent, opData);
+                        strbuf.Append(customJson);
+                    }
+                    
                     return true;
                 }
                 
                 var val = field.GetValue(obj);
                 if (val != null && (val is not string str || str.Length > 0 || (opData.Options & EJson5SerializeOption.IncludeEmptyStringField) != 0))
                 {
-                    PushKey(opData, strbuf, fieldName, indent);
+                    PushDictKey(fieldName, strbuf, indent, opData);
                     PushValue(val, strbuf, indent, opData);
                     return true;
                 }
                 
                 return false;
-            }
-            
-            static StringBuilder PushKey(Json5SerializeOptionData opData, StringBuilder strbuf, string key, int indent)
-            {
-                if (opData.Op(EJson5SerializeOption.Compatible))
-                    strbuf.Append('"');
-                strbuf.Append(key);
-                if (opData.Op(EJson5SerializeOption.Compatible))
-                    strbuf.Append('"');
-                return strbuf.Append(':');
             }
         }
     }

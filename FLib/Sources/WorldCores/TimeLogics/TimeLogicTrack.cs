@@ -10,9 +10,9 @@ namespace FLib.WorldCores.TimeLogic
     {
         [Comment("名称")] public string Name;
         [Comment("是否禁用")] public bool IsDisable;
-        public TimeLogicClip[] Clips;
+        public ScriptPackInstance<TimeLogicClip>[] Clips;
         
-        [NonSerialized] public TimeLogicRuntime Runtime;
+        [NonSerialized] public TimeLogic Runtime;
         
         public TimeLogicClip CurrentClip { get; private set; }
         
@@ -61,8 +61,9 @@ namespace FLib.WorldCores.TimeLogic
                 }
             }
             
-            foreach (var clip in Clips)
+            foreach (var pack in Clips)
             {
+                var clip = pack.Instance;
                 if (!clip.IsDisable && Runtime.ExecuteVerifyHandler?.Invoke(clip) != false && clip.CheckFrame(frame))
                 {
                     try
@@ -100,7 +101,7 @@ namespace FLib.WorldCores.TimeLogic
             key.Push(ref writer, 1);
             writer.Push(IsDisable);
             writer.Push(Name);
-            writer.PushScript(Clips);
+            BytesPack.Pack(Clips, ref writer);
         }
         
         public virtual void Z_BytesPackRead(int key, ref BytesReader reader)
@@ -109,9 +110,9 @@ namespace FLib.WorldCores.TimeLogic
             {
                 IsDisable = reader.Read<bool>();
                 Name = reader.ReadString();
-                Clips = reader.ReadScripts<TimeLogicClip>();
+                BytesPack.Unpack(ref Clips, ref reader);
                 foreach (var clip in Clips)
-                    clip.Track = this;
+                    clip.Instance.Track = this;
             }
         }
     }
