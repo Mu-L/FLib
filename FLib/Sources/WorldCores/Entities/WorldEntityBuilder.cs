@@ -32,6 +32,14 @@ namespace FLib.WorldCores.Entities
         /// <summary>
         /// 
         /// </summary>
+        public bool Has<T>()
+        {
+            return WorldStaticComponentMask.Get(WorldComponentRegistry.GetMeta<T>());
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
         public WorldEntityBuilder With<T>() where T : unmanaged
         {
             AddComponent(WorldComponentRegistry.GetInfo<T>(), false);
