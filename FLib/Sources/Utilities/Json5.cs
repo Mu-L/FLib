@@ -97,7 +97,7 @@ namespace FLib
         /// <summary>
         /// 不要写入字典的空key， {"a":11, "":22}得到a:11, 22而不是 a:11, "":22， 方便做一些特殊的json值
         /// </summary>
-        DictDontWriteEmptyKeyWithColonChar = 0x20,
+        DictDoNotWriteEmptyKeyWithColonChar = 0x20,
     }
     
     /// <summary>
@@ -292,7 +292,7 @@ namespace FLib
         /// </summary>
         public static void PushDictKey(object key, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
         {
-            if ((opData.Options & EJson5SerializeOption.DictDontWriteEmptyKeyWithColonChar) == 0 || key is not string strKey || !string.IsNullOrWhiteSpace(strKey))
+            if ((opData.Options & EJson5SerializeOption.DictDoNotWriteEmptyKeyWithColonChar) == 0 || key is not string strKey || !string.IsNullOrWhiteSpace(strKey))
             {
                 if (opData.Op(EJson5SerializeOption.Compatible))
                     strbuf.Append('"');
@@ -417,7 +417,7 @@ namespace FLib
         public bool IsKeepSkipSyntaxNode;
         public bool IsIgnoreMissingField;
         public object UserData;
-        public Func<string, string> FieldNameFallback;
+        public Func<string, string?> FieldNameFallback;
     }
     
     /// <summary>
@@ -784,50 +784,62 @@ namespace FLib
             try
             {
                 if (node.Token == EJson5Token.ObjectOpen)
-                    return ToObject(ref nodes, toType, options);
-                if (node.Token == EJson5Token.ArrayOpen)
-                    return ToArray(ref nodes, toType, options);
-                if (toType.IsEnum)
-                    return Enum.TryParse(toType, node.ContentSpan.ToString(), false, out var enumObj) ? enumObj! : Enum.Parse(toType, node.ContentMem.ToString().Replace('|', ','));
-                if (toType == typeof(object))
-                {
-                    if (long.TryParse(node.ContentSpan, out var l))
-                        return l;
-                    if (double.TryParse(node.ContentSpan, out var d))
-                        return d;
-                }
-                
-                try
-                {
-                    var byNullableType = Nullable.GetUnderlyingType(toType);
-                    var str = node.ContentMem.ToString();
-                    return byNullableType == null ? Convert.ChangeType(str, toType) : Activator.CreateInstance(toType, Convert.ChangeType(str, byNullableType))!;
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        if (toType == typeof(byte[]) && node.ContentSpan.Length % 4 == 0)
-                            return Convert.FromBase64String(node.ContentCopyString);
-                        if (toType == typeof(bool))
-                            return node.ContentSpan[0] == '1';
-                        if (!options.IsFallback)
-                        {
-                            options.IsFallback = true;
-                            return Json5.Deserialize(node.ContentMem.ToString(), toType, options);
-                        }
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
-                    
-                    throw;
-                }
+                    obj = ToObject(ref nodes, toType, options);
+                else if (node.Token == EJson5Token.ArrayOpen)
+                    obj = ToArray(ref nodes, toType, options);
+                else if (toType == typeof(Json5AnyValue))
+                    obj = new Json5AnyValue(ParseValue(typeof(object), ref options, node));
+                else
+                    obj = ParseValue(toType, ref options, node);
+                return obj;
             }
             catch (Exception e)
             {
                 throw new Exception($"{toType} | {node} | {options}", e);
+            }
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        private static object ParseValue(Type toType, ref Json5DeserializeOptionData options, in Json5SyntaxNode node)
+        {
+            if (toType.IsEnum)
+                return Enum.TryParse(toType, node.ContentSpan.ToString(), false, out var enumObj) ? enumObj! : Enum.Parse(toType, node.ContentMem.ToString().Replace('|', ','));
+            if (toType == typeof(object))
+            {
+                if (long.TryParse(node.ContentSpan, out var l))
+                    return l;
+                if (double.TryParse(node.ContentSpan, out var d))
+                    return d;
+            }
+            
+            try
+            {
+                var byNullableType = Nullable.GetUnderlyingType(toType);
+                var str = node.ContentMem.ToString();
+                return byNullableType == null ? Convert.ChangeType(str, toType) : Activator.CreateInstance(toType, Convert.ChangeType(str, byNullableType))!;
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    if (toType == typeof(byte[]) && node.ContentSpan.Length % 4 == 0)
+                        return Convert.FromBase64String(node.ContentCopyString);
+                    if (toType == typeof(bool))
+                        return node.ContentSpan[0] == '1';
+                    if (!options.IsFallback)
+                    {
+                        options.IsFallback = true;
+                        return Json5.Deserialize(node.ContentMem.ToString(), toType, options);
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
+                
+                throw;
             }
         }
         
@@ -842,6 +854,10 @@ namespace FLib
             if (toType == typeof(object))
             {
                 obj = dict = new Dictionary<string, object>();
+            }
+            else if (toType == typeof(Json5AnyValue))
+            {
+                obj = dict = new Dictionary<string, Json5AnyValue>();
             }
             else if (!toType.IsStatic())
             {
@@ -957,6 +973,10 @@ namespace FLib
             {
                 list = new List<object>();
             }
+            else if (toType == typeof(Json5AnyValue))
+            {
+                list = new List<Json5AnyValue>();
+            }
             else if (toType.IsArray)
             {
                 elType = toType.GetElementType()!;
@@ -996,7 +1016,8 @@ namespace FLib
                 list.Add(val);
             }
             
-            if (typeCode != 1) return typeCode == 2 ? TypeAssistant.New(toType, list) : list;
+            if (typeCode != 1) 
+                return typeCode == 2 ? TypeAssistant.New(toType, list) : list;
             var result = Array.CreateInstance(elType, list.Count);
             list.CopyTo(result, 0);
             return result;
@@ -1025,6 +1046,38 @@ namespace FLib
                 return deserializer;
             return result.Result;
         }
+    }
+    
+    #endregion
+    
+    #region other
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    public sealed class Json5AnyValue
+    {
+        public object Raw;
+        public Json5AnyValue(object raw) => Raw = raw;
+        public Json5AnyValue[]? AsArray => Raw as Json5AnyValue[];
+        public Dictionary<string, Json5AnyValue>? AsDict => Raw as Dictionary<string, Json5AnyValue>;
+        
+        public Json5AnyValue? this[int index] => AsArray?[index];
+        
+        public Json5AnyValue? this[string key] => AsDict?.GetValueOrDefault(key);
+        
+        public static implicit operator string(Json5AnyValue val) => (string)val.Raw;
+        public static implicit operator bool(Json5AnyValue val) => (bool)val.Raw;
+        public static implicit operator byte(Json5AnyValue val) => (byte)val.Raw;
+        public static implicit operator sbyte(Json5AnyValue val) => (sbyte)val.Raw;
+        public static implicit operator short(Json5AnyValue val) => (short)val.Raw;
+        public static implicit operator ushort(Json5AnyValue val) => (ushort)val.Raw;
+        public static implicit operator int(Json5AnyValue val) => (int)val.Raw;
+        public static implicit operator uint(Json5AnyValue val) => (uint)val.Raw;
+        public static implicit operator long(Json5AnyValue val) => (long)val.Raw;
+        public static implicit operator ulong(Json5AnyValue val) => (ulong)val.Raw;
+        public static implicit operator float(Json5AnyValue val) => (float)val.Raw;
+        public static implicit operator double(Json5AnyValue val) => (double)val.Raw;
     }
     
     #endregion

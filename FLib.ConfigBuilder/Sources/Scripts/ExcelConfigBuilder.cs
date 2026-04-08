@@ -159,7 +159,7 @@ namespace FLib
                             {
                                 if (!fields.TryGetValue(item.Key, out var field))
                                     throw new Exception($"not found class field: {item.Key}");
-                                var json = Json5.Serialize(item.Value, EJson5SerializeOption.RetainString | EJson5SerializeOption.DictDontWriteEmptyKeyWithColonChar);
+                                var json = Json5.Serialize(item.Value, EJson5SerializeOption.RetainString | EJson5SerializeOption.DictDoNotWriteEmptyKeyWithColonChar);
                                 var val = Json5.Deserialize(json, field.FieldType);
                                 field.SetValue(config, val);
                             }

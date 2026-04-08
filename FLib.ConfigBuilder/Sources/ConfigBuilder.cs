@@ -1,4 +1,4 @@
-﻿//=================================================={By Qcbf|qcbf@qq.com|12/15/2024 3:51:09 PM}==================================================
+﻿// =================================================={By Qcbf|qcbf@qq.com|12/15/2024 3:51:09 PM}==================================================
 
 using FLib;
 using System;
@@ -22,9 +22,14 @@ namespace FLib
         public static char Sign = '*';
         public static string OutputPath = "cfg.bytes";
         public static Action<ConcurrentDictionary<Type, IConfigBuildTableContext>, Dictionary<string, SourceFileMeta>> CustomBuilder;
-        private static readonly Func<IEnumerable<Type>> GetAllTypes = () => TypeAssistant.AllAssemblies.Where(v => v != typeof(ConfigHelper).Assembly && v != typeof(ConfigHelper).Assembly).SelectMany(v => v.ExportedTypes);
-        public static readonly Func<IReadOnlyDictionary<string, IBuildable>> GetConfigBuilders = () => TypeAssistant.AllAssemblies.Append(typeof(ConfigBuilder).Assembly).SelectMany(v => v.ExportedTypes).Where(t => !t.IsInterface && typeof(IBuildable).IsAssignableFrom(t)).Select(t => (IBuildable)TypeAssistant.New(t)).ToDictionary(k => k.Extension);
-
+        
+        private static readonly Func<IEnumerable<Type>> GetAllTypes = () =>
+            TypeAssistant.AllAssemblies.Where(v => v != typeof(ConfigHelper).Assembly && v != typeof(ConfigHelper).Assembly).SelectMany(v => v.ExportedTypes);
+        
+        public static readonly Func<IReadOnlyDictionary<string, IBuildable>> GetConfigBuilders = () =>
+            TypeAssistant.AllAssemblies.Append(typeof(ConfigBuilder).Assembly).SelectMany(v => v.ExportedTypes).Where(t => !t.IsInterface && typeof(IBuildable).IsAssignableFrom(t))
+                .Select(t => (IBuildable)TypeAssistant.New(t)).ToDictionary(k => k.Extension);
+        
         /// <summary>
         /// 
         /// </summary>
@@ -33,7 +38,7 @@ namespace FLib
             void Build(in TableContext ctx);
             string Extension { get; }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -41,9 +46,12 @@ namespace FLib
         {
             public static readonly EmptyBuilder Default = new();
             public string Extension => "";
-            public void Build(in TableContext ctx) { }
+            
+            public void Build(in TableContext ctx)
+            {
+            }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -60,7 +68,7 @@ namespace FLib
             public string SourceFilePath => SourceFile.FilePath;
             public string ConfigName => SourceFile.ConfigName;
             public override string ToString() => $"[{ConfigType.Name}]{SourceFile}";
-
+            
             public TableContext(SourceFileMeta sourceFile, Type type, ConfigHelper.EOption options)
             {
                 SourceFile = sourceFile;
@@ -68,7 +76,7 @@ namespace FLib
                 Options = options;
                 IndexIdField = ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(v => v.MetadataToken).First();
             }
-
+            
             /// <summary>
             /// 
             /// </summary>
@@ -82,7 +90,7 @@ namespace FLib
 #endif
                 AllConfigIdIndexes.EnsureCapacity(capacity);
             }
-
+            
             public (uint Id, int Index)? AddConfigAndDynamicId(IBytesPackable config)
             {
                 var isLocking = false;
@@ -102,7 +110,7 @@ namespace FLib
                         _locker.Exit(false);
                 }
             }
-
+            
             /// <summary>
             /// 
             /// </summary>0
@@ -128,8 +136,8 @@ namespace FLib
                 }
             }
         }
-
-
+        
+        
         /// <summary>
         /// 
         /// </summary>
@@ -138,19 +146,19 @@ namespace FLib
             public IBuildable Builder;
             public string FilePath;
             public string ConfigName;
-            public char Sign;
+            public char FileSign;
             public override string ToString() => FilePath;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
-        public static int Build(string sourceDirPaths, bool isMultithread = true)
+        public static int Build(string sourceDirPath, bool isMultithread = true)
         {
             try
             {
                 ConfigPostBuildProcessData.AdditionConfigPostBuildProcesses = new List<ConfigPostBuildProcessData>();
-                var tableContexts = BuildTables(sourceDirPaths, isMultithread);
+                var tableContexts = BuildTables(sourceDirPath, isMultithread);
                 PostBuildProcess(tableContexts);
                 ConfigPostBuildProcessData.AdditionConfigPostBuildProcesses = null;
                 var outPath = Path.GetFullPath(OutputPath);
@@ -162,9 +170,10 @@ namespace FLib
             {
                 Log.Error?.Write(ex.ToString());
             }
+            
             return 0;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -179,20 +188,21 @@ namespace FLib
                 var meta = new SourceFileMeta() { FilePath = filePath, Builder = allConfigBuilders.GetValueOrDefault(Path.GetExtension(filePath)) };
                 if (filePath[0] == '$')
                 {
-                    meta.Sign = filePath[1];
+                    meta.FileSign = filePath[1];
                     meta.ConfigName = Path.GetFileNameWithoutExtension(filePath.AsSpan(2)).ToString();
                 }
                 else
                 {
-                    meta.Sign = '*';
+                    meta.FileSign = '*';
                     meta.ConfigName = Path.GetFileNameWithoutExtension(filePath);
                 }
+                
                 sourceFileMetas.Add(meta.ConfigName, meta);
             }
-
+            
             var contexts = new ConcurrentDictionary<Type, IConfigBuildTableContext>(Environment.ProcessorCount, 1024);
             CustomBuilder?.Invoke(contexts, sourceFileMetas);
-
+            
             if (isMultithread)
                 GetAllTypes().AsParallel().ForAll(t => BuildTablesAddContext(t, contexts, sourceFileMetas));
             else
@@ -200,7 +210,7 @@ namespace FLib
                     BuildTablesAddContext(type, contexts, sourceFileMetas);
             return contexts;
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -214,7 +224,8 @@ namespace FLib
                 Log.Info?.Write($"not found config file {attr.ConfigFileName}");
                 return;
             }
-            if (!ConfigBuilderUtility.CheckSign(sourceFileMeta.Sign, Sign))
+            
+            if (!ConfigBuilderUtility.CheckSign(sourceFileMeta.FileSign, Sign))
                 return;
             var ctx = (TableContext)contexts.GetOrAdd(type, new TableContext(sourceFileMeta, type, attr.Options));
             try
@@ -238,7 +249,7 @@ namespace FLib
                 Log.Error?.Write($"{ctx}\n{ex}");
             }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -253,7 +264,7 @@ namespace FLib
                 else
                     throw new Exception($"not found config {item.CfgType}");
             }
-
+            
             foreach (var item in allContexts)
             {
                 var ctx = item.Value;
@@ -263,6 +274,7 @@ namespace FLib
                     {
                         try
                         {
+                            // ReSharper disable once SuspiciousTypeConversion.Global
                             ((IConfigPostBuildProcessable)cfg).OnConfigPostBuildProcess(Sign, ctx, allContexts);
                         }
                         catch (Exception ex)
@@ -273,7 +285,7 @@ namespace FLib
                 }
             }
         }
-
+        
         /// <summary>
         /// 
         /// </summary>
@@ -282,7 +294,7 @@ namespace FLib
             var writer = new BytesWriter();
             writer.Allocate(contexts.Count * 1024);
             writer.PushLength(contexts.Count);
-
+            
             var packBuffer = new BytesWriter();
             foreach (var ctx in contexts)
             {
@@ -306,6 +318,7 @@ namespace FLib
                     writer.Push(packBuffer.Span);
                 }
             }
+            
             return writer;
         }
     }
