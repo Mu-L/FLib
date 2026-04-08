@@ -17,10 +17,8 @@ namespace FLib
         
         public static void ProcessDefines(string path)
         {
-            var defineJson = File.ReadAllText(path);
-            
-            
-            
+            var defines = Json5.Deserialize<Json5AnyValue>(File.ReadAllText(path));
+            defines[""]
         }
     }
 }
