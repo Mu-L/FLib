@@ -1016,7 +1016,7 @@ namespace FLib
                 list.Add(val);
             }
             
-            if (typeCode != 1) 
+            if (typeCode != 1)
                 return typeCode == 2 ? TypeAssistant.New(toType, list) : list;
             var result = Array.CreateInstance(elType, list.Count);
             list.CopyTo(result, 0);
@@ -1055,17 +1055,17 @@ namespace FLib
     /// <summary>
     /// 
     /// </summary>
-    public sealed class Json5AnyValue
+    public sealed class Json5AnyValue : IEnumerable<Json5AnyValue>
     {
         public object Raw;
         public Json5AnyValue(object raw) => Raw = raw;
         public Json5AnyValue[]? AsArray => Raw as Json5AnyValue[];
         public Dictionary<string, Json5AnyValue>? AsDict => Raw as Dictionary<string, Json5AnyValue>;
         
-        public Json5AnyValue? this[int index] => AsArray?[index];
+        public Json5AnyValue? this[int index] => AsArray?.ElementAtOrDefault(index);
         
         public Json5AnyValue? this[string key] => AsDict?.GetValueOrDefault(key);
-        
+        public override string ToString() => Raw.ToString()!;
         public static implicit operator string(Json5AnyValue val) => (string)val.Raw;
         public static implicit operator bool(Json5AnyValue val) => (bool)val.Raw;
         public static implicit operator byte(Json5AnyValue val) => (byte)val.Raw;
@@ -1078,6 +1078,8 @@ namespace FLib
         public static implicit operator ulong(Json5AnyValue val) => (ulong)val.Raw;
         public static implicit operator float(Json5AnyValue val) => (float)val.Raw;
         public static implicit operator double(Json5AnyValue val) => (double)val.Raw;
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public IEnumerator<Json5AnyValue> GetEnumerator() => ((IEnumerable<Json5AnyValue>)AsArray!).GetEnumerator();
     }
     
     #endregion
