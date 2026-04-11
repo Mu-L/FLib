@@ -121,7 +121,7 @@ namespace FLib.WorldCores
         /// </summary>
         public void SetDyn(WorldEntityId et, in ScriptPackBytes script)
         {
-            var type = TypeAssistant.GetType(script.TypeName);
+            var type = TypeAssistant.GetType(script.ScriptTypeName);
             var index = SetDyn(et, type, TypeAssistant.New(type));
             WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
         }

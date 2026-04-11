@@ -8,7 +8,7 @@ namespace FLib
     /// <summary>
     /// 
     /// </summary>
-    public struct ScriptPackBytes : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable
+    public struct ScriptPackBytes : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IScriptPackable
     {
         /// <summary>
         /// 
@@ -18,7 +18,17 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public readonly string TypeName => new BytesReader(Bytes).ReadString();
+        public readonly string ScriptTypeName => Bytes?.Length == 0 ? string.Empty : new BytesReader(Bytes).ReadString();
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public Type ScriptBaseType => typeof(IBytesPackable);
         
         /// <summary>
         /// 
@@ -40,6 +50,36 @@ namespace FLib
         
         public ScriptPackBytes(IBytesPackable instance)
         {
+            Bytes = Array.Empty<byte>();
+            SetInstance(instance);
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public readonly IBytesPackable? CreateInstance()
+        {
+            if (Bytes?.Length > 0)
+            {
+                var instance = (IBytesPackable)TypeAssistant.New(ScriptTypeName);
+                BytesPack.Unpack(ref instance, InstanceBytes.Span);
+                return instance;
+            }
+            
+            return null;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SetInstance(IBytesPackable? instance)
+        {
+            if (instance == null)
+            {
+                Bytes = Array.Empty<byte>();
+                return;
+            }
+            
             var writer = new BytesWriter() { Allocator = BytesWriter.PoolAllocator };
             try
             {
@@ -51,21 +91,6 @@ namespace FLib
             {
                 writer.TryReleasePoolAllocator();
             }
-        }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public readonly IBytesPackable? CreateInstance()
-        {
-            if (Bytes?.Length > 0)
-            {
-                var instance = (IBytesPackable)TypeAssistant.New(TypeName);
-                BytesPack.Unpack(ref instance, InstanceBytes.Span);
-                return instance;
-            }
-            
-            return null;
         }
         
         #region serialization

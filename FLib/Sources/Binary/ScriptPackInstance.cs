@@ -2,17 +2,28 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace FLib
 {
-    public struct ScriptPackInstance : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable
+    public struct ScriptPackInstance : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IEquatable<ScriptPackInstance>, IScriptPackable
     {
         private const string ScriptTypeJsonKey = "__$t";
         public IBytesPackable Instance;
         
+        public Type? ScriptType => Instance?.GetType();
+        
+        public Type ScriptBaseType => typeof(IBytesPackable);
+        
         public ScriptPackInstance(IBytesPackable instance) => Instance = instance;
+        public void SetInstance(IBytesPackable instance) => Instance = instance;
+        public IBytesPackable CreateInstance() => Instance;
+        
+        public bool Equals(ScriptPackInstance other) => EqualityComparer<object>.Default.Equals(Instance, other.Instance);
+        public override bool Equals(object obj) => obj is ScriptPackInstance other && Equals(other);
+        public override int GetHashCode() => EqualityComparer<object>.Default.GetHashCode(Instance);
         
         #region serialization
         
@@ -101,14 +112,24 @@ namespace FLib
         #endregion
     }
     
-    public struct ScriptPackInstance<T> : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable where T : IBytesPackable
+    public struct ScriptPackInstance<T> : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IScriptPackable, IEquatable<ScriptPackInstance<T>>
+        where T : IBytesPackable
     {
         public T Instance;
         
         public ScriptPackInstance(T instance) => Instance = instance;
         
+        public Type ScriptType => Instance?.GetType();
+        
+        public Type ScriptBaseType => typeof(T);
+        public void SetInstance(IBytesPackable instance) => Instance = (T)instance;
+        public IBytesPackable CreateInstance() => Instance;
+        
         public static implicit operator T(in ScriptPackInstance<T> v) => v.Instance;
         public static implicit operator ScriptPackInstance<T>(T v) => new(v);
+        public bool Equals(ScriptPackInstance<T> other) => EqualityComparer<T>.Default.Equals(Instance, other.Instance);
+        public override bool Equals(object obj) => obj is ScriptPackInstance<T> other && Equals(other);
+        public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode(Instance);
         
         #region serialization
         
