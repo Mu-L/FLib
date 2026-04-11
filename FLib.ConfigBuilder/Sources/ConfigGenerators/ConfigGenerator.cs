@@ -45,7 +45,7 @@ namespace FLib
                 for (var i = 0; i < names.Length; i++)
                 {
                     var name = names[i].ToString();
-                    if (customValues?.TryGetValue(name, out var customValue) == true)
+                    if (customValues != null && customValues.TryGetValue(name, out var customValue))
                         codeSource.Append(name).Append('=').Append(customValue.ToString()).AppendLine();
                     else if (isFlags)
                         codeSource.Append(name).Append('=').Append("1 << ").Append(i).Append(',').AppendLine();
@@ -58,7 +58,6 @@ namespace FLib
             
             foreach (var item in defines["Types"]!.AsDict!)
             {
-                
             }
         }
     }
