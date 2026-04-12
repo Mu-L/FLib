@@ -16,34 +16,34 @@ namespace FLib
     public struct BitFlags : IBytesSerializable, IJson5Deserializable, IJson5Serializable, IEquatable<BitFlags>
     {
         #region static
-
+        
         /// <summary>
         /// 包含全部标记
         /// </summary>
         public static readonly BitFlags AllFlags = uint.MaxValue;
-
+        
         /// <summary>
         /// 没有任何标记
         /// </summary>
         public static readonly BitFlags EmptyFlags = 0;
-
+        
         /// <summary>
         /// 标记组的字符串名称记录. 数组下标代表组id
         /// [groupId{flagName,flagBitMask}]
         /// </summary>
         public static ReadOnlyDictionary<string, byte>[] FlagNameBits;
-
+        
         /// <summary>
         /// 标记组的字符串名称记录
         /// [[group0Flag0,group0Flag1], [group1Flag0,group1Flag1]]
         /// </summary>
         public static string[][] FlagGroupNames;
-
+        
         /// <summary>
         /// 是否已经初始化过从外部得到的标记名字配置
         /// </summary>
         public static bool IsInitialized => FlagNameBits != null;
-
+        
         /// <summary>
         /// 初始化全部标记名称配置
         /// </summary>
@@ -64,7 +64,7 @@ namespace FLib
                 FlagNameBits[group] = new ReadOnlyDictionary<string, byte>(dict);
             }
         }
-
+        
         /// <summary>
         /// 获取标记二进制位, 不包含组
         /// </summary>
@@ -74,7 +74,7 @@ namespace FLib
                 throw new Exception($"not found flag: {group}>{name}");
             return bit;
         }
-
+        
         /// <summary>
         /// 或者完整标记标记数据
         /// </summary>
@@ -82,45 +82,45 @@ namespace FLib
         {
             return new BitFlags(group, 1u << GetFlagBit(group, name));
         }
-
+        
         #endregion
-
+        
         #region instance
-
+        
         public uint Raw;
-
+        
         public byte Group
         {
             readonly get => (byte)(Raw >> 28);
             set => Raw = (Raw & 0x0FFFFFFFu) | ((uint)(value & 0xF) << 28);
         }
-
+        
         public uint Mask
         {
             readonly get => Raw & 0x0FFFFFFFu;
             set => Raw = (value & 0x0FFFFFFFu) | ((uint)Group << 28);
         }
-
+        
         /// <summary>
         /// 是否包含指定的全部标记(忽略group)
         /// </summary>
         public readonly bool All(uint mask) => (Mask & mask) == mask;
-
+        
         /// <summary>
         /// 是否包含指定的任意一个标记(忽略group)
         /// </summary>
         public readonly bool Any(uint mask) => (Mask & mask) != 0;
-
+        
         /// <summary>
         /// 是否包含指定的全部标记
         /// </summary>
         public readonly bool All(in BitFlags flags) => Group == flags.Group && (Mask & flags.Mask) == flags.Mask;
-
+        
         /// <summary>
         /// 是否包含指定的任意一个标记
         /// </summary>
         public readonly bool Any(in BitFlags flags) => Group == flags.Group && (Mask & flags.Mask) != 0;
-
+        
         /// <summary>
         /// 添加指定标记
         /// </summary>
@@ -129,7 +129,7 @@ namespace FLib
             Log.Assert(flags.Group == Group)?.Write($"group error add({flags}), cur: {this}");
             Mask |= flags.Mask;
         }
-
+        
         /// <summary>
         /// 移除指定标记
         /// </summary>
@@ -138,15 +138,15 @@ namespace FLib
             Log.Assert(flags.Group == Group)?.Write($"group error {this} remove({flags})");
             Mask &= ~flags.Mask;
         }
-
+        
         public readonly bool IsEmpty => Mask == 0;
         public readonly override string ToString() => $"{Group}:{Mask}";
         public BitFlags(byte group, uint mask) => Raw = ((uint)(group & 0xF) << 28) | (mask & 0x0FFFFFFFu);
-
+        
         #endregion
-
+        
         #region serialization
-
+        
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)
         {
             if (nodes.TryMoveNextValueOrCloseToken(out var node))
@@ -161,14 +161,14 @@ namespace FLib
                         throw new Exception($"not found flag name: {flagGroup}>{node.ContentCopyString}");
                     Raw |= (uint)1 << bit;
                 }
-
+                
                 Raw = Raw << 4 | flagGroup;
                 return true;
             }
-
+            
             return false;
         }
-
+        
         public readonly string JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
         {
             if (Raw == 0)
@@ -185,14 +185,14 @@ namespace FLib
                     names.Add(allFlagNames[i]);
                 mask >>= 1;
             }
-
+            
             return names.IsEmpty ? $"[{Group}]" : $"[{Group},{string.Join(',', names)}]";
         }
-
+        
         #endregion
-
+        
         #region helper
-
+        
         public static implicit operator uint(in BitFlags flags) => flags.Raw;
         public static implicit operator int(in BitFlags flags) => (int)flags.Raw;
         public static implicit operator long(in BitFlags flags) => flags.Raw;
@@ -208,7 +208,7 @@ namespace FLib
         public override int GetHashCode() => (int)Raw;
         public static bool operator ==(BitFlags left, BitFlags right) => left.Raw == right.Raw;
         public static bool operator !=(BitFlags left, BitFlags right) => left.Raw != right.Raw;
-
+        
         #endregion
     }
 }

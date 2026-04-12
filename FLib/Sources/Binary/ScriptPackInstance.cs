@@ -13,7 +13,7 @@ namespace FLib
         private const string ScriptTypeJsonKey = "__$t";
         public IBytesPackable Instance;
         
-        public Type? ScriptType => Instance?.GetType();
+        public Type ScriptType => Instance?.GetType();
         
         public Type ScriptBaseType => typeof(IBytesPackable);
         

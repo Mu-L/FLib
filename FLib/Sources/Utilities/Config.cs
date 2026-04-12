@@ -190,16 +190,47 @@ namespace FLib
             }
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void DeserializeConfigParse(uint id, ref BytesReader reader, out Meta meta, bool isSkip = false, ConfigHelper.EOption addOptions = default)
+        {
+            meta = new Meta { Options = reader.Read<ConfigHelper.EOption>() | addOptions };
+            if (isSkip)
+            {
+                var len = reader.ReadLength();
+                reader.Position += len;
+            }
+            else
+            {
+                meta.RawBytes = reader.ReadArray<byte>();
+            }
+            
+            try
+            {
+                if (!isSkip && (meta.Options & ConfigHelper.EOption.AlwaysDeserializeData) != 0)
+                {
+                    meta.Value = new T();
+                    BytesPack.Unpack(ref meta.Value, meta.RawBytes, $"{typeof(T).Name}->{id}");
+                    meta.Options = ConfigHelper.EOption.__DeserializedData;
+                    if ((meta.Options & ConfigHelper.EOption.AlwaysStoreRawBytes) == 0)
+                        meta.RawBytes = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error?.Write($"deserialize config error: {typeof(T).Name}->{id}\n{ex}");
+            }
+        }
+        
         private static void TryDeserializeData(ref Meta meta)
         {
             if ((meta.Options & ConfigHelper.EOption.__DeserializedData) != 0) return;
             meta.Options |= ConfigHelper.EOption.__DeserializedData;
             meta.Value = new T();
             BytesPack.Unpack(ref meta.Value, meta.RawBytes);
-            if ((meta.Options & ConfigHelper.EOption.AlwaysStoreRawBytes) == 0)
-            {
+            if ((meta.Options & ConfigHelper.EOption.AlwaysStoreRawBytes) == 0) 
                 meta.RawBytes = null;
-            }
         }
         
         private static void TryDecompressRawBytes(ref Meta meta, bool isWithDeserialize = false)
@@ -223,27 +254,7 @@ namespace FLib
             for (var i = 0; i < count; i++)
             {
                 var id = (uint)reader.ReadVInt();
-                var meta = new Meta
-                {
-                    Options = reader.Read<ConfigHelper.EOption>(),
-                    RawBytes = reader.ReadArray<byte>(),
-                };
-                
-                try
-                {
-                    if ((meta.Options & ConfigHelper.EOption.AlwaysDeserializeData) != 0)
-                    {
-                        meta.Value = new T();
-                        BytesPack.Unpack(ref meta.Value, meta.RawBytes, $"{typeof(T).Name}->{id}");
-                        meta.Options = ConfigHelper.EOption.__DeserializedData;
-                        meta.RawBytes = null;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error?.Write($"deserialize config error: {typeof(T).Name}->{id}\n{ex}");
-                }
-                
+                DeserializeConfigParse(id, ref reader, out var meta);
                 if (!idMetas.TryAdd(id, i))
                     throw new Exception($"found already exist sid: {typeof(T).Name}.{id}");
                 AllMetas[i] = meta;
@@ -322,10 +333,19 @@ namespace FLib
             for (var i = 0; i < buildConfigCount; i++)
             {
                 var configType = TypeAssistant.GetType(reader.ReadString(Encoding.ASCII));
-                var configTypeWrap = typeof(Config<>).MakeGenericType(configType);
+                var customDeserialize = configType.GetMethod("CustomDeserialize", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 deserializeConfigTableParams[0] = buffer[reader.Position..];
-                reader.Position += (int)configTypeWrap.GetMethod("DeserializeConfigTable", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, deserializeConfigTableParams)!;
-                var initializer = configType.GetMethod("OnAllConfigInitialize", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                if (customDeserialize != null)
+                {
+                    customDeserialize.Invoke(null, deserializeConfigTableParams);
+                }
+                else
+                {
+                    var configTypeWrap = typeof(Config<>).MakeGenericType(configType);
+                    reader.Position += (int)configTypeWrap.GetMethod("DeserializeConfigTable", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, deserializeConfigTableParams)!;
+                }
+                
+                var initializer = configType.GetMethod("OnAllConfigInitialized", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 if (initializer != null)
                     initializers.Add(initializer);
             }
@@ -359,7 +379,7 @@ namespace FLib
     }
     
     /// <summary>
-    /// 
+    /// 当配置表build之后的回调
     /// </summary>
     public interface IConfigPostBuildProcessable
     {
@@ -367,7 +387,7 @@ namespace FLib
     }
     
     /// <summary>
-    /// 
+    /// 当配置表build之后的回调, 自己注册
     /// </summary>
     public class ConfigPostBuildProcessData
     {
@@ -377,15 +397,15 @@ namespace FLib
     }
     
     /// <summary>
-    /// 
+    /// 配置文件自定义构建到表, 由自己写入到context
     /// </summary>
-    public interface IConfigFileCustomDeserializeToTable
+    public interface IConfigFileCustomBuildToTable
     {
         void ConfigFileDeserializeToTable(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts);
     }
     
     /// <summary>
-    /// 
+    /// 配置表构建上下文
     /// </summary>
     public interface IConfigBuildTableContext
     {
@@ -393,10 +413,11 @@ namespace FLib
         FieldInfo IndexIdField { get; }
         string SourceFilePath { get; }
         string ConfigName { get; }
+        List<string> ConfigNameArgs { get; }
         ConfigHelper.EOption Options { get; set; }
         List<(uint Id, IBytesPackable Cfg)> AllConfigs { get; set; }
         Dictionary<uint, int> AllConfigIdIndexes { get; set; }
         (uint Id, int Index)? AddConfig(object objId, IBytesPackable config);
-        (uint Id, int Index)? AddConfigAndDynamicId(IBytesPackable config);
+        (uint Id, int Index)? AddConfigByDynamicId(IBytesPackable config);
     }
 }
