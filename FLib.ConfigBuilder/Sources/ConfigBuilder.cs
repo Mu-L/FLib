@@ -21,7 +21,8 @@ namespace FLib
         public static int ConfigTableCompressSize = 1024;
         public static char Sign = '*';
         public static string OutputPath = "cfg.bytes";
-        
+        public static Action<ConcurrentDictionary<Type, IConfigBuildTableContext>, Dictionary<string, List<SourceFileMeta>>> CustomBuilder;
+
         private static readonly Func<IEnumerable<Type>> GetAllTypes = () =>
             TypeAssistant.AllAssemblies.Where(v => v != typeof(ConfigHelper).Assembly && v != typeof(ConfigHelper).Assembly).SelectMany(v => v.ExportedTypes);
         
@@ -222,6 +223,7 @@ namespace FLib
             }
             
             var contexts = new ConcurrentDictionary<Type, IConfigBuildTableContext>(Environment.ProcessorCount, 1024);
+            CustomBuilder?.Invoke(contexts, sourceFileMetas);
             
             if (isMultithread)
                 GetAllTypes().AsParallel().ForAll(t => BuildTablesAddContext(t, contexts, sourceFileMetas));

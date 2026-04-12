@@ -48,7 +48,7 @@ namespace FLib
             Bytes = bytes;
         }
         
-        public ScriptPackBytes(IBytesPackable instance)
+        public ScriptPackBytes(IBytesPackable? instance)
         {
             Bytes = Array.Empty<byte>();
             SetInstance(instance);
@@ -120,6 +120,55 @@ namespace FLib
         {
             Bytes = reader.ReadArray<byte>();
         }
+        
+        public readonly void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
+        {
+            key.Push(ref writer, 1);
+            Z_BytesWrite(ref writer);
+        }
+        
+        public void Z_BytesPackRead(int key, ref BytesReader reader)
+        {
+            if (key == 1)
+                Z_BytesRead(ref reader);
+        }
+        
+        #endregion
+    }
+    
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    public struct ScriptPackBytes<T> : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IScriptPackable where T : IBytesPackable
+    {
+        public byte[] Bytes;
+        public readonly string ScriptTypeName => Bytes?.Length == 0 ? string.Empty : new BytesReader(Bytes).ReadString();
+        public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
+        public Type ScriptBaseType => typeof(T);
+        public readonly Memory<byte> InstanceBytes => new ScriptPackBytes(Bytes).InstanceBytes;
+        public ScriptPackBytes(byte[] bytes) => Bytes = bytes;
+        
+        public ScriptPackBytes(IBytesPackable instance)
+        {
+            Bytes = Array.Empty<byte>();
+            SetInstance(instance);
+        }
+        
+        IBytesPackable? IScriptPackable.CreateInstance() => CreateInstance();
+        public readonly T? CreateInstance() => (T?)new ScriptPackBytes(Bytes).CreateInstance();
+        public void SetInstance(IBytesPackable? instance) => Bytes = new ScriptPackBytes(instance).Bytes;
+        
+        #region serialization
+        
+        public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData) =>
+            ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
+        
+        public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options) =>
+            new ScriptPackBytes(Bytes).JsonDeserialize(ref nodes, otherData, options);
+        
+        public readonly void Z_BytesWrite(ref BytesWriter writer) => writer.Push(Bytes);
+        public void Z_BytesRead(ref BytesReader reader) => Bytes = reader.ReadArray<byte>();
         
         public readonly void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {

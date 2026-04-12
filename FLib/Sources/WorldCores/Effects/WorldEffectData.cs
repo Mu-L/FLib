@@ -8,8 +8,8 @@ namespace FLib.WorldCores.Effects
         public ushort MaxStackCount;
         public ushort StackCount;
         public EWorldEffectAddOption AddOption;
-        public uint Flags;
-
+        [BitFlagsType()] public BitFlags Flags;
+        
         public override string ToString() => Json5.Serialize(this);
     }
 }
