@@ -103,8 +103,8 @@ namespace FLib.WorldCores.Effects
                 
                 item.Single = effect;
             }
-            else if (effect.Data.AddOption == EWorldEffectAddOption.IgnoreNew ||
-                     (effect.Data.AddOption is EWorldEffectAddOption.AddStack or EWorldEffectAddOption.AddStackAndResetTime && effect.Data.StackCount >= effect.Data.MaxStackCount))
+            else if (effect.AddOption == EWorldEffectAddOption.IgnoreNew ||
+                     (effect.AddOption is EWorldEffectAddOption.AddStack or EWorldEffectAddOption.AddStackAndResetTime && effect.StackCount >= effect.MaxStackCount))
             {
                 return null;
             }
@@ -112,7 +112,7 @@ namespace FLib.WorldCores.Effects
             {
                 if (!Entity.DispatchPreEvent(ref evt))
                     return null;
-                switch (effect.Data.AddOption)
+                switch (effect.AddOption)
                 {
                     case EWorldEffectAddOption.ResetTime:
                         effect.Time.RefreshTime(World.Time);
@@ -174,10 +174,10 @@ namespace FLib.WorldCores.Effects
                 return false;
             }
             
-            effect.Data.StackCount = evt.RemoveCount == ushort.MaxValue ? ushort.MinValue : (ushort)(effect.Data.StackCount - evt.RemoveCount);
+            effect.StackCount = evt.RemoveCount == ushort.MaxValue ? ushort.MinValue : (ushort)(effect.StackCount - evt.RemoveCount);
             effect.OnStackCountChange(evt.RemoveCount);
             
-            if (effect.Data.StackCount > 0)
+            if (effect.StackCount > 0)
             {
                 Entity.DispatchEvent(evt);
                 return true;
@@ -203,7 +203,7 @@ namespace FLib.WorldCores.Effects
             var effectsEnum = Container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
             {
-                if ((effectsEnum.Value.Single!.Data.Flags | flags) == 0)
+                if ((effectsEnum.Value.Single!.MaskFlags | flags) == 0)
                     continue;
                 idList?.Add(effectsEnum.Key);
                 if (!effectsEnum.Value.MoreList.IsEmpty)
@@ -222,7 +222,7 @@ namespace FLib.WorldCores.Effects
         private unsafe void DestroyEffect(WorldEffect effect, bool isInvokeDestroy)
         {
             var container = Container;
-            FlagMask &= ~container.RemoveFlags(effect.Data.Flags);
+            FlagMask &= ~container.RemoveFlags(effect.MaskFlags);
             ref var item = ref container.Effects[effect.Id];
             try
             {
@@ -244,6 +244,9 @@ namespace FLib.WorldCores.Effects
             {
                 effect.ComponentManaged.Dispose();
                 World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
+                effect.MaxStackCount = effect.StackCount = 0;
+                effect.Duration = default;
+                effect.AddOption = default;
                 effect.TimeComponentId = -1;
                 effect.SystemPtr = null;
                 WorldGlobalSetting.DestroyEffect(this, effect);
@@ -259,12 +262,12 @@ namespace FLib.WorldCores.Effects
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref this);
             effect.AddedBy = evt.AddedBy;
             effect.Id = evt.Id;
-            if (effect.Data.MaxStackCount == 0)
-                effect.Data.MaxStackCount = ushort.MaxValue;
+            if (effect.MaxStackCount == 0)
+                effect.MaxStackCount = ushort.MaxValue;
             effect.TimeComponentId = World.Soa.GetGroup<WorldEffectTime>().Alloc(Entity, new WorldEffectTime(effect));
             effect.Time.RefreshTime(World.Time);
             
-            var mask = effect.Data.Flags;
+            var mask = effect.MaskFlags;
             FlagMask |= mask;
             Container.AddFlags(mask);
             
@@ -276,9 +279,9 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         private static void AddEffectStackCount(WorldEffect effect, ref ushort addCount)
         {
-            var oldCount = effect.Data.StackCount;
-            effect.Data.StackCount = (ushort)Math.Clamp(effect.Data.StackCount + addCount, 1, effect.Data.MaxStackCount);
-            addCount = (ushort)(effect.Data.StackCount - oldCount);
+            var oldCount = effect.StackCount;
+            effect.StackCount = (ushort)Math.Clamp(effect.StackCount + addCount, 1, effect.MaxStackCount);
+            addCount = (ushort)(effect.StackCount - oldCount);
         }
     }
 }

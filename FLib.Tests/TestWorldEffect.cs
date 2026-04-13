@@ -10,18 +10,21 @@ public class TestWorldEffect
     public class AEffect : WorldEffect
     {
         public int Value;
-
+        public uint Flags;
+        
+        public override uint MaskFlags => Flags;
+        
         public override void OnDestroy()
         {
             RemoveSelf();
         }
     }
-
+    
     public TestWorldEffect()
     {
-        WorldGlobalSetting.CreateEffect = (in system, in by, id, count) => new AEffect { Data = new WorldEffectData { MaxStackCount = 1, Duration = 1, Flags = 1 } };
+        WorldGlobalSetting.CreateEffect = (in system, in by, id, count) => new AEffect { MaxStackCount = 1, Duration = 1, Flags = 1 };
     }
-
+    
     [Fact]
     public void Basic()
     {
@@ -37,13 +40,13 @@ public class TestWorldEffect
         Assert.Equal(FNum.Round((FNum)0.5 * 100), FNum.Round(fxSys.Get(1)!.Time.Remaining * 100));
         for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
             world.Update();
-
+        
         Assert.False(fxSys.HasEffect(1));
         Assert.False(fxSys.HasFlags(1));
-
+        
         fxSys.Add(default, 1);
         et.RemoveSelf();
-
+        
         Assert.Null(WorldEffectPool.Containers.Frees);
         Assert.Empty(WorldEffectPool.Containers);
     }
