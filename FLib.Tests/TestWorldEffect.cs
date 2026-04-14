@@ -12,7 +12,7 @@ public class TestWorldEffect
         public int Value;
         public uint Flags;
         
-        public override uint MaskFlags => Flags;
+        public override uint FlagsMask => Flags;
         
         public override void OnDestroy()
         {

@@ -203,7 +203,7 @@ namespace FLib.WorldCores.Effects
             var effectsEnum = Container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
             {
-                if ((effectsEnum.Value.Single!.MaskFlags | flags) == 0)
+                if ((effectsEnum.Value.Single!.FlagsMask | flags) == 0)
                     continue;
                 idList?.Add(effectsEnum.Key);
                 if (!effectsEnum.Value.MoreList.IsEmpty)
@@ -222,7 +222,7 @@ namespace FLib.WorldCores.Effects
         private unsafe void DestroyEffect(WorldEffect effect, bool isInvokeDestroy)
         {
             var container = Container;
-            FlagMask &= ~container.RemoveFlags(effect.MaskFlags);
+            FlagMask &= ~container.RemoveFlags(effect.FlagsMask);
             ref var item = ref container.Effects[effect.Id];
             try
             {
@@ -242,13 +242,8 @@ namespace FLib.WorldCores.Effects
             }
             finally
             {
-                effect.ComponentManaged.Dispose();
                 World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
-                effect.MaxStackCount = effect.StackCount = 0;
-                effect.Duration = default;
-                effect.AddOption = default;
-                effect.TimeComponentId = -1;
-                effect.SystemPtr = null;
+                effect.Dispose();
                 WorldGlobalSetting.DestroyEffect(this, effect);
             }
         }
@@ -267,7 +262,7 @@ namespace FLib.WorldCores.Effects
             effect.TimeComponentId = World.Soa.GetGroup<WorldEffectTime>().Alloc(Entity, new WorldEffectTime(effect));
             effect.Time.RefreshTime(World.Time);
             
-            var mask = effect.MaskFlags;
+            var mask = effect.FlagsMask;
             FlagMask |= mask;
             Container.AddFlags(mask);
             

@@ -19,7 +19,7 @@ namespace FLib.WorldCores.Effects
         public WorldSoaComponentManaged ComponentManaged;
         [NonSerialized] internal int TimeComponentId = -1;
         
-        public abstract uint MaskFlags { get; }
+        public abstract uint FlagsMask { get; }
         public ref WorldEffectSystem System => ref *SystemPtr;
         public ref WorldEntity Entity => ref SystemPtr->Entity;
         public WorldCore World => SystemPtr->Entity.World;
@@ -71,6 +71,19 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public virtual void OnStackCountChange(int addCount)
         {
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void Dispose()
+        {
+            TimeComponentId = -1;
+            ComponentManaged.Dispose();
+            MaxStackCount = StackCount = 0;
+            Duration = default;
+            AddOption = default;
+            SystemPtr = null;
         }
         
         /// <summary>
