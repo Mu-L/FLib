@@ -9,7 +9,7 @@ namespace FLib
 {
     public static class ConfigGenerator
     {
-        public static void Process(string sourceDirPath, string ns = null, bool isMultithread = true)
+        public static void Process(string sourceDirPath, string destDirPath, string ns = null, bool isMultithread = true)
         {
             var codeSource = new StringBuilder(8192);
             codeSource.AppendLine("// generator sources");
