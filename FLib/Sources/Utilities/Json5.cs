@@ -1062,12 +1062,20 @@ namespace FLib
         public Json5AnyValue(object raw) => Raw = raw;
         public Json5AnyValue[]? AsArray => Raw as Json5AnyValue[];
         public Dictionary<string, Json5AnyValue>? AsDict => Raw as Dictionary<string, Json5AnyValue>;
+        public Dictionary<string, Json5AnyValue> CastDict => (Dictionary<string, Json5AnyValue>)Raw;
         public Json5AnyValue this[int index] => Get(index);
         public Json5AnyValue this[string key] => Get(key);
         public Json5AnyValue Get(int index) => AsArray![index];
         public Json5AnyValue Get(string key) => AsDict![key];
         public Json5AnyValue? TryGet(int index) => AsArray?.ElementAtOrDefault(index);
         public Json5AnyValue? TryGet(string key) => AsDict?.GetValueOrDefault(key);
+        
+        public bool TryGet(string key, out Json5AnyValue v)
+        {
+            v = null!;
+            return AsDict?.TryGetValue(key, out v) == true;
+        }
+        
         public bool Has(int index) => AsArray?.Length > index;
         public bool Has(string key) => AsDict?.ContainsKey(key) == true;
         public override string ToString() => Raw.ToString()!;
