@@ -957,7 +957,7 @@ namespace FLib
                 }
             }
             
-            return obj!;
+            return toType == typeof(Json5AnyValue) ? new Json5AnyValue(obj) : obj;
         }
         
         /// <summary>
@@ -966,7 +966,7 @@ namespace FLib
         public static object ToArray(ref Json5SyntaxNodes nodes, Type toType, Json5DeserializeOptionData options)
         {
             // list, array, collection
-            byte typeCode = 1;
+            byte typeCode = 0;
             var elType = toType;
             IList list;
             if (toType == typeof(object))
@@ -976,6 +976,7 @@ namespace FLib
             else if (toType == typeof(Json5AnyValue))
             {
                 list = new List<Json5AnyValue>();
+                typeCode = 1;
             }
             else if (toType.IsArray)
             {
@@ -987,12 +988,12 @@ namespace FLib
                 elType = toType.GetGenericArguments()[0];
                 if (typeof(IList).IsAssignableFrom(toType))
                 {
-                    typeCode = 0;
+                    typeCode = 2;
                     list = (IList)TypeAssistant.New(toType);
                 }
                 else
                 {
-                    typeCode = 2;
+                    typeCode = 3;
                     list = (IList)TypeAssistant.New(typeof(List<>).MakeGenericType(elType));
                 }
             }
@@ -1016,11 +1017,11 @@ namespace FLib
                 list.Add(val);
             }
             
-            if (typeCode != 1)
-                return typeCode == 2 ? TypeAssistant.New(toType, list) : list;
+            if (typeCode >= 2)
+                return typeCode == 3 ? TypeAssistant.New(toType, list) : list;
             var result = Array.CreateInstance(elType, list.Count);
             list.CopyTo(result, 0);
-            return result;
+            return typeCode == 1 ? new Json5AnyValue(result) : result;
         }
         
         /// <summary>
@@ -1061,23 +1062,27 @@ namespace FLib
         public Json5AnyValue(object raw) => Raw = raw;
         public Json5AnyValue[]? AsArray => Raw as Json5AnyValue[];
         public Dictionary<string, Json5AnyValue>? AsDict => Raw as Dictionary<string, Json5AnyValue>;
-        
-        public Json5AnyValue? this[int index] => AsArray?.ElementAtOrDefault(index);
-        
-        public Json5AnyValue? this[string key] => AsDict?.GetValueOrDefault(key);
+        public Json5AnyValue this[int index] => Get(index);
+        public Json5AnyValue this[string key] => Get(key);
+        public Json5AnyValue Get(int index) => AsArray![index];
+        public Json5AnyValue Get(string key) => AsDict![key];
+        public Json5AnyValue? TryGet(int index) => AsArray?.ElementAtOrDefault(index);
+        public Json5AnyValue? TryGet(string key) => AsDict?.GetValueOrDefault(key);
+        public bool Has(int index) => AsArray?.Length > index;
+        public bool Has(string key) => AsDict?.ContainsKey(key) == true;
         public override string ToString() => Raw.ToString()!;
-        public static implicit operator string(Json5AnyValue val) => (string)val.Raw;
-        public static implicit operator bool(Json5AnyValue val) => (bool)val.Raw;
-        public static implicit operator byte(Json5AnyValue val) => (byte)val.Raw;
-        public static implicit operator sbyte(Json5AnyValue val) => (sbyte)val.Raw;
-        public static implicit operator short(Json5AnyValue val) => (short)val.Raw;
-        public static implicit operator ushort(Json5AnyValue val) => (ushort)val.Raw;
-        public static implicit operator int(Json5AnyValue val) => (int)val.Raw;
-        public static implicit operator uint(Json5AnyValue val) => (uint)val.Raw;
-        public static implicit operator long(Json5AnyValue val) => (long)val.Raw;
-        public static implicit operator ulong(Json5AnyValue val) => (ulong)val.Raw;
-        public static implicit operator float(Json5AnyValue val) => (float)val.Raw;
-        public static implicit operator double(Json5AnyValue val) => (double)val.Raw;
+        public static implicit operator string(Json5AnyValue val) => Convert.ToString(val.Raw)!;
+        public static implicit operator bool(Json5AnyValue val) => Convert.ToBoolean(val.Raw);
+        public static implicit operator byte(Json5AnyValue val) => Convert.ToByte(val.Raw);
+        public static implicit operator sbyte(Json5AnyValue val) => Convert.ToSByte(val.Raw);
+        public static implicit operator short(Json5AnyValue val) => Convert.ToInt16(val.Raw);
+        public static implicit operator ushort(Json5AnyValue val) => Convert.ToUInt16(val.Raw);
+        public static implicit operator int(Json5AnyValue val) => Convert.ToInt32(val.Raw);
+        public static implicit operator uint(Json5AnyValue val) => Convert.ToUInt32(val.Raw);
+        public static implicit operator long(Json5AnyValue val) => Convert.ToInt64(val.Raw);
+        public static implicit operator ulong(Json5AnyValue val) => Convert.ToUInt64(val.Raw);
+        public static implicit operator float(Json5AnyValue val) => Convert.ToSingle(val.Raw);
+        public static implicit operator double(Json5AnyValue val) => Convert.ToDouble(val.Raw);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public IEnumerator<Json5AnyValue> GetEnumerator() => ((IEnumerable<Json5AnyValue>)AsArray!).GetEnumerator();
     }

@@ -20,12 +20,14 @@ namespace FLib
                 codeSource.Append("namespace ").Append(ns).AppendLine().AppendLine("{");
             var bodyPos = codeSource.Length;
             ProcessDefines(codeSource, Path.Combine(sourceDirPath, "_defines.json5"));
+            if (ns != null)
+                codeSource.AppendLine("}");
+            File.WriteAllText(Path.Combine(destDirPath, "ConfigDefines.cs"), codeSource.ToString());
+            
+            codeSource.Remove(bodyPos, codeSource.Length - bodyPos);
             foreach (var filePath in Directory.GetFiles(sourceDirPath, "*", SearchOption.AllDirectories))
             {
             }
-            
-            if (ns != null)
-                codeSource.AppendLine("}");
         }
         
         /// <summary>
@@ -41,7 +43,7 @@ namespace FLib
                     codeSource.AppendLine("[Flags]");
                 codeSource.AppendLine($"public enum {item.Key} {{");
                 var names = item.Value["Names"]!.AsArray!;
-                var customValues = item.Value["Values"]!.AsDict;
+                var customValues = item.Value.TryGet("Values")?.AsDict;
                 for (var i = 0; i < names.Length; i++)
                 {
                     var name = names[i].ToString();
@@ -50,7 +52,7 @@ namespace FLib
                     else if (isFlags)
                         codeSource.Append(name).Append('=').Append("1 << ").Append(i).Append(',').AppendLine();
                     else
-                        codeSource.AppendLine(name);
+                        codeSource.AppendLine(name).Append(',');
                 }
                 
                 codeSource.AppendLine("}");
