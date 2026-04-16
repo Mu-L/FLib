@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 #if UNITY_2022_3_OR_NEWER
@@ -26,21 +27,24 @@ namespace FLib
     
     public static class ConfigGenerator
     {
+        private static int _finishedTaskCount;
+        public static int FinishedTaskCount => _finishedTaskCount;
+        public static int TotalTasks { get; private set; }
+        public static float Progress => TotalTasks == 0 ? 0 : FinishedTaskCount / (float)TotalTasks;
+        
         /// <summary>
         /// 
         /// </summary>
         public static async Task Process(ConfigGenerateParams p)
         {
+            TotalTasks = _finishedTaskCount = 0;
             FIO.ClearDirectory(p.DestDirPath);
             
-            var tasks = new ConcurrentBag<Task>()
-            {
-                ProcessDefines(p)
-            };
-            
+            var tasks = new ConcurrentBag<Task>() { ProcessDefines(p) };
             Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
                 tasks.Add(ProcessConfig(jsonPath, p)));
             
+            TotalTasks = tasks.Count;
             await Task.WhenAll(tasks);
         }
         
@@ -74,6 +78,7 @@ namespace FLib
             if (p.HasNamespace)
                 strbuf.Append('}');
             await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, $"{name}.cs"), strbuf.ToString());
+            Interlocked.Increment(ref _finishedTaskCount);
         }
         
         /// <summary>
@@ -81,7 +86,6 @@ namespace FLib
         /// </summary>
         public static async Task ProcessDefines(ConfigGenerateParams p)
         {
-            // ProcessDefines(Path.Combine(sourceDirPath, "_defines.json5"), Path.Combine(destDirPath, "_ConfigDefines.cs"), ns)
             var jsonText = await File.ReadAllTextAsync(Path.Combine(p.SourceDirPath, "_defines.json5"));
             var strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
             var json = Json5.Deserialize<Json5AnyValue>(jsonText);
@@ -143,6 +147,7 @@ namespace FLib
                 strbuf.Append('}');
             
             await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, "_ConfigDefines.cs"), strbuf.ToString());
+            Interlocked.Increment(ref _finishedTaskCount);
         }
         
         /// <summary>
