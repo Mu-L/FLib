@@ -10,23 +10,27 @@ using System.Threading.Tasks;
 
 namespace FLib
 {
+    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, string[] Usings = null)
+    {
+        public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
+    }
+    
     public static class ConfigGenerator
     {
         /// <summary>
         /// 
         /// </summary>
-        public static async Task Process(string sourceDirPath, string destDirPath, string ns = null)
+        public static async Task Process(ConfigGenerateParams p)
         {
-            destDirPath = Path.GetFullPath(destDirPath, sourceDirPath);
-            FIO.ClearDirectory(destDirPath);
+            FIO.ClearDirectory(p.DestDirPath);
             
             var tasks = new ConcurrentBag<Task>()
             {
-                ProcessDefines(Path.Combine(sourceDirPath, "_defines.json5"), Path.Combine(destDirPath, "_ConfigDefines.cs"), ns)
+                ProcessDefines(p)
             };
             
-            Directory.GetFiles(sourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
-                tasks.Add(ProcessConfig(jsonPath, destDirPath, ns)));
+            Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
+                tasks.Add(ProcessConfig(jsonPath, p)));
             
             await Task.WhenAll(tasks);
         }
@@ -34,36 +38,48 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static async Task ProcessConfig(string jsonPath, string destDir, string ns)
+        public static async Task ProcessConfig(string jsonPath, ConfigGenerateParams p)
         {
             var jsonText = await File.ReadAllTextAsync(jsonPath);
-            var strbuf = new StringBuilder(jsonText.Length).AppendHead(ns);
+            var strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
             var json = Json5.Deserialize<Json5AnyValue>(jsonText);
             var indent = 1;
             var name = json["Name"].ToString();
             
             strbuf.Indent(indent).AppendLine("[BytesPackGen]")
                 .Indent(indent).Append("public partial class ").Append(name).AppendLine(" {");
+            ++indent;
             
+            foreach (var field in json["Fields"]!.Dict)
+            {
+                strbuf.Indent(indent).AppendLine("/// <summary>")
+                    .Indent(indent).Append("/// ").Append(field.Value.TryGet("Comment")?.ToString()).AppendLine()
+                    .Indent(indent).AppendLine("/// </summary>");
+                strbuf.Indent(indent).Append("[BytesPackGenField] ")
+                    .Append("public ").Append(field.Value["Type"].ToString()).Append(' ')
+                    .Append(field.Key).Append(';').AppendLine().AppendLine();
+            }
             
+            --indent;
             strbuf.Indent(indent).AppendLine("}");
-            if (ns != null)
+            if (p.HasNamespace)
                 strbuf.Append('}');
-            await File.WriteAllTextAsync(Path.Combine(destDir, $"{name}.cs"), strbuf.ToString());
+            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, $"{name}.cs"), strbuf.ToString());
         }
         
         /// <summary>
         /// 
         /// </summary>
-        public static async Task ProcessDefines(string jsonPath, string destPath, string ns)
+        public static async Task ProcessDefines(ConfigGenerateParams p)
         {
-            var jsonText = await File.ReadAllTextAsync(jsonPath);
-            var strbuf = new StringBuilder(jsonText.Length).AppendHead(ns);
+            // ProcessDefines(Path.Combine(sourceDirPath, "_defines.json5"), Path.Combine(destDirPath, "_ConfigDefines.cs"), ns)
+            var jsonText = await File.ReadAllTextAsync(Path.Combine(p.SourceDirPath, "_defines.json5"));
+            var strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
             var json = Json5.Deserialize<Json5AnyValue>(jsonText);
             var indent = 1;
             
             // 生成枚举
-            foreach (var item in json["Enums"]!.CastDict)
+            foreach (var item in json["Enums"]!.Dict)
             {
                 strbuf.Indent(indent).AppendLine("/// <summary>");
                 strbuf.Indent(indent).Append("/// ").Append(item.Value.TryGet("Comment")?.ToString()).AppendLine();
@@ -96,9 +112,9 @@ namespace FLib
             {
                 foreach (var item in types.AsDict!)
                 {
-                    strbuf.Indent(indent).AppendLine("/// <summary>");
-                    strbuf.Indent(indent).Append("/// ").Append(item.Value.TryGet("Comment")?.ToString()).AppendLine();
-                    strbuf.Indent(indent).AppendLine("/// </summary>");
+                    strbuf.Indent(indent).AppendLine("/// <summary>")
+                        .Indent(indent).Append("/// ").Append(item.Value.TryGet("Comment")?.ToString()).AppendLine()
+                        .Indent(indent).AppendLine("/// </summary>");
                     strbuf.Indent(indent).AppendLine("[BytesPackGen]");
                     strbuf.Indent(indent).Append("public partial ").Append(item.Value["Type"].ToString()).Append(' ').Append(item.Key).Append(" {").AppendLine();
                     ++indent;
@@ -110,14 +126,14 @@ namespace FLib
                     }
                     
                     --indent;
-                    strbuf.Indent(indent).Append('}').AppendLine();
+                    strbuf.Indent(indent).Append('}').AppendLine().AppendLine();
                 }
             }
             
-            if (ns != null)
+            if (p.HasNamespace)
                 strbuf.Append('}');
             
-            await File.WriteAllTextAsync(destPath, strbuf.ToString());
+            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, "_ConfigDefines.cs"), strbuf.ToString());
         }
         
         /// <summary>
@@ -131,13 +147,20 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        private static StringBuilder AppendHead(this StringBuilder strbuf, string ns)
+        private static StringBuilder AppendHead(this StringBuilder strbuf, ConfigGenerateParams p)
         {
             strbuf.AppendLine("// generator sources")
                 .AppendLine("using System;")
                 .AppendLine("using FLib;");
-            if (!string.IsNullOrEmpty(ns))
-                strbuf.Append("namespace ").Append(ns).AppendLine().AppendLine("{");
+            if (p.Usings?.Length > 0)
+            {
+                foreach (var u in p.Usings)
+                    strbuf.Append("using ").Append(u).Append(';').AppendLine();
+            }
+            
+            strbuf.AppendLine();
+            if (p.HasNamespace)
+                strbuf.Append("namespace ").Append(p.Namespace).AppendLine().AppendLine("{");
             return strbuf;
         }
     }

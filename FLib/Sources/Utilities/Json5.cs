@@ -1061,8 +1061,9 @@ namespace FLib
         public object Raw;
         public Json5AnyValue(object raw) => Raw = raw;
         public Json5AnyValue[]? AsArray => Raw as Json5AnyValue[];
+        public Json5AnyValue[] Array => (Json5AnyValue[])Raw;
         public Dictionary<string, Json5AnyValue>? AsDict => Raw as Dictionary<string, Json5AnyValue>;
-        public Dictionary<string, Json5AnyValue> CastDict => (Dictionary<string, Json5AnyValue>)Raw;
+        public Dictionary<string, Json5AnyValue> Dict => (Dictionary<string, Json5AnyValue>)Raw;
         public Json5AnyValue this[int index] => Get(index);
         public Json5AnyValue this[string key] => Get(key);
         public Json5AnyValue Get(int index) => AsArray![index];
