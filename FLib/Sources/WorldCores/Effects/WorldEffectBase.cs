@@ -7,7 +7,7 @@ using FLib.WorldCores.SoaComponents;
 namespace FLib.WorldCores.Effects
 {
     [BytesPackGenHoldKey(2)]
-    public abstract unsafe class WorldEffect : IBytesPackable
+    public abstract unsafe class WorldEffectBase : IBytesPackable
     {
         [NonSerialized] internal WorldEffectSystem* SystemPtr;
         public uint Id;

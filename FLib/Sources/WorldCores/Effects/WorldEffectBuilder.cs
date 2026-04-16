@@ -5,9 +5,9 @@ namespace FLib.WorldCores.Effects
 {
     public readonly ref struct WorldEffectBuilder
     {
-        public readonly WorldEffect? Effect;
+        public readonly WorldEffectBase? Effect;
 
-        public WorldEffectBuilder(WorldEffect? effect)
+        public WorldEffectBuilder(WorldEffectBase? effect)
         {
             Effect = effect;
         }

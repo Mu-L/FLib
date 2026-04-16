@@ -73,7 +73,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public WorldEffect? Get(uint id)
+        public WorldEffectBase? Get(uint id)
         {
             var effects = Container.Effects;
             var index = effects.GetEntryIndex(id);
@@ -83,7 +83,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 添加效果实例到实体
         /// </summary>
-        public WorldEffect? Add(in WorldEntityId addedBy, uint id, ushort addCount = 1)
+        public WorldEffectBase? Add(in WorldEntityId addedBy, uint id, ushort addCount = 1)
         {
             World.Assert(!IsDisposed);
             var container = Container;
@@ -159,7 +159,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 移除效果实例的内部实现
         /// </summary>
-        public bool Remove(WorldEffect effect, ushort removeCount = ushort.MaxValue)
+        public bool Remove(WorldEffectBase effect, ushort removeCount = ushort.MaxValue)
         {
             if (effect.IsRemoving)
             {
@@ -219,7 +219,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 释放效果实例
         /// </summary>
-        private unsafe void DestroyEffect(WorldEffect effect, bool isInvokeDestroy)
+        private unsafe void DestroyEffect(WorldEffectBase effect, bool isInvokeDestroy)
         {
             var container = Container;
             FlagMask &= ~container.RemoveFlags(effect.FlagsMask);
@@ -251,7 +251,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        private unsafe WorldEffect CreateEffect(in WorldAddEffectEvent evt)
+        private unsafe WorldEffectBase CreateEffect(in WorldAddEffectEvent evt)
         {
             var effect = WorldGlobalSetting.CreateEffect(this, evt.AddedBy, evt.Id, evt.AddCount);
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref this);
@@ -272,7 +272,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 增加效果的层数，确保不超过最大层数限制
         /// </summary>
-        private static void AddEffectStackCount(WorldEffect effect, ref ushort addCount)
+        private static void AddEffectStackCount(WorldEffectBase effect, ref ushort addCount)
         {
             var oldCount = effect.StackCount;
             effect.StackCount = (ushort)Math.Clamp(effect.StackCount + addCount, 1, effect.MaxStackCount);

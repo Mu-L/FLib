@@ -9,19 +9,19 @@ using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Effects
 {
-    public class WorldEffectContainer : IEnumerable<WorldEffect>
+    public class WorldEffectContainer : IEnumerable<WorldEffectBase>
     {
         private static readonly byte[] DeBruijn32 = { 0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9 };
         public SlimDictionary<uint, Item> Effects = new(32);
         public byte[] FlagCounts = new byte[32];
 
-        public struct Item : IEnumerable<WorldEffect>
+        public struct Item : IEnumerable<WorldEffectBase>
         {
-            public WorldEffect? Single;
-            public PooledList<WorldEffect> MoreList;
+            public WorldEffectBase? Single;
+            public PooledList<WorldEffectBase> MoreList;
 
             public ItemEnumerator GetEnumerator() => new(this);
-            IEnumerator<WorldEffect> IEnumerable<WorldEffect>.GetEnumerator() => GetEnumerator();
+            IEnumerator<WorldEffectBase> IEnumerable<WorldEffectBase>.GetEnumerator() => GetEnumerator();
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
             /// <summary>
@@ -40,11 +40,11 @@ namespace FLib.WorldCores.Effects
                 return true;
             }
 
-            public struct ItemEnumerator : IEnumerator<WorldEffect>
+            public struct ItemEnumerator : IEnumerator<WorldEffectBase>
             {
                 private readonly Item _item;
                 private int _index; // -1 = before Single, 0+ = MoreList index
-                public WorldEffect Current { get; private set; }
+                public WorldEffectBase Current { get; private set; }
                 object IEnumerator.Current => Current;
 
                 public ItemEnumerator(Item item)
@@ -125,17 +125,17 @@ namespace FLib.WorldCores.Effects
         private static int TrailingZeros(uint v) => DeBruijn32[(v & (uint)-(int)v) * 0x077CB531u >> 27];
 
         public Enumerator GetEnumerator() => new(Effects);
-        IEnumerator<WorldEffect> IEnumerable<WorldEffect>.GetEnumerator() => GetEnumerator();
+        IEnumerator<WorldEffectBase> IEnumerable<WorldEffectBase>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         /// <summary>
         /// 
         /// </summary>
-        public struct Enumerator : IEnumerator<WorldEffect>
+        public struct Enumerator : IEnumerator<WorldEffectBase>
         {
             private SlimDictionary<uint, Item>.Enumerator _enumerator;
             private Item.ItemEnumerator _enumerator2;
-            public WorldEffect Current => _enumerator2.Current;
+            public WorldEffectBase Current => _enumerator2.Current;
             object IEnumerator.Current => Current;
 
             internal Enumerator(SlimDictionary<uint, Item> effects)

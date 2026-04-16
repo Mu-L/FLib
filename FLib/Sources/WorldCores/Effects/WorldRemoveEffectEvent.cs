@@ -4,7 +4,7 @@ namespace FLib.WorldCores.Effects
 {
     public struct WorldRemoveEffectEvent
     {
-        public WorldEffect Effect;
+        public WorldEffectBase Effect;
         public ushort RemoveCount;
     }
 }

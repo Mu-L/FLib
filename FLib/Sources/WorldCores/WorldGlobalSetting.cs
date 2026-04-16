@@ -30,7 +30,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 销毁效果
         /// </summary>
-        public static DestroyHandlerDelegate DestroyEffect = (in WorldEffectSystem system, WorldEffect effect) => { };
+        public static DestroyHandlerDelegate DestroyEffect = (in WorldEffectSystem system, WorldEffectBase effect) => { };
 
         /// <summary>
         /// 默认行为类型
@@ -84,7 +84,7 @@ namespace FLib.WorldCores
 #endif
     }
 
-    public delegate WorldEffect EffectHandlerDelegate(in WorldEffectSystem system, in WorldEntityId addedBy, uint id, ushort addCount = 1);
+    public delegate WorldEffectBase EffectHandlerDelegate(in WorldEffectSystem system, in WorldEntityId addedBy, uint id, ushort addCount = 1);
 
-    public delegate void DestroyHandlerDelegate(in WorldEffectSystem system, WorldEffect effect);
+    public delegate void DestroyHandlerDelegate(in WorldEffectSystem system, WorldEffectBase effect);
 }

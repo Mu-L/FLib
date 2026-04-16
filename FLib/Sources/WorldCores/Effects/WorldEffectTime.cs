@@ -10,12 +10,12 @@ namespace FLib.WorldCores.Effects
     /// </summary>
     public struct WorldEffectTime : IWorldUpdate
     {
-        public readonly WorldEffect Effect;
+        public readonly WorldEffectBase Effect;
         public FNum EndTime;
 
         public readonly FNum Remaining => EndTime - Effect.World.Time;
 
-        public WorldEffectTime(WorldEffect effect)
+        public WorldEffectTime(WorldEffectBase effect)
         {
             Effect = effect;
             EndTime = Effect.World.Time + Effect.Duration;

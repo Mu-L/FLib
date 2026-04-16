@@ -17,7 +17,6 @@ namespace FLib
     {
         public readonly Type FlagEnumType;
         
-        
         public BitFlagsTypeAttribute()
         {
         }

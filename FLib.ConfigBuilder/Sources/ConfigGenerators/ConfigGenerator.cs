@@ -8,6 +8,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#if UNITY_2022_3_OR_NEWER
+namespace System.Runtime.CompilerServices
+{
+    static class IsExternalInit
+    {
+    }
+}
+#endif
+
 namespace FLib
 {
     public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, string[] Usings = null)
