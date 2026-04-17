@@ -32,7 +32,7 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         public int Add<T>(in T component)
         {
-            var idx = World.Soa.GetGroup<T>().Alloc(Entity.EntityId, component);
+            var idx = World.Soa.GetGroup<T>().Alloc(Entity.Id, component);
             Components.Add(new WorldSoaComponentHandle(idx, WorldComponentRegistry.GetId<T>()));
             return idx;
         }

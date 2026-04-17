@@ -17,8 +17,9 @@ namespace FLib.WorldCores
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
-                comp.OnDestroy(world, entityId);
+                WorldComponentEvents.OnDestroy?.Invoke(world, entityId, typeof(T), ref ptr);
                 WorldComponentEvents<T>.OnDestroy?.Invoke(world, entityId, ref comp);
+                comp.OnDestroy(world, entityId);
             }
             catch (Exception e)
             {

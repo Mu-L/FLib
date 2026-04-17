@@ -2,6 +2,7 @@
 
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using FLib.WorldCores;
 using FLib.WorldCores.Components;
 
@@ -39,15 +40,15 @@ namespace FLib.WorldCores.SoaComponents
         public static void UpdateStart<T>(WorldCore world, object arg) where T : IWorldStart
         {
             var group = (WorldUpdateSoaComponentGroup<T>)arg;
-
             foreach (var i in group.StartComponentIndexes)
             {
                 var et = group.ComponentEntities[i];
                 ref var comp = ref group.Components[i];
                 try
                 {
-                    comp.OnStart(world, et);
+                    WorldComponentEvents.OnStart?.Invoke(world, et, typeof(T), ref Unsafe.As<T, byte>(ref comp));
                     WorldComponentEvents<T>.OnStart?.Invoke(world, et, ref comp);
+                    comp.OnStart(world, et);
                 }
                 catch (Exception e)
                 {

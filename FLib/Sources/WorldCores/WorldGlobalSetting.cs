@@ -38,6 +38,16 @@ namespace FLib.WorldCores
         public static RWAction<WorldBehaviorSystem> DoDefaultBehavior = (ref WorldBehaviorSystem system) => system.Do(WorldBehaviorPool.Behaviors[0].GetType());
 
         /// <summary>
+        /// 
+        /// </summary>
+        public static Action<WorldEntity> OnCreateEntityEvent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Action<WorldEntity> OnRemoveEntityEvent;
+
+        /// <summary>
         /// 对齐大小
         /// </summary>
         public static int ComponentAlign = 16;

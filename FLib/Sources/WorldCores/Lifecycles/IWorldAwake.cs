@@ -27,8 +27,9 @@ namespace FLib.WorldCores
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
-                comp.OnAwake(world, entityId);
+                WorldComponentEvents.OnAwake?.Invoke(world, entityId, typeof(T), ref ptr);
                 WorldComponentEvents<T>.OnAwake?.Invoke(world, entityId, ref comp);
+                comp.OnAwake(world, entityId);
             }
             catch (Exception e)
             {

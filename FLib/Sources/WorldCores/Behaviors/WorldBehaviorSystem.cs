@@ -302,7 +302,7 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 停止指定 ID 的行为并处理主次切换逻辑。
         /// </summary>
-        private void Stop(ref int id, bool isDoDefault = true)
+        internal void Stop(ref int id, bool isDoDefault = true)
         {
             var bhv = WorldBehaviorPool.Behaviors[id];
             var bhvType = bhv.GetType();

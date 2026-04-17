@@ -25,7 +25,7 @@ namespace FLib.WorldCores
                 return ref WorldEntityInfo.Empty;
             return ref eti;
         }
-        
+
         /// <summary>
         /// 获取实体信息。
         /// </summary>
@@ -38,7 +38,7 @@ namespace FLib.WorldCores
             Assert(eti.Version == et.Version, msg: "version error");
             return ref eti;
         }
-        
+
         /// <summary>
         /// 创建一个新的实体生成器。
         /// </summary>
@@ -47,7 +47,7 @@ namespace FLib.WorldCores
         {
             return new WorldEntityBuilder(this);
         }
-        
+
         /// <summary>
         /// 从世界中移除指定的实体。
         /// </summary>
@@ -56,6 +56,16 @@ namespace FLib.WorldCores
         {
             ref var eti = ref GetEntityInfo(et);
             eti.SetDestroying();
+
+            try
+            {
+                WorldGlobalSetting.OnRemoveEntityEvent?.Invoke(et.AsEntity(this));
+            }
+            catch (Exception e)
+            {
+                Log.Error?.Write(e.ToString(), nameof(WorldCore));
+            }
+
             if (eti.HasDynamicComponent)
             {
                 var sparse = DynamicComponentSparse[eti.DynamicComponentSparseIndex];
@@ -68,11 +78,11 @@ namespace FLib.WorldCores
                     denseIndex = -1;
                 }
             }
-            
+
             ArchetypeGroup[eti.ArchetypeIndex].RemoveEntity(eti);
             Entities.Remove(et.Id);
         }
-        
+
         /// <summary>
         /// 检查实体是否存在于世界中。
         /// </summary>
@@ -82,7 +92,7 @@ namespace FLib.WorldCores
         {
             return !et.IsEmpty && Entities.Count > et.Id && Entities[et.Id].Version == et.Version;
         }
-        
+
         /// <summary>
         /// 检查实体是否存在且未处于销毁中。
         /// </summary>
@@ -95,7 +105,7 @@ namespace FLib.WorldCores
             ref readonly var eti = ref Entities[et.Id];
             return eti.Version == et.Version && !eti.IsDestroying;
         }
-        
+
         /// <summary>
         /// 获取实体的所有组件对象。
         /// </summary>
@@ -109,7 +119,7 @@ namespace FLib.WorldCores
             var chunk = eti.Chunk;
             foreach (var meta in ArchetypeGroup[eti.ArchetypeIndex].ComponentTypes)
                 list.Add(chunk.GetObj(eti.IndexInChunk, meta));
-            
+
             if (eti.HasDynamicComponent)
             {
                 var sparse = DynamicComponentSparse[eti.DynamicComponentSparseIndex];
@@ -124,7 +134,7 @@ namespace FLib.WorldCores
                     list.Add(val);
                 }
             }
-            
+
             return list;
         }
     }

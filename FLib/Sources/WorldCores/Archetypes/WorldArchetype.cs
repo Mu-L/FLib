@@ -21,12 +21,12 @@ namespace FLib.WorldCores.Archetypes
         public readonly WorldCore World;
 
         /// <summary>
-        /// 
+        /// 包含静态组件和shared组件
         /// </summary>
         public readonly ulong[] ComponentMask;
 
         /// <summary>
-        /// 
+        /// 只有静态组件, 不包含shared组件
         /// </summary>
         public readonly WorldComponentMeta[] ComponentTypes;
 

@@ -16,10 +16,10 @@ namespace FLib.WorldCores.Entities
         public WorldCore World;
         public WorldEntityId EntityId;
         internal PooledList<WorldComponentMeta> Components;
-        
-        
+
+
         public WorldEntity Entity => EntityId.AsEntity(World);
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -28,7 +28,7 @@ namespace FLib.WorldCores.Entities
             World = world;
             WorldStaticComponentMask.Clear();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -36,7 +36,7 @@ namespace FLib.WorldCores.Entities
         {
             return WorldStaticComponentMask.Get(WorldComponentRegistry.GetMeta<T>());
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -45,7 +45,7 @@ namespace FLib.WorldCores.Entities
             AddComponent(WorldComponentRegistry.GetInfo<T>(), false);
             return this;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -54,7 +54,7 @@ namespace FLib.WorldCores.Entities
             AddComponent(WorldComponentRegistry.GetInfo<Mng<T>>(), false);
             return this;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -63,7 +63,7 @@ namespace FLib.WorldCores.Entities
             AddComponent(WorldComponentRegistry.GetInfo<T>(), true);
             return this;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -78,7 +78,7 @@ namespace FLib.WorldCores.Entities
                     archetypeBuilder.With(Components[i]);
                 archetype = World.ArchetypeGroup.Create(hash, archetypeBuilder);
             }
-            
+
             EntityId = archetype.CreateEntity(out var entityInfo);
             var chunk = entityInfo.Chunk;
             var indexInChunk = entityInfo.IndexInChunk;
@@ -89,10 +89,10 @@ namespace FLib.WorldCores.Entities
                     chunk.ClearMemory(indexInChunk, archetype.ComponentTypes[i]);
                 }
             }
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -108,11 +108,12 @@ namespace FLib.WorldCores.Entities
                 if (!info.IsShared)
                     info.Awake?.Invoke(ref *(byte*)eti.Chunk.Get(eti.IndexInChunk, meta), World, EntityId);
             }
-            
+
             Components.Dispose();
+            WorldGlobalSetting.OnCreateEntityEvent?.Invoke(EntityId.AsEntity(World));
             return EntityId;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -120,9 +121,9 @@ namespace FLib.WorldCores.Entities
         {
             return Build().AsEntity(World);
         }
-        
+
         #region privates
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -140,7 +141,7 @@ namespace FLib.WorldCores.Entities
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -156,11 +157,11 @@ namespace FLib.WorldCores.Entities
             world.Assert(!typeof(IWorldUpdate).IsAssignableFrom(info.Type), msg: "static component not support update");
             world.Assert(!typeof(IWorldStart).IsAssignableFrom(info.Type), msg: "static component not support start");
         }
-        
+
         public static implicit operator WorldEntityId(in WorldEntityBuilder builder) => builder.EntityId;
         public static implicit operator WorldEntity(in WorldEntityBuilder builder) => builder.EntityId.AsEntity(builder.World);
         public static implicit operator WorldCore(in WorldEntityBuilder builder) => builder.World;
-        
+
         #endregion
     }
 }

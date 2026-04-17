@@ -10,7 +10,7 @@ namespace FLib.WorldCores
         public WorldCore World;
         public WorldEntityId EntityId;
 
-        public WorldCoreException(in WorldEntity entity, object msg, Exception inner = null) : this(entity.World, entity.EntityId, msg, inner)
+        public WorldCoreException(in WorldEntity entity, object msg, Exception inner = null) : this(entity.World, entity.Id, msg, inner)
         {
         }
 
