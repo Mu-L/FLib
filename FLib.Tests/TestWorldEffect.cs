@@ -7,7 +7,7 @@ namespace FLib.Tests;
 
 public class TestWorldEffect
 {
-    public class AEffect : WorldEffect
+    public class AEffect : WorldEffectBase
     {
         public int Value;
         public uint Flags;
