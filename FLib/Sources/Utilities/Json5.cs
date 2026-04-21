@@ -1074,7 +1074,7 @@ namespace FLib
         public bool TryGet(string key, out Json5AnyValue v)
         {
             v = null!;
-            return AsDict?.TryGetValue(key, out v) == true;
+            return AsDict?.TryGetValue(key, out v!) == true;
         }
         
         public bool Has(int index) => AsArray?.Length > index;
