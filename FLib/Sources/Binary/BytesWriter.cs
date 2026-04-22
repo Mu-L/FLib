@@ -1,4 +1,4 @@
-﻿//==================={By Qcbf|qcbf@qq.com|10/8/2022 11:05:05 AM}===================
+﻿// ==================={By Qcbf|qcbf@qq.com|10/8/2022 11:05:05 AM}===================
 
 using System;
 using System.Buffers;
@@ -194,6 +194,7 @@ namespace FLib
                 var srcPtr = bufPtr + atPosition;
                 Buffer.MemoryCopy(srcPtr, srcPtr + offsetLength, copySize, copySize);
             }
+
             if (isCleanMemory)
                 Span[atPosition..offsetLength].Clear();
             Position += offsetLength;

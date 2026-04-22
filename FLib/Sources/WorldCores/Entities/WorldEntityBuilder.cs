@@ -96,20 +96,33 @@ namespace FLib.WorldCores.Entities
         /// <summary>
         /// 
         /// </summary>
-        public unsafe WorldEntityId Build()
+        public unsafe WorldEntityBuilder PrepareComponents()
         {
             if (EntityId.IsEmpty)
                 PrepareEntity();
-            ref readonly var eti = ref World.GetEntityInfo(EntityId);
-            for (var i = 0; i < Components.Count; i++)
+            var count = Components.Count;
+            if (count > 0)
             {
-                var meta = Components[i];
-                ref readonly var info = ref WorldComponentRegistry.GetInfo(meta);
-                if (!info.IsShared)
-                    info.Awake?.Invoke(ref *(byte*)eti.Chunk.Get(eti.IndexInChunk, meta), World, EntityId);
+                ref readonly var eti = ref World.GetEntityInfo(EntityId);
+                for (var i = 0; i < count; i++)
+                {
+                    var meta = Components[i];
+                    ref readonly var info = ref WorldComponentRegistry.GetInfo(meta);
+                    if (!info.IsShared)
+                        info.Awake?.Invoke(ref *(byte*)eti.Chunk.Get(eti.IndexInChunk, meta), World, EntityId);
+                }
             }
 
             Components.Dispose();
+            return this;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public WorldEntityId Build()
+        {
+            PrepareComponents();
             WorldGlobalSetting.OnCreateEntityEvent?.Invoke(EntityId.AsEntity(World));
             return EntityId;
         }
@@ -123,7 +136,6 @@ namespace FLib.WorldCores.Entities
         }
 
         #region privates
-
         /// <summary>
         /// 
         /// </summary>
@@ -161,7 +173,6 @@ namespace FLib.WorldCores.Entities
         public static implicit operator WorldEntityId(in WorldEntityBuilder builder) => builder.EntityId;
         public static implicit operator WorldEntity(in WorldEntityBuilder builder) => builder.EntityId.AsEntity(builder.World);
         public static implicit operator WorldCore(in WorldEntityBuilder builder) => builder.World;
-
         #endregion
     }
 }
