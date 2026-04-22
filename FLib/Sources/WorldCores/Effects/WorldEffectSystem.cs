@@ -37,7 +37,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 初始化效果系统，从对象池租用容器并设置到动态组件中
         /// </summary>
-        public void OnAwake(WorldCore world, WorldEntityId entityId)
+        public void OnComponentAwake(WorldCore world, WorldEntityId entityId)
         {
             Entity = entityId.AsEntity(world);
             _containerIndex = WorldEffectPool.RentContainer();
@@ -46,7 +46,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 销毁效果系统，清空所有效果并归还容器到对象池
         /// </summary>
-        public void OnDestroy(WorldCore world, WorldEntityId entityId)
+        public void OnComponentDestroy(WorldCore world, WorldEntityId entityId)
         {
             FlagMask |= 0x80000000;
             Clear();
@@ -244,7 +244,7 @@ namespace FLib.WorldCores.Effects
             {
                 World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
                 effect.Dispose();
-                WorldGlobalSetting.DestroyEffect(this, effect);
+                WorldGlobalSetting.DestroyEffectHandler(this, effect);
             }
         }
         
@@ -253,7 +253,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         private unsafe WorldEffectBase CreateEffect(in WorldAddEffectEvent evt)
         {
-            var effect = WorldGlobalSetting.CreateEffect(this, evt.AddedBy, evt.Id, evt.AddCount);
+            var effect = WorldGlobalSetting.CreateEffectHandler(this, evt.AddedBy, evt.Id, evt.AddCount);
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref this);
             effect.AddedBy = evt.AddedBy;
             effect.Id = evt.Id;

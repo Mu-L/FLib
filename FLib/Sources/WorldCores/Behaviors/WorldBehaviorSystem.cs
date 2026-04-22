@@ -25,14 +25,14 @@ namespace FLib.WorldCores.Behaviors
         
         public override string ToString() => $"{Self}, {Primary}, {Secondary}";
         
-        void IWorldAwake.OnAwake(WorldCore world, WorldEntityId entityId)
+        void IWorldAwake.OnComponentAwake(WorldCore world, WorldEntityId entityId)
         {
             SecondaryId = PrimaryId = -1;
             Self = new WorldEntity(world, entityId);
-            WorldGlobalSetting.DoDefaultBehavior(ref this);
+            WorldGlobalSetting.DoDefaultBehaviorHandler(ref this);
         }
         
-        void IWorldDestroy.OnDestroy(WorldCore world, WorldEntityId entityId)
+        void IWorldDestroy.OnComponentDestroy(WorldCore world, WorldEntityId entityId)
         {
             StopAll(true, false);
         }
@@ -319,7 +319,7 @@ namespace FLib.WorldCores.Behaviors
                 }
                 else if (isDoDefault)
                 {
-                    WorldGlobalSetting.DoDefaultBehavior(ref this);
+                    WorldGlobalSetting.DoDefaultBehaviorHandler(ref this);
                 }
             }
         }

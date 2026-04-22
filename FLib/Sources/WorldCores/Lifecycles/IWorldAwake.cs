@@ -29,7 +29,7 @@ namespace FLib.WorldCores
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
                 WorldComponentEvents.OnAwake?.Invoke(world, entityId, typeof(T), ref ptr);
                 WorldComponentEvents<T>.OnAwake?.Invoke(world, entityId, ref comp);
-                comp.OnAwake(world, entityId);
+                comp.OnComponentAwake(world, entityId);
             }
             catch (Exception e)
             {
@@ -52,6 +52,6 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        void OnAwake(WorldCore world, WorldEntityId entityId);
+        void OnComponentAwake(WorldCore world, WorldEntityId entityId);
     }
 }

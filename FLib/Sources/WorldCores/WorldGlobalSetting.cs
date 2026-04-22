@@ -25,17 +25,17 @@ namespace FLib.WorldCores
         /// <summary>
         /// 根据id创建效果
         /// </summary>
-        public static EffectHandlerDelegate CreateEffect = (in WorldEffectSystem system, in WorldEntityId by, uint id, ushort count) => throw new NotSupportedException();
+        public static EffectHandlerDelegate CreateEffectHandler = (in WorldEffectSystem system, in WorldEntityId by, uint id, ushort count) => throw new NotSupportedException();
 
         /// <summary>
         /// 销毁效果
         /// </summary>
-        public static DestroyHandlerDelegate DestroyEffect = (in WorldEffectSystem system, WorldEffectBase effect) => { };
+        public static DestroyHandlerDelegate DestroyEffectHandler = (in WorldEffectSystem system, WorldEffectBase effect) => { };
 
         /// <summary>
         /// 默认行为类型
         /// </summary>
-        public static RWAction<WorldBehaviorSystem> DoDefaultBehavior = (ref WorldBehaviorSystem system) => system.Do(WorldBehaviorPool.Behaviors[0].GetType());
+        public static RWAction<WorldBehaviorSystem> DoDefaultBehaviorHandler = (ref WorldBehaviorSystem system) => system.Do(WorldBehaviorPool.Behaviors[0].GetType());
 
         /// <summary>
         /// 
