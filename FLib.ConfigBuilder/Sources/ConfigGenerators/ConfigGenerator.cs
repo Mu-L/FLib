@@ -63,7 +63,7 @@ namespace FLib
             var indent = 1;
             var name = json["Name"].ToString();
 
-            strbuf.Indent(indent).AppendLine($"[BytesPackGen][Config({Path.GetFileNameWithoutExtension(jsonPath)[..^7]})]")
+            strbuf.Indent(indent).AppendLine($"[BytesPackGen, Config(\"{Path.GetFileNameWithoutExtension(jsonPath)[..^7]}\")]")
                 .Indent(indent).Append("public partial class ").Append(name).AppendLine(" {");
             ++indent;
 
@@ -113,9 +113,9 @@ namespace FLib
                 {
                     var name = names[i].ToString();
                     if (customValues != null && customValues.TryGetValue(name, out var customValue))
-                        strbuf.Indent(indent).Append(name).Append('=').Append(customValue.ToString()).Append(',').AppendLine();
+                        strbuf.Indent(indent).Append(name).Append(' ').Append('=').Append(' ').Append(customValue.ToString()).Append(',').AppendLine();
                     else if (isFlags)
-                        strbuf.Indent(indent).Append(name).Append('=').Append("1 << ").Append(i).Append(',').AppendLine();
+                        strbuf.Indent(indent).Append(name).Append(' ').Append('=').Append(' ').Append("1 << ").Append(i).Append(',').AppendLine();
                     else
                         strbuf.Indent(indent).Append(name).Append(',').AppendLine();
                 }
