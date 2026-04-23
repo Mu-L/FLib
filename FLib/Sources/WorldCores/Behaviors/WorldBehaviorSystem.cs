@@ -99,7 +99,7 @@ namespace FLib.WorldCores.Behaviors
         {
             var bhv = WorldBehaviorPool.Rent(behaviorType);
             bhv.SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this);
-            bhv.StartTime = World.Time;
+            bhv.StartFrame = World.Frame;
             
             if (!CheckDo(ref evt, bhv, true))
             {

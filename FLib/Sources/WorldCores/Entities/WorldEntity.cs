@@ -27,7 +27,6 @@ namespace FLib.WorldCores.Entities
         }
 
         #region Simple
-
         /// <summary>
         /// 获取实体的组件（静态或动态）。
         /// </summary>
@@ -62,11 +61,9 @@ namespace FLib.WorldCores.Entities
         /// 获得实体上所有组件类型的列表。
         /// </summary>
         public List<Type> GetAllTypes(List<Type> result = null) => World.GetAllTypes(Id, result);
-
         #endregion
 
         #region Static
-
         /// <summary>
         /// 获取实体的静态组件并返回一个 <see cref="Ref{T}"/> 包装。
         /// </summary>
@@ -121,11 +118,9 @@ namespace FLib.WorldCores.Entities
         /// 获取实体的指定类型静态组件（非泛型）。
         /// </summary>
         public object GetSta(Type componentType) => World.GetSta(Id, componentType);
-
         #endregion
 
         #region Dynamic
-
         /// <summary>
         /// 获取实体的动态组件并返回引用。
         /// </summary>
@@ -165,11 +160,9 @@ namespace FLib.WorldCores.Entities
         /// 检查实体是否包含指定类型的动态组件。
         /// </summary>
         public bool HasDyn(Type type) => World.HasDyn(Id, type);
-
         #endregion
 
         #region Events
-
         /// <summary>
         /// 分发事件（后处理）。
         /// </summary>
@@ -316,11 +309,13 @@ namespace FLib.WorldCores.Entities
         /// </summary>
         public void ClearListenEvents()
             => World.Entities.Event(Id.Id).ClearListenEvents();
-
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveSelf() => World.RemoveEntity(Id);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Has() => World.HasEntity(Id);
 
         /// <summary>
         /// 
