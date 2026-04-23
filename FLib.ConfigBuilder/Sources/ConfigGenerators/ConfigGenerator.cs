@@ -20,7 +20,7 @@ namespace System.Runtime.CompilerServices
 
 namespace FLib
 {
-    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, string[] Usings = null)
+    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, bool IsClear = true, string[] Usings = null)
     {
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
     }
@@ -38,8 +38,11 @@ namespace FLib
         public static async Task Process(ConfigGenerateParams p)
         {
             TotalTasks = _finishedTaskCount = 0;
-            foreach (var item in Directory.GetFiles(p.DestDirPath, "*.cs", SearchOption.TopDirectoryOnly))
-                File.Delete(item);
+            if (p.IsClear)
+            {
+                foreach (var item in Directory.GetFiles(p.DestDirPath, "*.cs", SearchOption.TopDirectoryOnly))
+                    File.Delete(item);
+            }
 
             var tasks = new ConcurrentBag<Task>() { ProcessDefines(p) };
             Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
@@ -60,7 +63,7 @@ namespace FLib
             var indent = 1;
             var name = json["Name"].ToString();
 
-            strbuf.Indent(indent).AppendLine("[BytesPackGen]")
+            strbuf.Indent(indent).AppendLine($"[BytesPackGen][Config({Path.GetFileNameWithoutExtension(jsonPath)[..^7]})]")
                 .Indent(indent).Append("public partial class ").Append(name).AppendLine(" {");
             ++indent;
 
