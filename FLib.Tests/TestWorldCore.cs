@@ -57,23 +57,23 @@ public struct Managed : IWorldAwake, IWorldDestroy, IWorldUpdate, IWorldStart
     public uint StartFrame;
     public uint UpdateFrame;
     
-    public void OnAwake(WorldCore world, WorldEntityId entityId)
+    public void OnComponentAwake(WorldCore world, WorldEntityId entityId)
     {
-        Values = [nameof(OnAwake)];
+        Values = [nameof(OnComponentAwake)];
         AwakeFrame = world.Frame;
     }
     
-    public void OnStart(WorldCore world, WorldEntityId eId)
+    public void OnComponentStart(WorldCore world, WorldEntityId eId)
     {
-        Values.Add(nameof(OnStart));
+        Values.Add(nameof(OnComponentStart));
         StartFrame = world.Frame;
     }
     
-    public void OnDestroy(WorldCore world, WorldEntityId entityId) => Values.Add(nameof(OnDestroy));
+    public void OnComponentDestroy(WorldCore world, WorldEntityId entityId) => Values.Add(nameof(OnComponentDestroy));
     
-    public void OnUpdate(WorldCore world, WorldEntityId entityId)
+    public void OnComponentUpdate(WorldCore world, WorldEntityId entityId)
     {
-        Values.Add(nameof(OnUpdate));
+        Values.Add(nameof(OnComponentUpdate));
         UpdateFrame = world.Frame;
     }
 }
@@ -198,22 +198,22 @@ public class TestWorldCore
         world.Set(et, new Managed());
         world.Set(et, new Player { Name = "abc" });
         
-        Assert.Equal([nameof(IWorldAwake.OnAwake)], world.Get<Managed>(et).Values);
+        Assert.Equal([nameof(IWorldAwake.OnComponentAwake)], world.Get<Managed>(et).Values);
         Assert.Equal(1u, world.Get<Managed>(et).AwakeFrame);
         
         world.Update();
-        Assert.Equal([nameof(IWorldAwake.OnAwake), nameof(IWorldStart.OnStart), nameof(IWorldUpdate.OnUpdate)], world.Get<Managed>(et).Values);
+        Assert.Equal([nameof(IWorldAwake.OnComponentAwake), nameof(IWorldStart.OnComponentStart), nameof(IWorldUpdate.OnComponentUpdate)], world.Get<Managed>(et).Values);
         Assert.Equal(2u, world.Get<Managed>(et).StartFrame);
         
         world.Update();
-        Assert.Equal([nameof(IWorldAwake.OnAwake), nameof(IWorldStart.OnStart), nameof(IWorldUpdate.OnUpdate), nameof(IWorldUpdate.OnUpdate)], world.Get<Managed>(et).Values);
+        Assert.Equal([nameof(IWorldAwake.OnComponentAwake), nameof(IWorldStart.OnComponentStart), nameof(IWorldUpdate.OnComponentUpdate), nameof(IWorldUpdate.OnComponentUpdate)], world.Get<Managed>(et).Values);
         Assert.Equal(2u, world.Get<Managed>(et).StartFrame);
         Assert.Equal(3u, world.Get<Managed>(et).UpdateFrame);
         
         Assert.Equal("abc", world.Soa.GetGroup<Player>()[0].Name);
         world.RemoveEntity(et);
         
-        Assert.Equal([nameof(IWorldAwake.OnAwake), nameof(IWorldStart.OnStart), nameof(IWorldUpdate.OnUpdate), nameof(IWorldUpdate.OnUpdate), nameof(IWorldDestroy.OnDestroy)],
+        Assert.Equal([nameof(IWorldAwake.OnComponentAwake), nameof(IWorldStart.OnComponentStart), nameof(IWorldUpdate.OnComponentUpdate), nameof(IWorldUpdate.OnComponentUpdate), nameof(IWorldDestroy.OnComponentDestroy)],
             world.Soa.GetGroup<Managed>()[0].Values);
         
         Assert.Null(world.Soa.GetGroup<Player>()[0].Name);

@@ -2,6 +2,7 @@
 
 using FLib.WorldCores;
 using FLib.WorldCores.Effects;
+using FLib.WorldCores.Entities;
 
 namespace FLib.Tests;
 
@@ -22,7 +23,7 @@ public class TestWorldEffect
     
     public TestWorldEffect()
     {
-        WorldGlobalSetting.CreateEffect = (in system, in by, id, count) => new AEffect { MaxStackCount = 1, Duration = 1, Flags = 1 };
+        WorldGlobalSetting.CreateEffectHandler = (in _, in _, _, _) => new AEffect { MaxStackCount = 1, Duration = 1, Flags = 1 };
     }
     
     [Fact]
