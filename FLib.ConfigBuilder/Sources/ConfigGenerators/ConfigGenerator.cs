@@ -20,15 +20,24 @@ namespace System.Runtime.CompilerServices
 
 namespace FLib
 {
+    [Flags]
+    public enum EConfigGenerateOption
+    {
+        None,
+        Clear = 1 << 0,
+        PropertyField = 1 << 1,
+        Default = Clear | PropertyField,
+    }
+
     public record ConfigGenerateParams(
         string SourceDirPath,
         string DestDirPath,
         string Namespace,
-        bool IsClear = true,
-        bool UseProperty = true,
+        EConfigGenerateOption Options = EConfigGenerateOption.Default,
         string[] Usings = null)
     {
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
+        public bool Op(EConfigGenerateOption op) => (Options & op) != EConfigGenerateOption.None;
     }
 
     public static class ConfigGenerator
@@ -44,7 +53,7 @@ namespace FLib
         public static async Task Process(ConfigGenerateParams p)
         {
             TotalTasks = _finishedTaskCount = 0;
-            if (p.IsClear)
+            if (p.Op(EConfigGenerateOption.Clear))
             {
                 foreach (var item in Directory.GetFiles(p.DestDirPath, "*.cs", SearchOption.TopDirectoryOnly))
                     File.Delete(item);
@@ -82,7 +91,12 @@ namespace FLib
                     .Indent(indent).AppendLine("/// </summary>");
                 strbuf.Indent(indent).Append("[BytesPackGenField] ")
                     .Append("public ").Append(field.Value["Type"].ToString()).Append(' ')
-                    .Append(field.Key).Append(" { get; private set; }").AppendLine().AppendLine();
+                    .Append(field.Key);
+                if (p.Op(EConfigGenerateOption.PropertyField))
+                    strbuf.Append(" { get; private set; }");
+                else
+                    strbuf.Append(';');
+                strbuf.AppendLine().AppendLine();
             }
 
             --indent;
