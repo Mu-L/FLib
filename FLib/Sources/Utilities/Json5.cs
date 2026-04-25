@@ -18,18 +18,18 @@ namespace FLib
     {
         public static Dictionary<Type, IJson5Deserializable>? CustomDeserializers;
         public static Dictionary<Type, IJson5Serializable>? CustomSerializers;
-        
+
         // ReSharper disable Unity.PerformanceAnalysis
         public static string SerializeToLog(object? val, Json5SerializeOptionData opData = default)
         {
             opData.Options |= EJson5SerializeOption.LogText;
             return Json5Serializer.PushValue(val, new StringBuilder(), 0, opData).ToString();
         }
-        
+
         public static string Serialize(object? val, Json5SerializeOptionData opData = default) => Json5Serializer.PushValue(val, new StringBuilder(), 0, opData).ToString();
         public static T Deserialize<T>(string source, Json5DeserializeOptionData opData = default) => (T)Deserialize(source, typeof(T), opData);
         public static object Deserialize(string source, Json5DeserializeOptionData opData = default) => Deserialize(source, typeof(object), opData);
-        
+
         public static object Deserialize(string source, Type toType, Json5DeserializeOptionData opData = default)
         {
             var nodes = DeserializeToSyntaxNodes(source, opData);
@@ -39,7 +39,7 @@ namespace FLib
             nodes.Nodes.Dispose();
             return obj;
         }
-        
+
         public static Json5SyntaxNodes DeserializeToSyntaxNodes(string source, Json5DeserializeOptionData options = default)
         {
             var nodes = new Json5SyntaxNodes() { Nodes = new PooledList<Json5SyntaxNode>(128) };
@@ -53,13 +53,12 @@ namespace FLib
                     (node.Token != EJson5Token.Skip || options.IsKeepSkipSyntaxNode))
                     nodes.Nodes.Add(node);
             }
-            
+
             return nodes;
         }
     }
-    
+
     #region Serialize
-    
     /// <summary>
     /// 
     /// </summary>
@@ -67,39 +66,39 @@ namespace FLib
     public enum EJson5SerializeOption
     {
         None,
-        
+
         /// <summary>
         /// 兼容模式，兼容json1
         /// </summary>
         Compatible = 0x1,
-        
+
         /// <summary>
         /// 只序列化标记了Serializable的字段
         /// </summary>
         OnlySerializableFields,
-        
+
         // Pretty = 0x2,
         /// <summary>
         /// 包含空字符串的字段，最终得到 Field:""
         /// </summary>
         IncludeEmptyStringField = 0x4,
-        
+
         /// <summary>
         /// 日志方式序列化，如果类型有override ToString那么就直接调用ToString而不是序列化每个字段
         /// </summary>
         LogText = 0x8,
-        
+
         /// <summary>
         /// 保留字符串原始内容，而不添加转义字符和双引号
         /// </summary>
         RetainString = 0x10,
-        
+
         /// <summary>
         /// 不要写入字典的空key， {"a":11, "":22}得到a:11, 22而不是 a:11, "":22， 方便做一些特殊的json值
         /// </summary>
         DictDoNotWriteEmptyKeyWithColonChar = 0x20,
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -110,7 +109,7 @@ namespace FLib
         public readonly bool Op(EJson5SerializeOption op) => (Options & op) == op;
         public static implicit operator Json5SerializeOptionData(EJson5SerializeOption options) => new() { Options = options };
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -118,7 +117,7 @@ namespace FLib
     {
         string? JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -128,7 +127,7 @@ namespace FLib
         public Json5CustomSerializeWrap(Func<object, object?, int, Json5SerializeOptionData, string?> handler) => Handler = handler;
         public string? JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData) => Handler(serializeObject, customData, indent, opData);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -163,10 +162,10 @@ namespace FLib
                                 strbuf.Append('\\');
                             strbuf.Append(c);
                         }
-                        
+
                         strbuf.Append('"');
                     }
-                    
+
                     break;
                 case IDictionary val:
                     PushDict(val, strbuf, indent, opData);
@@ -199,10 +198,10 @@ namespace FLib
                         PushObject(obj, strbuf, indent, opData);
                     break;
             }
-            
+
             return strbuf;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -217,7 +216,7 @@ namespace FLib
             {
                 return;
             }
-            
+
             strbuf.Append('[');
             var isMoveNext = false;
             try
@@ -228,7 +227,7 @@ namespace FLib
             {
                 // ignored
             }
-            
+
             if (isMoveNext)
             {
                 PushValue(iterator.Current, strbuf, indent, opData);
@@ -245,7 +244,7 @@ namespace FLib
                             strbuf.Append('"');
                             break;
                         }
-                        
+
                         strbuf.Append(',');
                         PushValue(iterator.Current, strbuf, indent, opData);
                     }
@@ -259,10 +258,10 @@ namespace FLib
                     }
                 }
             }
-            
+
             strbuf.Append(']');
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -276,17 +275,17 @@ namespace FLib
                 PushDictKey(iterator.Key, strbuf, indent, opData);
                 PushValue(iterator.Value, strbuf, indent, opData);
             }
-            
+
             while (iterator.MoveNext())
             {
                 strbuf.Append(',');
                 PushDictKey(iterator.Key, strbuf, indent, opData);
                 PushValue(iterator.Value, strbuf, indent, opData);
             }
-            
+
             strbuf.Append('}');
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -302,7 +301,7 @@ namespace FLib
                 strbuf.Append(':');
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -317,7 +316,7 @@ namespace FLib
                 strbuf.Append(obj);
                 return;
             }
-            
+
             if (Json5.CustomSerializers == null || !Json5.CustomSerializers.TryGetValue(t, out var serializer))
                 serializer = obj as IJson5Serializable;
             var customJson = serializer?.JsonSerialize(obj, null, indent, opData);
@@ -326,7 +325,7 @@ namespace FLib
                 strbuf.Append(customJson);
                 return;
             }
-            
+
             strbuf.Append('{');
             var fields = t.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var len = fields.Length;
@@ -336,19 +335,19 @@ namespace FLib
                 if (success && i < len - 1)
                     strbuf.Append(',');
             }
-            
+
             strbuf.Append('}');
             return;
-            
+
             static bool PushField(object obj, FieldInfo field, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
             {
                 if (field.IsInitOnly || field.IsLiteral || field.IsDefined(typeof(NonSerializedAttribute)) ||
                     ((opData.Options & EJson5SerializeOption.OnlySerializableFields) != 0 && !field.IsDefined(typeof(SerializableAttribute))) ||
                     field.FieldType.IsSubclassOf(typeof(Delegate)))
                     return false;
-                
+
                 var fieldName = field.Name;
-                
+
                 if (obj is IJson5Serializable serializer)
                 {
                     var customJson = serializer.JsonSerialize(obj, fieldName, indent, opData);
@@ -357,10 +356,10 @@ namespace FLib
                         PushDictKey(fieldName, strbuf, indent, opData);
                         strbuf.Append(customJson);
                     }
-                    
+
                     return true;
                 }
-                
+
                 var val = field.GetValue(obj);
                 if (val != null && (val is not string str || str.Length > 0 || (opData.Options & EJson5SerializeOption.IncludeEmptyStringField) != 0))
                 {
@@ -368,16 +367,14 @@ namespace FLib
                     PushValue(val, strbuf, indent, opData);
                     return true;
                 }
-                
+
                 return false;
             }
         }
     }
-    
     #endregion
-    
+
     #region Deserialize
-    
     /// <summary>
     /// 
     /// </summary>
@@ -385,12 +382,12 @@ namespace FLib
     {
         public Delegate Handler;
         public Json5CustomDeserializeWrap(Delegate handler) => Handler = handler;
-        
+
         public delegate Json5CustomDeserializeResult Delegate(ref Json5SyntaxNodes nodes, object? customData, in Json5DeserializeOptionData options);
-        
+
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options) => Handler(ref nodes, otherData, options);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -398,7 +395,7 @@ namespace FLib
     {
         Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -406,7 +403,7 @@ namespace FLib
     {
         Json5CustomDeserializeResult JsonDeserialize(string fieldName, ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options);
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -419,7 +416,7 @@ namespace FLib
         public object UserData;
         public Func<string, string?> FieldNameFallback;
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -429,20 +426,20 @@ namespace FLib
         /// 0: not hooked, 1: hooked, 2: hooked with force use Result
         /// </summary>
         public byte HookedType;
-        
+
         public object? Result;
         public bool IsHooked => HookedType > 0;
-        
+
         public Json5CustomDeserializeResult(object? result, byte hookedType = 1)
         {
             HookedType = hookedType;
             Result = result;
         }
-        
+
         public static implicit operator Json5CustomDeserializeResult(bool v) => new() { HookedType = (byte)(v ? 1 : 0) };
         public static implicit operator bool(in Json5CustomDeserializeResult v) => v.HookedType > 0;
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -456,7 +453,7 @@ namespace FLib
         public ref Json5SyntaxNode this[int index] => ref Nodes[Position + index];
         public Json5SyntaxNode MoveNext() => Nodes[Position++];
         public void Dispose() => Nodes.Dispose();
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -467,10 +464,10 @@ namespace FLib
                 if ((Nodes[i].Token & token) != 0)
                     return Nodes[i];
             }
-            
+
             return default;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -481,10 +478,10 @@ namespace FLib
                 MoveNext(EJson5Token.Close);
                 return true;
             }
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -493,7 +490,7 @@ namespace FLib
             node = MoveNext(EJson5Token.Value | EJson5Token.Close);
             return node.Token == EJson5Token.Value;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -504,24 +501,24 @@ namespace FLib
                 if ((Nodes[Position++].Token & token) != 0)
                     return Nodes[Position - 1];
             }
-            
+
             return default;
         }
-        
+
         public T To<T>(Json5DeserializeOptionData options = default) => (T)Json5Deserializer.ToValue(ref this, typeof(T), options);
         public object To(Type toType, Json5DeserializeOptionData options = default) => Json5Deserializer.ToValue(ref this, toType, options);
         public ArraySegment<Json5SyntaxNode>.Enumerator GetEnumerator() => Segment.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IEnumerator<Json5SyntaxNode> IEnumerable<Json5SyntaxNode>.GetEnumerator() => GetEnumerator();
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
     public ref struct Json5SyntaxNodesReader
     {
         public byte BracketOpenCount;
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -534,7 +531,7 @@ namespace FLib
             nodes.Position = startPosition;
             return false;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -544,7 +541,7 @@ namespace FLib
                 throw new ArgumentException();
             return node;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -560,19 +557,19 @@ namespace FLib
                         --nodes.Position;
                         break;
                     }
-                    
+
                     --BracketOpenCount;
                 }
                 else if (node.Token is EJson5Token.ArrayOpen or EJson5Token.ObjectOpen)
                     ++BracketOpenCount;
-                
+
                 if ((node.Token & token) != 0)
                     return true;
             } while (node.Token != EJson5Token.None && node.Token != EJson5Token.Close);
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -587,7 +584,7 @@ namespace FLib
             }
         }
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -603,7 +600,7 @@ namespace FLib
         public ReadOnlyMemory<char> Source => FullSource.AsMemory(SourceRange);
         public int RemainingLength => FullSource.Length - SourceRange.End;
         public override string ToString() => $"[{Token}]{ContentMem}";
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -648,7 +645,7 @@ namespace FLib
                                 return;
                             }
                         }
-                        
+
                         --SourceRange.End;
                         Token = EJson5Token.Value;
                         ParseValue();
@@ -656,7 +653,7 @@ namespace FLib
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -673,7 +670,7 @@ namespace FLib
                         --ContentRange.End;
                     break;
                 }
-                
+
                 if (commentType != '*' || c != '*' || FullSource.ElementAtOrDefault(SourceRange.End) != '/')
                     continue;
                 ContentRange.End = SourceRange.End - 1;
@@ -681,7 +678,7 @@ namespace FLib
                 break;
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -698,13 +695,13 @@ namespace FLib
                     ++SourceRange.End;
                     continue;
                 }
-                
+
                 if (type == 0 && c is '{' or '}' or '[' or '【' or ']' or '】' or ':' or '：' or ',' or '，')
                 {
                     --SourceRange.End;
                     break;
                 }
-                
+
                 if (c == '\'')
                 {
                     if (type == 0)
@@ -745,13 +742,13 @@ namespace FLib
                     endWhiteCharCount = 0;
                 }
             }
-            
+
             if (beginWhiteCharCount > 0)
                 ContentRange.Begin += beginWhiteCharCount;
             ContentRange.End = SourceRange.End - endWhiteCharCount;
         }
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -766,7 +763,7 @@ namespace FLib
         Comment = 0x10,
         Skip = 0x20,
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -798,7 +795,7 @@ namespace FLib
                 throw new Exception($"{toType} | {node} | {options}", e);
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -813,7 +810,7 @@ namespace FLib
                 if (double.TryParse(node.ContentSpan, out var d))
                     return d;
             }
-            
+
             try
             {
                 var byNullableType = Nullable.GetUnderlyingType(toType);
@@ -838,11 +835,11 @@ namespace FLib
                 {
                     // ignored
                 }
-                
+
                 throw;
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -864,9 +861,9 @@ namespace FLib
                 dict = (obj = TypeAssistant.New(toType)) as IDictionary;
                 customFieldDeserializer = obj as IJson5FieldDeserializable;
             }
-            
+
             var kvTypes = dict != null ? dict.GetType().GetGenericArguments() : new[] { typeof(string), null! };
-            
+
             Json5SyntaxNode node = default;
             object? key = null;
             while (nodes.Count > 0 && node.Token != EJson5Token.Close)
@@ -886,7 +883,7 @@ namespace FLib
                         nodes.MoveNext();
                         continue;
                     }
-                    
+
                     if (dict != null)
                     {
                         dict[key] = ToValue(ref nodes, kvTypes[1], options);
@@ -908,7 +905,7 @@ namespace FLib
                                         field = new FieldOrPropertyInfo(toType, name,
                                             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.IgnoreCase, false);
                                 }
-                                
+
                                 if (field.IsEmpty && !options.IsIgnoreMissingField)
                                     throw new Exception($"not found field: {toType}.{key}, {node}");
                                 key = null;
@@ -927,7 +924,7 @@ namespace FLib
                                                 ++bracket;
                                         }
                                     }
-                                    
+
                                     node = default;
                                 }
                                 else
@@ -942,7 +939,7 @@ namespace FLib
                                     {
                                         val = ToValue(ref nodes, field.Type, options);
                                     }
-                                    
+
                                     if (val != null)
                                         field.SetValue(obj, val);
                                 }
@@ -956,10 +953,10 @@ namespace FLib
                     }
                 }
             }
-            
+
             return toType == typeof(Json5AnyValue) ? new Json5AnyValue(obj) : obj;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -997,7 +994,7 @@ namespace FLib
                     list = (IList)TypeAssistant.New(typeof(List<>).MakeGenericType(elType));
                 }
             }
-            
+
             while (nodes.Count > 0)
             {
                 var node = nodes[0];
@@ -1006,24 +1003,24 @@ namespace FLib
                     nodes.MoveNext();
                     break;
                 }
-                
+
                 if (node.Token > EJson5Token.ObjectOpen)
                 {
                     nodes.MoveNext();
                     continue;
                 }
-                
+
                 var val = ToValue(ref nodes, elType, options);
                 list.Add(val);
             }
-            
+
             if (typeCode >= 2)
                 return typeCode == 3 ? TypeAssistant.New(toType, list) : list;
             var result = Array.CreateInstance(elType, list.Count);
             list.CopyTo(result, 0);
             return typeCode == 1 ? new Json5AnyValue(result) : result;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -1040,7 +1037,7 @@ namespace FLib
                 deserializer = (IJson5Deserializable)TypeAssistant.New(toType);
                 result = deserializer.JsonDeserialize(ref nodes, null, options);
             }
-            
+
             if (result.HookedType == 0)
                 return null;
             if (result.Result == null && result.HookedType != 2)
@@ -1048,11 +1045,9 @@ namespace FLib
             return result.Result;
         }
     }
-    
     #endregion
-    
+
     #region other
-    
     /// <summary>
     /// 
     /// </summary>
@@ -1062,6 +1057,7 @@ namespace FLib
         public Json5AnyValue(object raw) => Raw = raw;
         public Json5AnyValue[]? AsArray => Raw as Json5AnyValue[];
         public Json5AnyValue[] Array => (Json5AnyValue[])Raw;
+        public int Count => AsArray?.Length ?? AsDict?.Count ?? 0;
         public Dictionary<string, Json5AnyValue>? AsDict => Raw as Dictionary<string, Json5AnyValue>;
         public Dictionary<string, Json5AnyValue> Dict => (Dictionary<string, Json5AnyValue>)Raw;
         public Json5AnyValue this[int index] => Get(index);
@@ -1070,13 +1066,13 @@ namespace FLib
         public Json5AnyValue Get(string key) => AsDict![key];
         public Json5AnyValue? TryGet(int index) => AsArray?.ElementAtOrDefault(index);
         public Json5AnyValue? TryGet(string key) => AsDict?.GetValueOrDefault(key);
-        
+
         public bool TryGet(string key, out Json5AnyValue v)
         {
             v = null!;
             return AsDict?.TryGetValue(key, out v!) == true;
         }
-        
+
         public bool Has(int index) => AsArray?.Length > index;
         public bool Has(string key) => AsDict?.ContainsKey(key) == true;
         public override string ToString() => Raw.ToString()!;
@@ -1095,6 +1091,5 @@ namespace FLib
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public IEnumerator<Json5AnyValue> GetEnumerator() => ((IEnumerable<Json5AnyValue>)AsArray!).GetEnumerator();
     }
-    
     #endregion
 }

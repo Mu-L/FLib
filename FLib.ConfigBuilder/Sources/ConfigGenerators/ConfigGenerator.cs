@@ -20,7 +20,13 @@ namespace System.Runtime.CompilerServices
 
 namespace FLib
 {
-    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, bool IsClear = true, string[] Usings = null)
+    public record ConfigGenerateParams(
+        string SourceDirPath,
+        string DestDirPath,
+        string Namespace,
+        bool IsClear = true,
+        bool UseProperty = true,
+        string[] Usings = null)
     {
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
     }
@@ -60,6 +66,8 @@ namespace FLib
             var jsonText = await File.ReadAllTextAsync(jsonPath);
             var strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
             var json = Json5.Deserialize<Json5AnyValue>(jsonText);
+            if (json == null || json.Count == 0)
+                return;
             var indent = 1;
             var name = json["Name"].ToString();
 
