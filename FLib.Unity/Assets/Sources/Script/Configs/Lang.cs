@@ -6,7 +6,7 @@ using FLib;
 
 namespace Configs
 {
-    [BytesPackGen, Config("语言包")]
+    [BytesPackGen, Config(null)]
     public partial class Lang : IJson5Deserializable
     {
         public static int DefaultConfigIndex;
