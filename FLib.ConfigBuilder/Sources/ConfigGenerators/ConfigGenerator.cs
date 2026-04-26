@@ -25,8 +25,8 @@ namespace FLib
     {
         None,
         Clear = 1 << 0,
-        PropertyField = 1 << 1,
-        Default = Clear | PropertyField,
+        UseProperty = 1 << 1,
+        Default = Clear | UseProperty,
     }
 
     public record ConfigGenerateParams(
@@ -92,7 +92,7 @@ namespace FLib
                 strbuf.Indent(indent).Append("[BytesPackGenField] ")
                     .Append("public ").Append(field.Value["Type"].ToString()).Append(' ')
                     .Append(field.Key);
-                if (p.Op(EConfigGenerateOption.PropertyField))
+                if (p.Op(EConfigGenerateOption.UseProperty))
                     strbuf.Append(" { get; private set; }");
                 else
                     strbuf.Append(';');
