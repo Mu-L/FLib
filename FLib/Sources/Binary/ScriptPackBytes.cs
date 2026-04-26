@@ -14,22 +14,22 @@ namespace FLib
         /// 
         /// </summary>
         public byte[] Bytes;
-        
+
         /// <summary>
         /// 
         /// </summary>
         public readonly string ScriptTypeName => Bytes?.Length == 0 ? string.Empty : new BytesReader(Bytes).ReadString();
-        
+
         /// <summary>
         /// 
         /// </summary>
         public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
-        
+
         /// <summary>
         /// 
         /// </summary>
         public Type ScriptBaseType => typeof(IBytesPackable);
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -42,18 +42,18 @@ namespace FLib
                 return Bytes.AsMemory(reader.Position + size);
             }
         }
-        
+
         public ScriptPackBytes(byte[] bytes)
         {
             Bytes = bytes;
         }
-        
+
         public ScriptPackBytes(IBytesPackable? instance)
         {
             Bytes = Array.Empty<byte>();
             SetInstance(instance);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -65,10 +65,10 @@ namespace FLib
                 BytesPack.Unpack(ref instance, InstanceBytes.Span);
                 return instance;
             }
-            
+
             return null;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -79,7 +79,7 @@ namespace FLib
                 Bytes = Array.Empty<byte>();
                 return;
             }
-            
+
             var writer = new BytesWriter() { Allocator = BytesWriter.PoolAllocator };
             try
             {
@@ -92,51 +92,46 @@ namespace FLib
                 writer.TryReleasePoolAllocator();
             }
         }
-        
+
         #region serialization
-        
         public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
         {
             return ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
         }
-        
+
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options)
         {
-            if (ScriptPackInstance.JsonDeserializeImpl(ref nodes, out var instance, null) && instance != null)
-            {
-                this = new ScriptPackBytes(instance);
-                return true;
-            }
-            
-            return false;
+            var r = ScriptPackInstance.JsonDeserializeImpl(ref nodes, out var inst, null);
+            if (r.IsHooked)
+                this = new ScriptPackBytes(inst);
+            return r;
         }
-        
+
         public readonly void Z_BytesWrite(ref BytesWriter writer)
         {
             writer.Push(Bytes);
         }
-        
+
         public void Z_BytesRead(ref BytesReader reader)
         {
             Bytes = reader.ReadArray<byte>();
         }
-        
+
         public readonly void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {
             key.Push(ref writer, 1);
             Z_BytesWrite(ref writer);
         }
-        
+
         public void Z_BytesPackRead(int key, ref BytesReader reader)
         {
             if (key == 1)
                 Z_BytesRead(ref reader);
         }
-        
         #endregion
     }
-    
-    
+
+
     /// <summary>
     /// 
     /// </summary>
@@ -148,40 +143,43 @@ namespace FLib
         public Type ScriptBaseType => typeof(T);
         public readonly Memory<byte> InstanceBytes => new ScriptPackBytes(Bytes).InstanceBytes;
         public ScriptPackBytes(byte[] bytes) => Bytes = bytes;
-        
+
         public ScriptPackBytes(IBytesPackable instance)
         {
             Bytes = Array.Empty<byte>();
             SetInstance(instance);
         }
-        
+
         IBytesPackable? IScriptPackable.CreateInstance() => CreateInstance();
         public readonly T? CreateInstance() => (T?)new ScriptPackBytes(Bytes).CreateInstance();
         public void SetInstance(IBytesPackable? instance) => Bytes = new ScriptPackBytes(instance).Bytes;
-        
+
         #region serialization
-        
         public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData) =>
             ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
-        
-        public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options) =>
-            new ScriptPackBytes(Bytes).JsonDeserialize(ref nodes, otherData, options);
-        
+
+        public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options)
+        {
+            var r = ScriptPackInstance.JsonDeserializeImpl(ref nodes, out var inst, typeof(T).Namespace);
+            if (r.IsHooked)
+                this = new ScriptPackBytes<T>(inst);
+            return r;
+        }
+
         public readonly void Z_BytesWrite(ref BytesWriter writer) => writer.Push(Bytes);
         public void Z_BytesRead(ref BytesReader reader) => Bytes = reader.ReadArray<byte>();
-        
+
         public readonly void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {
             key.Push(ref writer, 1);
             Z_BytesWrite(ref writer);
         }
-        
+
         public void Z_BytesPackRead(int key, ref BytesReader reader)
         {
             if (key == 1)
                 Z_BytesRead(ref reader);
         }
-        
         #endregion
     }
 }

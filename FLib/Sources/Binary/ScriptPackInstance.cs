@@ -10,7 +10,7 @@ namespace FLib
 {
     public struct ScriptPackInstance : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IEquatable<ScriptPackInstance>, IScriptPackable
     {
-        private const string ScriptTypeJsonKey = "__$t";
+        private const string ScriptTypeJsonKey = "$type";
         public IBytesPackable Instance;
         
         public Type ScriptType => Instance?.GetType();
