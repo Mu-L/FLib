@@ -24,12 +24,20 @@ namespace FLib
         public static Action<ConcurrentDictionary<Type, IConfigBuildTableContext>, Dictionary<string, List<SourceFileMeta>>> CustomBuilder;
 
         private static readonly Func<IEnumerable<Type>> GetAllTypes = () =>
-            TypeAssistant.AllAssemblies.Where(v => v != typeof(ConfigHelper).Assembly && v != typeof(ConfigHelper).Assembly).SelectMany(v => v.ExportedTypes);
-        
+            TypeAssistant.AllAssemblies
+                .Where(asm =>
+                {
+                    if (asm == typeof(ConfigHelper).Assembly)
+                        return false;
+                    var asmName = asm.GetName().Name;
+                    return !asmName.StartsWith("FLib", StringComparison.Ordinal) && !asmName.EndsWith("Editor", StringComparison.Ordinal) &&
+                           !asmName.StartsWith("UnityEngine", StringComparison.Ordinal);
+                }).SelectMany(v => v.ExportedTypes);
+
         public static readonly Func<IReadOnlyDictionary<string, IBuildable>> GetConfigBuilders = () =>
             TypeAssistant.AllAssemblies.Append(typeof(ConfigBuilder).Assembly).SelectMany(v => v.ExportedTypes).Where(t => !t.IsInterface && typeof(IBuildable).IsAssignableFrom(t))
                 .Select(t => (IBuildable)TypeAssistant.New(t)).ToDictionary(k => k.Extension);
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -38,7 +46,7 @@ namespace FLib
             void Build(in TableContext ctx);
             string Extension { get; }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -46,12 +54,12 @@ namespace FLib
         {
             public static readonly EmptyBuilder Default = new();
             public string Extension => "";
-            
+
             public void Build(in TableContext ctx)
             {
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -69,7 +77,7 @@ namespace FLib
             public string ConfigName => SourceFile.ConfigName;
             public List<string> ConfigNameArgs => SourceFile.Args;
             public override string ToString() => $"[{ConfigType.Name}]{SourceFile}";
-            
+
             public TableContext(SourceFileMeta sourceFile, Type type, ConfigHelper.EOption options)
             {
                 SourceFile = sourceFile;
@@ -77,7 +85,7 @@ namespace FLib
                 Options = options;
                 IndexIdField = ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(v => v.MetadataToken).First();
             }
-            
+
             /// <summary>
             /// 
             /// </summary>
@@ -91,7 +99,7 @@ namespace FLib
 #endif
                 AllConfigIdIndexes.EnsureCapacity(capacity);
             }
-            
+
             public (uint Id, int Index)? AddConfigByDynamicId(IBytesPackable config)
             {
                 var isLocking = false;
@@ -111,7 +119,7 @@ namespace FLib
                         _locker.Exit(false);
                 }
             }
-            
+
             /// <summary>
             /// 
             /// </summary>0
@@ -137,8 +145,8 @@ namespace FLib
                 }
             }
         }
-        
-        
+
+
         /// <summary>
         /// 
         /// </summary>
@@ -151,7 +159,7 @@ namespace FLib
             public List<string> Args;
             public override string ToString() => FilePath;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -172,10 +180,10 @@ namespace FLib
             {
                 Log.Error?.Write(ex.ToString());
             }
-            
+
             return 0;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -186,53 +194,72 @@ namespace FLib
             var strbuf = new StringBuilder();
             foreach (var filePath in Directory.GetFiles(sourceDirPath, "*", SearchOption.AllDirectories))
             {
-                if (filePath.StartsWith('~') || filePath.EndsWith('~') || filePath.Contains(".schema."))
-                    continue;
-                var meta = new SourceFileMeta() { FileSign = '*', FilePath = filePath, Builder = allConfigBuilders.GetValueOrDefault(Path.GetExtension(filePath)) };
-                var name = Path.GetFileNameWithoutExtension(filePath);
-                var argStartIndex = 0;
-                for (var i = 0; i < name.Length; i++)
+                try
                 {
-                    if (name[i] == '$')
+                    if (filePath.EndsWith(".meta", StringComparison.Ordinal))
+                        continue;
+                    var name = Path.GetFileNameWithoutExtension(filePath);
+                    if (name.StartsWith('~') || name.StartsWith('_') || name.EndsWith('~') || name.EndsWith(".schema", StringComparison.Ordinal))
+                        continue;
+                    var meta = new SourceFileMeta() { FileSign = '*', FilePath = filePath, Builder = allConfigBuilders.GetValueOrDefault(Path.GetExtension(filePath)) };
+                    var argStartIndex = 0;
+                    for (var i = 0; i < name.Length; i++)
                     {
-                        meta.FileSign = name[++i];
-                        ++i;
-                    }
-                    else if (strbuf[i] == '.')
-                    {
-                        if (argStartIndex == 0)
+                        if (name[i] == '$')
                         {
-                            argStartIndex = i + 1;
+                            meta.FileSign = name[++i]; // step $
                         }
-                        else
+                        else if (name[i] == '.')
                         {
-                            meta.Args ??= new List<string>();
-                            meta.Args.Add(name[argStartIndex..i]);
-                            argStartIndex = 0;
+                            if (argStartIndex == 0)
+                            {
+                                argStartIndex = i + 1;
+                            }
+                            else
+                            {
+                                (meta.Args ??= new List<string>()).Add(name[argStartIndex..]);
+                                argStartIndex = 0;
+                            }
+                        }
+                        else if (argStartIndex == 0)
+                        {
+                            strbuf.Append(name[i]);
                         }
                     }
+
+                    if (argStartIndex > 0)
+                        (meta.Args ??= new List<string>()).Add(name[argStartIndex..]);
+
+                    meta.ConfigName = strbuf.ToString();
+                    strbuf.Clear();
+
+                    if (!sourceFileMetas.TryGetValue(meta.ConfigName, out var metaList))
+                        sourceFileMetas.Add(meta.ConfigName, metaList = new List<SourceFileMeta> { meta });
                     else
-                    {
-                        strbuf.Append(name[i]);
-                    }
+                        metaList.Add(meta);
                 }
-                
-                if (!sourceFileMetas.TryGetValue(meta.ConfigName, out var metaList))
-                    sourceFileMetas.Add(meta.ConfigName, metaList = new List<SourceFileMeta> { meta });
-                metaList.Add(meta);
+                catch (Exception e)
+                {
+                    throw new Exception($"{filePath}", e);
+                }
             }
-            
+
             var contexts = new ConcurrentDictionary<Type, IConfigBuildTableContext>(Environment.ProcessorCount, 1024);
             CustomBuilder?.Invoke(contexts, sourceFileMetas);
-            
+
             if (isMultithread)
+            {
                 GetAllTypes().AsParallel().ForAll(t => BuildTablesAddContext(t, contexts, sourceFileMetas));
+            }
             else
+            {
                 foreach (var type in GetAllTypes())
                     BuildTablesAddContext(type, contexts, sourceFileMetas);
+            }
+
             return contexts;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -246,7 +273,7 @@ namespace FLib
                 Log.Info?.Write($"not found config file {attr.ConfigFileName}");
                 return;
             }
-            
+
             foreach (var fileMeta in fileMetas)
             {
                 if (!ConfigBuilderUtility.CheckSign(fileMeta.FileSign, Sign))
@@ -274,7 +301,7 @@ namespace FLib
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -289,7 +316,7 @@ namespace FLib
                 else
                     throw new Exception($"not found config {item.CfgType}");
             }
-            
+
             foreach (var item in allContexts)
             {
                 var ctx = item.Value;
@@ -310,7 +337,7 @@ namespace FLib
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -319,7 +346,7 @@ namespace FLib
             var writer = new BytesWriter();
             writer.Allocate(contexts.Count * 1024);
             writer.PushLength(contexts.Count);
-            
+
             var packBuffer = new BytesWriter();
             foreach (var ctx in contexts)
             {
@@ -343,7 +370,7 @@ namespace FLib
                     writer.Push(packBuffer.Span);
                 }
             }
-            
+
             return writer;
         }
     }

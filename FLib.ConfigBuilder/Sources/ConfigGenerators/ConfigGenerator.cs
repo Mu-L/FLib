@@ -52,11 +52,15 @@ namespace FLib
         /// </summary>
         public static async Task Process(ConfigGenerateParams p)
         {
+            Log.Info?.Write($"generate config {p}", nameof(ConfigGenerator));
             TotalTasks = _finishedTaskCount = 0;
             if (p.Op(EConfigGenerateOption.Clear))
             {
                 foreach (var item in Directory.GetFiles(p.DestDirPath, "*.cs", SearchOption.TopDirectoryOnly))
+                {
+                    Log.Info?.Write($"remove config {item}", nameof(ConfigGenerator));
                     File.Delete(item);
+                }
             }
 
             var tasks = new ConcurrentBag<Task>() { ProcessDefines(p) };
@@ -79,8 +83,10 @@ namespace FLib
                 return;
             var indent = 1;
             var name = json["Name"].ToString();
+            var fileName = Path.GetFileNameWithoutExtension(jsonPath)[..^7];
+            Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
 
-            strbuf.Indent(indent).AppendLine($"[BytesPackGen, Config(\"{Path.GetFileNameWithoutExtension(jsonPath)[..^7]}\")]")
+            strbuf.Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
                 .Indent(indent).Append("public partial class ").Append(name).AppendLine(" {");
             ++indent;
 
@@ -120,6 +126,7 @@ namespace FLib
             // 生成枚举
             foreach (var item in json["Enums"]!.Dict)
             {
+                Log.Info?.Write($"Generate Define Enum {item.Key}", nameof(ConfigGenerator));
                 strbuf.Indent(indent).AppendLine("/// <summary>");
                 strbuf.Indent(indent).Append("/// ").Append(item.Value.TryGet("Comment")?.ToString()).AppendLine();
                 strbuf.Indent(indent).AppendLine("/// </summary>");
@@ -151,6 +158,7 @@ namespace FLib
             {
                 foreach (var item in types.AsDict!)
                 {
+                    Log.Info?.Write($"Generate Define Type {item.Key}", nameof(ConfigGenerator));
                     strbuf.Indent(indent).AppendLine("/// <summary>")
                         .Indent(indent).Append("/// ").Append(item.Value.TryGet("Comment")?.ToString()).AppendLine()
                         .Indent(indent).AppendLine("/// </summary>");
