@@ -92,9 +92,7 @@ namespace FLib
 
             foreach (var field in json["Fields"]!.Dict)
             {
-                strbuf.Indent(indent).AppendLine("/// <summary>")
-                    .Indent(indent).Append("/// ").Append(field.Value.TryGet("Comment")?.ToString()).AppendLine()
-                    .Indent(indent).AppendLine("/// </summary>");
+                strbuf.AppendBlockComment(indent, field.Value);
                 strbuf.Indent(indent).Append("[BytesPackGenField] ")
                     .Append("public ").Append(field.Value["Type"].ToString()).Append(' ')
                     .Append(field.Key);
@@ -124,29 +122,33 @@ namespace FLib
             var indent = 1;
 
             // 生成枚举
-            foreach (var item in json["Enums"]!.Dict)
+            foreach (var item in json["Enums"].Dict)
             {
                 Log.Info?.Write($"Generate Define Enum {item.Key}", nameof(ConfigGenerator));
-                strbuf.Indent(indent).AppendLine("/// <summary>");
-                strbuf.Indent(indent).Append("/// ").Append(item.Value.TryGet("Comment")?.ToString()).AppendLine();
-                strbuf.Indent(indent).AppendLine("/// </summary>");
+                strbuf.AppendBlockComment(indent, item.Value);
                 var isFlags = item.Value["IsFlags"];
                 if (isFlags)
                     strbuf.Indent(indent).AppendLine("[Flags]");
                 strbuf.Indent(indent).AppendLine($"public enum {item.Key} {{");
                 ++indent;
-
-                var names = item.Value["Names"]!.AsArray!;
-                var customValues = item.Value.TryGet("Values")?.AsDict;
-                for (var i = 0; i < names.Length; i++)
+                if (item.Value.TryGet("Fields", out var fields))
                 {
-                    var name = names[i].ToString();
-                    if (customValues != null && customValues.TryGetValue(name, out var customValue))
-                        strbuf.Indent(indent).Append(name).Append(' ').Append('=').Append(' ').Append(customValue.ToString()).Append(',').AppendLine();
-                    else if (isFlags)
-                        strbuf.Indent(indent).Append(name).Append(' ').Append('=').Append(' ').Append("1 << ").Append(i).Append(',').AppendLine();
-                    else
-                        strbuf.Indent(indent).Append(name).Append(',').AppendLine();
+                    var index = 0;
+                    foreach (var field in fields.Dict)
+                    {
+                        strbuf.AppendBlockComment(indent, item.Value);
+                        strbuf.Indent(indent).Append(field.Key);
+                        if (item.Value.TryGet("Value", out var value))
+                        {
+                            strbuf.Append(" = ").Append(value.ToString());
+                        }
+                        else if (isFlags)
+                        {
+                            strbuf.Append(" = ").Append("1 << ").Append(index++);
+                        }
+
+                        strbuf.AppendLine(",");
+                    }
                 }
 
                 --indent;
@@ -159,17 +161,18 @@ namespace FLib
                 foreach (var item in types.AsDict!)
                 {
                     Log.Info?.Write($"Generate Define Type {item.Key}", nameof(ConfigGenerator));
-                    strbuf.Indent(indent).AppendLine("/// <summary>")
-                        .Indent(indent).Append("/// ").Append(item.Value.TryGet("Comment")?.ToString()).AppendLine()
-                        .Indent(indent).AppendLine("/// </summary>");
+                    strbuf.AppendBlockComment(indent, item.Value);
                     strbuf.Indent(indent).AppendLine("[BytesPackGen]");
                     strbuf.Indent(indent).Append("public partial ").Append(item.Value["Type"].ToString()).Append(' ').Append(item.Key).Append(" {").AppendLine();
                     ++indent;
                     if (item.Value.TryGet("Fields", out var fields))
                     {
-                        foreach (var field in fields.AsDict!)
+                        foreach (var field in fields.Dict)
+                        {
+                            strbuf.AppendBlockComment(indent, field.Value);
                             strbuf.Indent(indent).Append("[BytesPackGenField] ")
                                 .Append("public ").Append(field.Value.ToString()).Append(' ').Append(field.Key).Append(';').AppendLine();
+                        }
                     }
 
                     --indent;
@@ -182,6 +185,17 @@ namespace FLib
 
             await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, "_ConfigDefines.cs"), strbuf.ToString());
             Interlocked.Increment(ref _finishedTaskCount);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static StringBuilder AppendBlockComment(this StringBuilder strbuf, int indent, Json5AnyValue value)
+        {
+            strbuf.Indent(indent).AppendLine("/// <summary>");
+            strbuf.Indent(indent).Append("/// ").Append(value.TryGet("Comment")?.ToString()).AppendLine();
+            strbuf.Indent(indent).AppendLine("/// </summary>");
+            return strbuf;
         }
 
         /// <summary>

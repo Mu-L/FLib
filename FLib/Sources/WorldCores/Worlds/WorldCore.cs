@@ -34,12 +34,12 @@ namespace FLib.WorldCores
         /// <summary>
         /// 原型群组，管理世界中的所有实体原型。
         /// </summary>
-        public readonly WorldArchetypeGroup ArchetypeGroup;
+        public WorldArchetypeGroup ArchetypeGroup;
 
         /// <summary>
         /// 面向数据的组件群组管理器。
         /// </summary>
-        public readonly WorldSoaComponentGroupManager Soa;
+        public WorldSoaComponentGroupManager Soa;
 
         /// <summary>
         /// 动态组件的稀疏表示列表。
@@ -85,10 +85,10 @@ namespace FLib.WorldCores
         public bool IsDisposed => Handle.IsEmpty;
 
         /// <summary>
-        /// 初始化一个新的世界核心实例。
+        /// 初始化
         /// </summary>
         /// <param name="entityCapacity">实体容器的初始容量（默认值为 1024）</param>
-        public WorldCore(int entityCapacity = 1024)
+        public virtual void Initialize(int entityCapacity = 1024)
         {
             Update2 = new WorldUpdater();
             Update1 = new WorldUpdater();
