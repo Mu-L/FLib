@@ -1,4 +1,4 @@
-//==================={By Qcbf|qcbf@qq.com|10/14/2022 10:56:47 AM}===================
+// ==================={By Qcbf|qcbf@qq.com|10/14/2022 10:56:47 AM}===================
 
 using System;
 using System.Collections;
@@ -30,12 +30,12 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public FVector2Int TerrainSize;
+        public FVector2Int TerrainSize = new(20, 20);
 
         /// <summary>
         /// 
         /// </summary>
-        public BitArray[] Terrains;
+        public ulong[][] Terrains;
 
         /// <summary>
         /// 
@@ -80,9 +80,21 @@ namespace FLib
         public bool this[int layer, int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Terrains[layer][index];
+            get => BitArrayOperator.GetBit(Terrains[layer], index);
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Terrains[layer][index] = value;
+            set => BitArrayOperator.SetBit(Terrains[layer], index, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void CopyTo(QuadMap to)
+        {
+            if (to == null) return;
+            to.Offset = Offset;
+            to.TileSize = TileSize;
+            to.TerrainSize = TerrainSize;
+            to.Terrains = Terrains.Select(v => (ulong[])v.Clone()).ToArray();
         }
 
         /// <summary>
@@ -121,7 +133,7 @@ namespace FLib
             Array.Resize(ref Terrains, count);
             var tileCount = TerrainSize.X * TerrainSize.Y;
             for (var i = 0; i < LayerCount; i++)
-                Terrains[i] = new BitArray(tileCount);
+                Array.Resize(ref Terrains[i], tileCount);
             return this;
         }
 
@@ -138,16 +150,17 @@ namespace FLib
             for (var i = 0; i < LayerCount; i++)
             {
                 var oldTerrain = Terrains[i];
-                Terrains[i] = new BitArray(size.X * size.Y);
+                Array.Resize(ref Terrains[i], size.X * size.Y);
                 if (oldTerrain != null)
                 {
                     for (var y = 0; y < h; y++)
                     {
                         for (var x = 0; x < w; x++)
-                            Terrains[i].Set(y * size.X + x, oldTerrain[y * w + x]);
+                            BitArrayOperator.SetBit(Terrains[i], y * size.X + x, BitArrayOperator.GetBit(oldTerrain, y * w + x));
                     }
                 }
             }
+
             return this;
         }
 
@@ -161,7 +174,7 @@ namespace FLib
         /// 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool CheckTile(int layer, in FVector2Int pos, bool value) => CheckTile(pos) && Terrains[layer][PosToIdx(pos)] == value;
+        public bool CheckTile(int layer, in FVector2Int pos, bool value) => CheckTile(pos) && BitArrayOperator.GetBit(Terrains[layer], PosToIdx(pos)) == value;
 
         /// <summary>
         /// 
@@ -176,6 +189,7 @@ namespace FLib
                         return false;
                 }
             }
+
             return true;
         }
 
@@ -223,13 +237,15 @@ namespace FLib
                         return mapPos;
                 }
             }
+
             return FVector2Int.None;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public FVector2Int FindNearNextStepPos(int layer, in FVector2Int from, in FVector2Int to, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, HashSet<FVector2Int> blackPositions = null)
+        public FVector2Int FindNearNextStepPos(int layer, in FVector2Int from, in FVector2Int to, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null,
+            HashSet<FVector2Int> blackPositions = null)
         {
             var segment = (FNum)45;
             var half = segment * FNum.OneHalf;
@@ -246,6 +262,7 @@ namespace FLib
                 if (CheckTile(layer, next, value) && blackPositions?.Contains(next) != true && checker?.Invoke(this, next) != false)
                     return next;
             }
+
             next = from + NearestEightPositions[(index + 8) % 8];
             if (CheckTile(layer, next, value) && blackPositions?.Contains(next) != true && checker?.Invoke(this, next) != false)
                 return next;
@@ -269,6 +286,7 @@ namespace FLib
                 pos.X = worldRect.Max.X - FNum.Thousandth;
                 result = true;
             }
+
             if (pos.Y < worldRect.Min.Y)
             {
                 pos.Y = worldRect.Min.Y;
@@ -279,6 +297,7 @@ namespace FLib
                 pos.Y = worldRect.Max.Y - FNum.Thousandth;
                 result = true;
             }
+
             var mapPos = WorldToMapPos(pos);
             if (!CheckTile(layer, mapPos, value))
             {
@@ -286,6 +305,7 @@ namespace FLib
                 if (foundMapPos != FVector2Int.None)
                     pos = MapToWorldPos(foundMapPos);
             }
+
             return result;
         }
 
@@ -318,6 +338,7 @@ namespace FLib
                     strbuf.AppendLine();
                 }
             }
+
             return strbuf.ToString();
         }
 
@@ -332,6 +353,7 @@ namespace FLib
                 dest[i] = new int[Terrains[i].Length / 32];
                 Terrains[i].CopyTo(dest[i], 0);
             }
+
             return dest;
         }
 
@@ -341,19 +363,7 @@ namespace FLib
             writer.Push(Offset);
             writer.Push(TileSize);
             writer.Push(TerrainSize);
-            var len = (Terrains?.Length).GetValueOrDefault();
-            writer.PushLength(len);
-            if (len == 0)
-                return;
-            int[] tempArray = null;
-            foreach (var terrain in Terrains!)
-            {
-                len = terrain.Length / 32;
-                if ((tempArray?.Length).GetValueOrDefault() < len)
-                    tempArray = new int[terrain.Length];
-                terrain.CopyTo(tempArray!, 0);
-                writer.Push(tempArray.AsSpan(0, len));
-            }
+            writer.Push(Terrains);
         }
 
         public virtual void Z_BytesRead(ref BytesReader reader)
@@ -361,13 +371,7 @@ namespace FLib
             reader.Read(ref Offset);
             reader.Read(ref TileSize);
             reader.Read(ref TerrainSize);
-            var terrainCount = reader.ReadLength();
-            Terrains = new BitArray[terrainCount];
-            for (var i = 0; i < terrainCount; i++)
-            {
-                var arr = reader.ReadArray<int>();
-                Terrains[i] = new BitArray(arr);
-            }
+            Terrains = reader.ReadArray2<ulong>();
         }
         #endregion
     }
@@ -397,5 +401,12 @@ namespace FLib
         }
 
         public ref TTileData GetTileData(byte layer, FVector2Int pos) => ref TileDatas[layer][PosToIdx(pos)];
+
+        public override void CopyTo(QuadMap to)
+        {
+            base.CopyTo(to);
+            if (to is QuadMap<TTileData> map)
+                map.TileDatas = TileDatas.Select(v => v.Select(w => w).ToArray()).ToArray();
+        }
     }
 }

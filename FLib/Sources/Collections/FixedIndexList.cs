@@ -52,8 +52,7 @@ namespace FLib
         /// </summary>
         public int Add()
         {
-            var index = 0;
-            if (Frees != null && !Frees.TryPop(out index))
+            if (Frees == null || !Frees.TryPop(out var index))
             {
                 if (Values == null || Values.Length <= Count)
                     Array.Resize(ref Values, MathEx.GetNextPowerOfTwo(Count + 1));
