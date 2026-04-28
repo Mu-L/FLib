@@ -67,6 +67,7 @@ namespace FLib
         {
             private SpinLock _locker;
             private uint _dynamicIdIncrement = 1;
+            private TypeCode IndexIdTypeCode;
             public SourceFileMeta SourceFile;
             public Type ConfigType { get; set; }
             public FieldInfo IndexIdField { get; }
@@ -84,6 +85,7 @@ namespace FLib
                 ConfigType = type;
                 Options = options;
                 IndexIdField = ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(v => v.MetadataToken).First();
+                IndexIdTypeCode = Type.GetTypeCode(IndexIdField.FieldType);
             }
 
             /// <summary>
@@ -125,14 +127,14 @@ namespace FLib
             /// </summary>0
             public (uint Id, int Index)? AddConfig(object objId, IBytesPackable config)
             {
-                if (objId == null && config == null)
+                if (objId == null || config == null)
                     return null;
                 var isLocking = false;
                 _locker.Enter(ref isLocking);
                 try
                 {
                     var index = AllConfigs.Count;
-                    var id = objId is string strId ? ConfigHelper.StringToUniqueId(strId) : Convert.ToUInt32(objId);
+                    var id = IndexIdTypeCode == TypeCode.String ? ConfigHelper.StringToUniqueId(objId.ToString()) : Convert.ToUInt32(objId);
                     if (!AllConfigIdIndexes.TryAdd(id, index))
                         Log.Error?.Write($"存在相同Id配置: {ConfigType.Name}.{objId}\n{SourceFile}");
                     AllConfigs.Add((id, config));

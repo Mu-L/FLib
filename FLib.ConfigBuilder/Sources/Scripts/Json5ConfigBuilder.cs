@@ -52,10 +52,7 @@ namespace FLib
         {
             foreach (var item in Json5.Deserialize<Value[]>(File.ReadAllText(ctx.SourceFilePath), new Json5DeserializeOptionData { UserData = ctx }))
             {
-                var cfg = item.CfgData;
-                // var rt = ctx.AddConfig(key, cfg);
-                // if (rt.HasValue)
-                //     ctx.IndexIdField.SetValue(cfg, ConfigBuilderUtility.ConvertObjectToType(key, ctx.IndexIdField.FieldType));
+                ctx.AddConfig(item.KeyValue, item.CfgData);
             }
         }
     }
