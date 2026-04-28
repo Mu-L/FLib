@@ -45,7 +45,6 @@ namespace FLib
         private static int _finishedTaskCount;
         public static int FinishedTaskCount => _finishedTaskCount;
         public static int TotalTasks { get; private set; }
-        public static float Progress => TotalTasks == 0 ? 0 : FinishedTaskCount / (float)TotalTasks;
 
         /// <summary>
         /// 
@@ -87,10 +86,10 @@ namespace FLib
             Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
 
             strbuf.Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
-                .Indent(indent).Append("public partial class ").Append(name).AppendLine(" {");
+                .Indent(indent).Append("public partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
             ++indent;
 
-            foreach (var field in json["Fields"]!.Dict)
+            foreach (var field in json["Fields"].Dict)
             {
                 strbuf.AppendBlockComment(indent, field.Value);
                 strbuf.Indent(indent).Append("[BytesPackGenField] ")
@@ -129,14 +128,14 @@ namespace FLib
                 var isFlags = item.Value["IsFlags"];
                 if (isFlags)
                     strbuf.Indent(indent).AppendLine("[Flags]");
-                strbuf.Indent(indent).AppendLine($"public enum {item.Key} {{");
+                strbuf.Indent(indent).AppendLine($"public enum {item.Key}").Indent(indent).AppendLine("{");
                 ++indent;
                 if (item.Value.TryGet("Fields", out var fields))
                 {
                     var index = 0;
                     foreach (var field in fields.Dict)
                     {
-                        strbuf.AppendBlockComment(indent, item.Value);
+                        strbuf.AppendBlockComment(indent, field.Value);
                         strbuf.Indent(indent).Append(field.Key);
                         if (item.Value.TryGet("Value", out var value))
                         {
@@ -147,7 +146,7 @@ namespace FLib
                             strbuf.Append(" = ").Append("1 << ").Append(index++);
                         }
 
-                        strbuf.AppendLine(",");
+                        strbuf.AppendLine(",").AppendLine();
                     }
                 }
 
@@ -211,7 +210,7 @@ namespace FLib
         /// </summary>
         private static StringBuilder AppendHead(this StringBuilder strbuf, ConfigGenerateParams p)
         {
-            strbuf.AppendLine("// generator sources")
+            strbuf.AppendLine("// generate sources by FLib.ConfigBuilder").AppendLine()
                 .AppendLine("using System;")
                 .AppendLine("using FLib;");
             if (p.Usings?.Length > 0)

@@ -1051,7 +1051,7 @@ namespace FLib
     /// <summary>
     /// 
     /// </summary>
-    public sealed class Json5AnyValue : IEnumerable<Json5AnyValue>
+    public sealed class Json5AnyValue : IEnumerable<object>
     {
         public object Raw;
         public Json5AnyValue(object raw) => Raw = raw;
@@ -1089,7 +1089,14 @@ namespace FLib
         public static implicit operator float(Json5AnyValue val) => Convert.ToSingle(val.Raw);
         public static implicit operator double(Json5AnyValue val) => Convert.ToDouble(val.Raw);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        public IEnumerator<Json5AnyValue> GetEnumerator() => ((IEnumerable<Json5AnyValue>)AsArray!).GetEnumerator();
+
+        public IEnumerator<object> GetEnumerator() =>
+#if NET8_0_OR_GREATER
+            (AsArray as IEnumerable<object>)?.GetEnumerator()
+#else
+            AsArray?.Cast<object>().GetEnumerator()
+#endif
+            ?? AsDict?.Cast<object>().GetEnumerator() ?? Enumerable.Empty<object>().GetEnumerator();
     }
     #endregion
 }
