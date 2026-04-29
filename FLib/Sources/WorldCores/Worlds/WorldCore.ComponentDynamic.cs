@@ -183,7 +183,7 @@ namespace FLib.WorldCores
         /// <returns>如果实体拥有该动态组件返回 true，否则返回 false</returns>
         public bool HasDyn(WorldEntityId et, Type componentType)
         {
-            ref readonly var eti = ref GetEntityInfo(et);
+            ref readonly var eti = ref GetEntityInfoOrEmpty(et);
             if (!eti.HasDynamicComponent) return false;
             var compId = WorldComponentRegistry.GetId(componentType).Id;
             ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
