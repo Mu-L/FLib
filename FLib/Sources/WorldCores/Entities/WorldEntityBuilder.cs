@@ -166,8 +166,10 @@ namespace FLib.WorldCores.Entities
                 world.Assert(!info.HasLifecycle, msg: "nonsupport life invoker");
             else
                 world.Assert(!info.IsShared);
-            world.Assert(!typeof(IWorldUpdate).IsAssignableFrom(info.Type), msg: "static component not support update");
-            world.Assert(!typeof(IWorldStart).IsAssignableFrom(info.Type), msg: "static component not support start");
+            if (typeof(IWorldUpdate).IsAssignableFrom(info.Type))
+                world.ThrowException($"static component[{TypeAssistant.GetTypeName(info.Type)}] not support update");
+            if (typeof(IWorldStart).IsAssignableFrom(info.Type))
+                world.ThrowException($"static component[{TypeAssistant.GetTypeName(info.Type)}] not support start");
         }
 
         public static implicit operator WorldEntityId(in WorldEntityBuilder builder) => builder.EntityId;

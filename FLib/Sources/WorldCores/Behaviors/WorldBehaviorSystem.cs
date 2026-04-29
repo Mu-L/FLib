@@ -16,33 +16,33 @@ namespace FLib.WorldCores.Behaviors
         public uint Mask;
         public int PrimaryId;
         public int SecondaryId;
-        
+
         public readonly bool HasPrimary => PrimaryId >= 0;
         public readonly bool HasSecondary => SecondaryId >= 0;
         public readonly WorldBehavior? Primary => HasPrimary ? WorldBehaviorPool.Behaviors[PrimaryId] : null;
         public readonly WorldBehavior? Secondary => HasSecondary ? WorldBehaviorPool.Behaviors[SecondaryId] : null;
         public readonly WorldCore World => Self.World;
-        
+
         public override string ToString() => $"{Self}, {Primary}, {Secondary}";
-        
+
         void IWorldAwake.OnComponentAwake(WorldCore world, WorldEntityId entityId)
         {
             SecondaryId = PrimaryId = -1;
             Self = new WorldEntity(world, entityId);
             WorldGlobalSetting.DoDefaultBehaviorHandler(ref this);
         }
-        
+
         void IWorldDestroy.OnComponentDestroy(WorldCore world, WorldEntityId entityId)
         {
             StopAll(true, false);
         }
-        
+
         /// <summary>
         /// 执行指定行为类型并传入参数，如果已有相同行为则复用；返回执行是否成功。
         /// </summary>
         public bool Do<TBehavior, TParam>(in TParam param) where TBehavior : WorldBehavior
             => Do(typeof(TBehavior), param);
-        
+
         /// <summary>
         /// 执行给定行为类型，并通过静态泛型承载参数。
         /// 参数值会提前存储到 <see cref="WorldBehavior{TParam}.NewParam"/>。
@@ -53,13 +53,13 @@ namespace FLib.WorldCores.Behaviors
             WorldBehavior<T>.NewParam = param;
             return Do(behaviorType);
         }
-        
+
         /// <summary>
         /// 启动指定泛型类型的行为（无参数）。
         /// </summary>
         public bool Do<T>() where T : WorldBehavior
             => Do(typeof(T));
-        
+
         /// <summary>
         /// 尝试激活或新建指定行为类型：
         /// - 如果当前主或次行为已是该类型，则直接检查并唤醒；
@@ -87,10 +87,10 @@ namespace FLib.WorldCores.Behaviors
                 if (!DoNewBehavior(behaviorType, evt))
                     return false;
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// 创建一个新行为并根据当前主/次行为的优先级与友好关系
         /// 将其插入到系统中；必要时会停止被替换的行为。
@@ -100,18 +100,18 @@ namespace FLib.WorldCores.Behaviors
             var bhv = WorldBehaviorPool.Rent(behaviorType);
             bhv.SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this);
             bhv.StartFrame = World.Frame;
-            
+
             if (!CheckDo(ref evt, bhv, true))
             {
                 WorldBehaviorPool.Free(bhv);
                 return false;
             }
-            
+
             bhv.Priority = bhv.InitialPriority;
             ref var slot = ref PrimaryId;
             WorldBehavior? stopBhvPrimary = null;
             WorldBehavior? stopBhvSecondary = null;
-            
+
             var primary = Primary;
             if (primary != null)
             {
@@ -146,22 +146,22 @@ namespace FLib.WorldCores.Behaviors
                     return false;
                 }
             }
-            
+
             slot = bhv.Id;
             Awake(bhv, evt);
-            
+
             if (stopBhvSecondary != null)
             {
                 SecondaryId = -1;
                 Stop(stopBhvSecondary, false);
             }
-            
+
             if (stopBhvPrimary != null)
                 Stop(stopBhvPrimary, true);
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// 停止系统中运行的所有行为。
         /// 如果 <paramref name="force"/> 为 true，会循环尝试直至彻底清空或抛出错误。
@@ -177,12 +177,12 @@ namespace FLib.WorldCores.Behaviors
                     StopSecondary();
                     StopPrimary(isDoDefault);
                 }
-                
+
                 if (HasPrimary)
                     World.ThrowException($"stop all failure {Primary}  {Secondary}", Self);
             }
         }
-        
+
         /// <summary>
         /// 停止当前主行为（如果存在）。
         /// </summary>
@@ -193,10 +193,10 @@ namespace FLib.WorldCores.Behaviors
                 Stop(ref PrimaryId, isDoDefault);
                 return true;
             }
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// 停止当前次行为（如果存在）。
         /// </summary>
@@ -207,10 +207,10 @@ namespace FLib.WorldCores.Behaviors
                 Stop(ref SecondaryId);
                 return true;
             }
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// 停止指定类型的行为（无论是主还是次）。
         /// </summary>
@@ -221,16 +221,16 @@ namespace FLib.WorldCores.Behaviors
                 Stop(ref PrimaryId, isDoDefault);
                 return true;
             }
-            
+
             if (Secondary is T)
             {
                 Stop(ref SecondaryId, isDoDefault);
                 return true;
             }
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// 停止指定类型的行为实例。
         /// </summary>
@@ -241,16 +241,16 @@ namespace FLib.WorldCores.Behaviors
                 Stop(ref PrimaryId, isDoDefault);
                 return true;
             }
-            
+
             if (Secondary?.GetType() == behaviorType)
             {
                 Stop(ref SecondaryId, isDoDefault);
                 return true;
             }
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// 获取指定类型的行为实例。
         /// </summary>
@@ -258,28 +258,28 @@ namespace FLib.WorldCores.Behaviors
         {
             return Primary as T ?? Secondary as T;
         }
-        
+
         /// <summary>
         /// 检查标记组合是否全部被当前行为掩码包含。
         /// </summary>
         public readonly bool IsRunning(uint mask)
             => (Mask & mask) == mask;
-        
+
         /// <summary>
         /// 判断给定泛型类型的行为是否正在运行。
         /// </summary>
         public readonly bool IsRunning<T>() where T : WorldBehavior
             => Primary is T || Secondary is T;
-        
+
         /// <summary>
         /// 判断指定类型的行为是否作为主或次正在运行。
         /// </summary>
         public readonly bool IsRunning(Type behaviorType)
             => Primary?.GetType() == behaviorType || Secondary?.GetType() == behaviorType;
-        
-        
+
+
         // ===== privates =====
-        
+
         /// <summary>
         /// 通用唤醒逻辑：初始化参数、调用行为唤醒并派发事件。
         /// </summary>
@@ -288,7 +288,7 @@ namespace FLib.WorldCores.Behaviors
             bhv.OnAwake(evt.IsFirst);
             Self.DispatchEvent(evt);
         }
-        
+
         /// <summary>
         /// 在执行行为前进行检查，包括行为自身条件和预事件拦截。
         /// </summary>
@@ -298,7 +298,7 @@ namespace FLib.WorldCores.Behaviors
             e.IsFirst = isFirst;
             return bhv.CheckDo(isFirst) && Self.DispatchPreEvent(ref e);
         }
-        
+
         /// <summary>
         /// 停止指定 ID 的行为并处理主次切换逻辑。
         /// </summary>
@@ -323,7 +323,7 @@ namespace FLib.WorldCores.Behaviors
                 }
             }
         }
-        
+
         /// <summary>
         /// 执行行为停止的底层逻辑：更新掩码、派发事件并回收对象。
         /// </summary>
@@ -341,7 +341,7 @@ namespace FLib.WorldCores.Behaviors
                 WorldBehaviorPool.Free(bhv);
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>

@@ -122,7 +122,7 @@ namespace FLib.WorldCores
         /// <returns>如果实体拥有该组件返回 true，否则返回 false</returns>
         public bool HasSta<T>(WorldEntityId et) where T : unmanaged
         {
-            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<T>().Id);
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfoOrEmpty(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<T>().Id);
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace FLib.WorldCores
         /// <returns>如果实体拥有该管理组件返回 true，否则返回 false</returns>
         public bool HasStaMng<T>(WorldEntityId et)
         {
-            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<Mng<T>>().Id);
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfoOrEmpty(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta<Mng<T>>().Id);
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace FLib.WorldCores
         /// <returns>如果实体拥有该组件返回 true，否则返回 false</returns>
         public bool HasSta(WorldEntityId et, Type componentType)
         {
-            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfo(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta(componentType).Id);
+            return BitArrayOperator.GetBit(ArchetypeGroup[GetEntityInfoOrEmpty(et).ArchetypeIndex].ComponentMask, WorldComponentRegistry.GetMeta(componentType).Id);
         }
     }
 }

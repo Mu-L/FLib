@@ -30,7 +30,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public FVector2Int TerrainSize = new(20, 20);
+        public FVector2Int TerrainSize;
 
         /// <summary>
         /// 
@@ -40,7 +40,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public int LayerCount => (Terrains?.Length).GetValueOrDefault();
+        public int LayerCount => Terrains.Length;
 
         /// <summary>
         /// 
@@ -147,6 +147,8 @@ namespace FLib
             TerrainSize = size;
             if (layerCount > 0)
                 Array.Resize(ref Terrains, layerCount);
+            else if (Terrains == null)
+                Terrains = new ulong[1][];
             for (var i = 0; i < LayerCount; i++)
             {
                 var oldTerrain = Terrains[i];

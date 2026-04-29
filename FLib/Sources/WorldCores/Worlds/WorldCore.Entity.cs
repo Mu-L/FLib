@@ -18,7 +18,7 @@ namespace FLib.WorldCores
         /// <param name="et">目标实体</param>
         /// <returns>实体信息的引用，如果实体无效则返回空信息</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref WorldEntityInfo GetEntityInfoOrEmpty(in WorldEntityId et)
+        public ref readonly WorldEntityInfo GetEntityInfoOrEmpty(in WorldEntityId et)
         {
             ref var eti = ref Entities[et.Id];
             if (eti.Version != et.Version)

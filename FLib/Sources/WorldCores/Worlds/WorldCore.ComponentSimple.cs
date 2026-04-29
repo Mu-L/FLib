@@ -77,7 +77,7 @@ namespace FLib.WorldCores
         /// <returns>如果实体拥有该组件返回 true，否则返回 false</returns>
         public bool Has<T>(WorldEntityId et)
         {
-            ref var eti = ref GetEntityInfo(et);
+            ref readonly var eti = ref GetEntityInfoOrEmpty(et);
             var compId = WorldComponentGenericMap<T>.Id;
             if (compId.IsEmpty)
                 return false;
