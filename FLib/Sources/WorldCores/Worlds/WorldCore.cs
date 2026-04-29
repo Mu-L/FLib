@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using FLib.WorldCores.SoaComponents;
 using FLib.WorldCores.Queries;
@@ -52,16 +53,6 @@ namespace FLib.WorldCores
         public WorldEntityContainer Entities;
 
         /// <summary>
-        /// 第一个更新器，用于处理第一阶段的逻辑更新。
-        /// </summary>
-        public WorldUpdater Update1;
-
-        /// <summary>
-        /// 第二个更新器，用于处理第二阶段的逻辑更新。
-        /// </summary>
-        public WorldUpdater Update2;
-
-        /// <summary>
         /// 当前世界的逻辑时间（帧数 × 时间增量）。
         /// </summary>
         public FNum Time;
@@ -70,6 +61,16 @@ namespace FLib.WorldCores
         /// 当前世界的帧数计数器。
         /// </summary>
         public uint Frame;
+
+        /// <summary>
+        /// 第一个更新器，用于处理第一阶段的逻辑更新。
+        /// </summary>
+        internal WorldUpdater Update1;
+
+        /// <summary>
+        /// 第二个更新器，用于处理第二阶段的逻辑更新。
+        /// </summary>
+        internal WorldUpdater Update2;
 
         /// <summary>
         /// 
@@ -208,6 +209,13 @@ namespace FLib.WorldCores
 
             GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public override string ToString() =>
+            StringFLibUtility.ReleaseStrBufAndResult(StringFLibUtility.GetStrBuf()
+                .Append('(').Append(Frame).Append('f').Append(',').Append(Time.ToString("0.0")).Append('s').Append(',').Append(Entities.Count).Append(')'));
 
         /// <summary>
         /// 
