@@ -225,6 +225,7 @@ namespace FLib.WorldCores
             throw new WorldCoreException(this, eId, msg, inner);
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 
         /// </summary>

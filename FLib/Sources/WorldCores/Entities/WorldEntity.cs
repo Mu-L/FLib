@@ -124,6 +124,21 @@ namespace FLib.WorldCores.Entities
         /// <summary>
         /// 获取实体的动态组件并返回引用。
         /// </summary>
+        public bool TryGetDyn<T>(out T component)
+        {
+            if (World.HasDyn<T>(Id))
+            {
+                component = World.GetDyn<T>(Id);
+                return true;
+            }
+
+            component = default;
+            return false;
+        }
+
+        /// <summary>
+        /// 获取实体的动态组件并返回引用。
+        /// </summary>
         public ref T GetDyn<T>() => ref World.GetDyn<T>(Id);
 
         /// <summary>

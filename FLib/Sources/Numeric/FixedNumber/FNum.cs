@@ -49,11 +49,11 @@ namespace FLib
         }
 #else
         public float RawValue;
-        public static readonly FNum Epsilon = float.Epsilon;
-        public static readonly FNum MaxValue = float.MaxValue;
-        public static readonly FNum MinValue = float.MinValue;
-        public static readonly FNum PI = MathF.PI;
-        private static readonly FNum Ln2 = 0.69315f;
+        public static readonly FNum Epsilon = (FNum)float.Epsilon;
+        public static readonly FNum MaxValue = (FNum)float.MaxValue;
+        public static readonly FNum MinValue = (FNum)float.MinValue;
+        public static readonly FNum PI = (FNum)MathF.PI;
+        private static readonly FNum Ln2 = (FNum)0.69315D;
         public FNum(float value) => RawValue = value;
         public FNum(ReadOnlySpan<char> str)
         {
@@ -104,7 +104,7 @@ namespace FLib
             var mask = value.RawValue >> 63;
             return new FNum((value.RawValue + mask) ^ mask);
 #else
-            return MathF.Abs(value);
+            return (FNum)MathF.Abs(value);
 #endif
         }
 
@@ -119,7 +119,7 @@ namespace FLib
             var mask = value.RawValue >> 63;
             return new FNum((value.RawValue + mask) ^ mask);
 #else
-            return MathF.Abs(value);
+            return (FNum)MathF.Abs(value);
 #endif
         }
 
@@ -133,7 +133,7 @@ namespace FLib
             // Just zero out the fractional part
             return new FNum((long)((ulong)value.RawValue & 0xFFFFFFFF00000000));
 #else
-            return MathF.Floor(value);
+            return (FNum)MathF.Floor(value);
 #endif
         }
 
@@ -146,7 +146,7 @@ namespace FLib
             var hasFractionalPart = (value.RawValue & 0x00000000FFFFFFFF) != 0;
             return hasFractionalPart ? Floor(value) + One : value;
 #else
-            return MathF.Ceiling(value);
+            return (FNum)MathF.Ceiling(value);
 #endif
         }
 
@@ -173,7 +173,7 @@ namespace FLib
                 ? integralPart
                 : integralPart + One;
 #else
-            return MathF.Round(value);
+            return (FNum)MathF.Round(value);
 #endif
         }
 
@@ -336,7 +336,7 @@ namespace FLib
             var sum = (long)loResult + lohi + hilo + hiResult;
             return new FNum(sum);
 #else
-            return x.RawValue * y.RawValue;
+            return (FNum)(x.RawValue * y.RawValue);
 #endif
         }
 
@@ -483,7 +483,7 @@ namespace FLib
 
             return result;
 #else
-            return MathF.Pow(x, 2);
+            return (FNum)MathF.Pow(x, 2);
 #endif
         }
 
@@ -533,7 +533,7 @@ namespace FLib
 
             return new FNum(y);
 #else
-            return MathF.Log(x, 2);
+            return (FNum)MathF.Log(x, 2);
 #endif
         }
 
@@ -582,7 +582,7 @@ namespace FLib
             var log2 = Log2(b);
             return Pow2(exp * log2);
 #else
-            return MathF.Pow(b, exp);
+            return (FNum)MathF.Pow(b, exp);
 #endif
         }
 
@@ -661,7 +661,7 @@ namespace FLib
             }
             return new FNum((long)result);
 #else
-            return MathF.Sqrt(x);
+            return (FNum)MathF.Sqrt(x);
 #endif
         }
 
@@ -689,7 +689,7 @@ namespace FLib
             var finalValue = flipVertical ? -interpolatedValue : interpolatedValue;
             return new FNum(finalValue);
 #else
-            return MathF.Sin(x);
+            return (FNum)MathF.Sin(x);
 #endif
         }
 
@@ -713,7 +713,7 @@ namespace FLib
             var nearestValue = LUT.SinLut[flipHorizontal ? LUT.SinLut.Length - 1 - (int)rawIndex : (int)rawIndex];
             return new FNum(flipVertical ? -nearestValue : nearestValue);
 #else
-            return MathF.Sin(x);
+            return (FNum)MathF.Sin(x);
 #endif
         }
 
@@ -769,7 +769,7 @@ namespace FLib
             var rawAngle = xl + (xl > 0 ? -mPI - PI_OVER_2 : PI_OVER_2);
             return Sin(new FNum(rawAngle));
 #else
-            return MathF.Cos(x);
+            return (FNum)MathF.Cos(x);
 #endif
         }
 
@@ -784,7 +784,7 @@ namespace FLib
             var rawAngle = xl + (xl > 0 ? -mPI - PI_OVER_2 : PI_OVER_2);
             return FastSin(new FNum(rawAngle));
 #else
-            return MathF.Cos(x);
+            return (FNum)MathF.Cos(x);
 #endif
         }
 
@@ -825,7 +825,7 @@ namespace FLib
             var finalValue = flip ? -interpolatedValue : interpolatedValue;
             return new FNum(finalValue);
 #else
-            return MathF.Tan(x);
+            return (FNum)MathF.Tan(x);
 #endif
         }
 
@@ -846,7 +846,7 @@ namespace FLib
             var result = Atan(Sqrt(One - x * x) / x);
             return x.RawValue < 0 ? result + PI : result;
 #else
-            return MathF.Acos(x);
+            return (FNum)MathF.Acos(x);
 #endif
         }
 
@@ -907,7 +907,7 @@ namespace FLib
             }
             return result;
 #else
-            return MathF.Atan(z);
+            return (FNum)MathF.Atan(z);
 #endif
         }
 
@@ -957,7 +957,7 @@ namespace FLib
             }
             return atan;
 #else
-            return MathF.Atan2(y, x);
+            return (FNum)MathF.Atan2(y, x);
 #endif
         }
 
@@ -1015,18 +1015,34 @@ namespace FLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator decimal(FNum value) => (decimal)value.RawValue / ONE;
 
 #else
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(float value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator float(FNum value) => value.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(int value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator int(FNum value) => (int)value.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(long value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator +(FNum x, FNum y) => new(x.RawValue + y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator -(FNum x, FNum y) => new(x.RawValue - y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator *(FNum x, FNum y) => new(x.RawValue * y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator /(FNum x, FNum y) => new(x.RawValue / y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator %(FNum x, FNum y) => new(x.RawValue % y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator -(FNum x) => new(-x.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator >(FNum x, FNum y) => x.RawValue > y.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator <(FNum x, FNum y) => x.RawValue < y.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator >=(FNum x, FNum y) => x.RawValue >= y.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator <=(FNum x, FNum y) => x.RawValue <= y.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(long value) => new(value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator long(FNum value) => (long)value.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(short value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator short(FNum value) => (short)value.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(byte value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator byte(FNum value) => (byte)value.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(decimal value) => new((float)value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator decimal(FNum value) => (decimal)value.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(int value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator int(FNum value) => (int)(value.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(uint value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator uint(FNum value) => (uint)value.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(short value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator short(FNum value) => (short)(value.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(ushort value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator ushort(FNum value) => (ushort)(value.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(byte value) => new(value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator byte(FNum value) => (byte)(value.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(float value) => new((long)(value));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator float(FNum value) => value.RawValue ;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(double value) => new((long)(value ));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator double(FNum value) => value.RawValue ;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(in decimal value) => new((long)(value ));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator decimal(FNum value) => (decimal)value.RawValue ;
 #endif
 
 
