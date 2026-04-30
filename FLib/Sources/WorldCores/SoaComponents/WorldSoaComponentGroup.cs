@@ -75,7 +75,7 @@ namespace FLib.WorldCores.SoaComponents
             ++Count;
             Components[index] = component;
             ComponentEntities[index] = et;
-            WorldComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
+            WorldComponentRegistry.GetInfo<T>().Awake?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et, true); // 目前主要是Destroy需要info判断是否调用组件的生命周期事件，Awake不需要，所以这里直接传入default
             return index;
         }
 
@@ -87,8 +87,7 @@ namespace FLib.WorldCores.SoaComponents
             try
             {
                 ref readonly var info = ref WorldComponentRegistry.GetInfo<T>();
-                if (!onEntityDestroyed || info.Op(EComponentOption.AlwaysReceiveDestroy))
-                    info.Destroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
+                info.Destroy?.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et, !onEntityDestroyed || info.Op(EComponentOption.AlwaysReceiveDestroy));
             }
             finally
             {

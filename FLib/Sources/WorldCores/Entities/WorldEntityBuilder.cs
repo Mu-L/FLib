@@ -109,7 +109,7 @@ namespace FLib.WorldCores.Entities
                     var meta = Components[i];
                     ref readonly var info = ref WorldComponentRegistry.GetInfo(meta);
                     if (!info.IsShared)
-                        info.Awake?.Invoke(ref *(byte*)eti.Chunk.Get(eti.IndexInChunk, meta), World, EntityId);
+                        info.Awake?.Invoke(ref *(byte*)eti.Chunk.Get(eti.IndexInChunk, meta), World, EntityId, true);
                 }
             }
 

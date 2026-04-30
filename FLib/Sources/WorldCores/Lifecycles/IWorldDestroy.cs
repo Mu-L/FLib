@@ -12,14 +12,15 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        internal static void Destroy<T>(ref byte ptr, WorldCore world, WorldEntityId entityId) where T : IWorldDestroy
+        internal static void Destroy<T>(ref byte ptr, WorldCore world, WorldEntityId entityId, bool isInvokeComponent) where T : IWorldDestroy
         {
             try
             {
                 ref var comp = ref Unsafe.As<byte, T>(ref ptr);
                 WorldComponentEvents.OnDestroy?.Invoke(world, entityId, typeof(T), ref ptr);
                 WorldComponentEvents<T>.OnDestroy?.Invoke(world, entityId, ref comp);
-                comp.OnComponentDestroy(world, entityId);
+                if (isInvokeComponent)
+                    comp.OnComponentDestroy(world, entityId);
             }
             catch (Exception e)
             {
