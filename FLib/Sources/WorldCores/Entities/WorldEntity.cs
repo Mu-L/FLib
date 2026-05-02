@@ -337,6 +337,8 @@ namespace FLib.WorldCores.Entities
         /// </summary>
         public string Dump()
         {
+            if (IsEmpty)
+                return ToString();
             var strbuf = new StringBuilder(512);
             var allComponents = World.GetAll(this);
             strbuf.Append(Id).Append('[').Append(allComponents.Count).Append(']').AppendLine(": ");
