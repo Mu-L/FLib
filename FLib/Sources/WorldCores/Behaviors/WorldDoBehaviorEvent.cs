@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FLib.WorldCores.Entities;
 
@@ -20,6 +21,9 @@ namespace FLib.WorldCores.Behaviors
         public WorldCore World => SystemPtr->Self.World;
         public bool IsPrimary => System.PrimaryId == Behavior.Id;
         public bool IsEmpty => SystemPtr == null;
+
+
+        public WorldDoBehaviorEvent(ref WorldBehaviorSystem bhvSys) : this() => SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref bhvSys);
 
         public readonly ref readonly T GetParam<T>()
         {

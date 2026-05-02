@@ -4,6 +4,9 @@ using System;
 
 namespace FLib.WorldCores
 {
+    /// <summary>
+    /// raw从1开始, raw:0表示empty, 但实际外部使用的id是从0开始的, 避免数组的地方产生一个空隙位置.
+    /// </summary>
     public readonly struct WorldIncrementId : IEquatable<WorldIncrementId>
     {
         public readonly ushort Raw;

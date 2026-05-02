@@ -68,7 +68,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public unsafe bool Do(Type behaviorType)
         {
-            var evt = new WorldDoBehaviorEvent { SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this) };
+            var evt = new WorldDoBehaviorEvent(ref this);
             WorldBehavior bhv;
             if (Primary?.GetType() == behaviorType)
             {
@@ -84,7 +84,7 @@ namespace FLib.WorldCores.Behaviors
             }
             else
             {
-                if (!DoNewBehavior(behaviorType, evt))
+                if (!DoNewBehavior(behaviorType, ref evt)) // 这里传ref还是直接传值copy更好?
                     return false;
             }
 
@@ -95,7 +95,7 @@ namespace FLib.WorldCores.Behaviors
         /// 创建一个新行为并根据当前主/次行为的优先级与友好关系
         /// 将其插入到系统中；必要时会停止被替换的行为。
         /// </summary>
-        private unsafe bool DoNewBehavior(Type behaviorType, WorldDoBehaviorEvent evt)
+        private unsafe bool DoNewBehavior(Type behaviorType, ref WorldDoBehaviorEvent evt)
         {
             var bhv = WorldBehaviorPool.Rent(behaviorType);
             bhv.SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this);

@@ -132,9 +132,9 @@ namespace FLib.WorldCores
 
             var archetype = eti.GetArchetype(this);
             var maxCompId = archetype.MaxComponentId;
-            for (var i = 0; i < maxCompId.Raw; i++)
+            for (var i = 1; i <= maxCompId.Raw; i++)
             {
-                var id = new WorldIncrementId(i - 1);
+                var id = new WorldIncrementId(i);
                 if (BitArrayOperator.GetBit(archetype.ComponentMask, id))
                     result.Add(WorldComponentRegistry.GetType(id));
             }
