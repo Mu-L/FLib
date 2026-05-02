@@ -33,7 +33,7 @@ namespace FLib.WorldCores.Archetypes
         /// <summary>
         /// 
         /// </summary>
-        public readonly uint[] SparseComponentOffset;
+        public readonly int[] SparseComponentOffset;
 
         /// <summary>
         /// 
@@ -69,8 +69,8 @@ namespace FLib.WorldCores.Archetypes
             MaxComponentId = builder.MaxComponentId;
             ComponentMask = new ulong[BitArrayOperator.GetBitsLength(MaxComponentId.Raw)];
             EntitiesPerChunk = (int)(WorldGlobalSetting.ChunkAllocator.ChunkSize / (builder.ComponentsSize + sizeof(WorldEntityId)));
-            SparseComponentOffset = new uint[MaxComponentId.Raw];
-            var offset = (uint)MathEx.AlignUp(EntitiesPerChunk * sizeof(WorldEntityId), WorldGlobalSetting.ComponentAlign);
+            SparseComponentOffset = new int[MaxComponentId.Raw];
+            var offset = MathEx.AlignUp(EntitiesPerChunk * sizeof(WorldEntityId), WorldGlobalSetting.ComponentAlign);
             using var tempComponents = new PooledList<WorldComponentMeta>();
             for (ushort i = 0; i < builder.ComponentTypes.Count; i++)
             {
@@ -79,7 +79,7 @@ namespace FLib.WorldCores.Archetypes
                 if (!WorldComponentRegistry.GetInfo(meta).IsShared)
                 {
                     SparseComponentOffset[meta.Id] = offset;
-                    offset += (uint)MathEx.AlignUp(meta.Size * EntitiesPerChunk, WorldGlobalSetting.ComponentAlign);
+                    offset += MathEx.AlignUp(meta.Size * EntitiesPerChunk, WorldGlobalSetting.ComponentAlign);
                     tempComponents.Add(meta);
                 }
             }
