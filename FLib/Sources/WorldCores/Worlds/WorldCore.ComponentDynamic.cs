@@ -24,7 +24,7 @@ namespace FLib.WorldCores
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[WorldComponentRegistry.GetId<T>()];
             return ref Soa.GetGroup<T>()[compIdx];
         }
-        
+
         /// <summary>
         /// 获取实体的指定类型的动态组件。
         /// </summary>
@@ -38,7 +38,7 @@ namespace FLib.WorldCores
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[WorldComponentRegistry.GetId(type)];
             return Soa.GetGroup(type).Components.GetValue(compIdx)!;
         }
-        
+
         /// <summary>
         /// 设置实体的动态组件。
         /// </summary>
@@ -50,7 +50,7 @@ namespace FLib.WorldCores
         {
             return SetDyn(et, component, ref GetEntityInfo(et));
         }
-        
+
         /// <summary>
         /// 设置实体的动态组件（使用实体信息引用）。
         /// </summary>
@@ -74,7 +74,7 @@ namespace FLib.WorldCores
             else
             {
                 ref readonly var info = ref WorldComponentRegistry.GetInfo<T>();
-                if (info.Awake != null || (info.Destroy != null && info.Op(EComponentOption.AlwaysReceiveDestroy)))
+                if (info.IsAwakeComponent || (info.IsDestroyComponent && info.Op(EComponentOption.AlwaysReceiveDestroy)))
                 {
                     group.Free(et, slot, false);
                     slot = group.Alloc(et, component);
@@ -84,10 +84,10 @@ namespace FLib.WorldCores
                     group[slot] = component;
                 }
             }
-            
+
             return slot;
         }
-        
+
         /// <summary>
         /// 设置实体的指定类型的动态组件。
         /// </summary>
@@ -112,10 +112,10 @@ namespace FLib.WorldCores
             {
                 group.Components.SetValue(component, slot);
             }
-            
+
             return slot;
         }
-        
+
         /// <summary>
         /// 设置实体的动态组件（使用脚本包）。
         /// </summary>
@@ -125,7 +125,7 @@ namespace FLib.WorldCores
             var index = SetDyn(et, type, TypeAssistant.New(type));
             WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
         }
-        
+
         /// <summary>
         /// 设置实体的动态组件（使用脚本包）。
         /// </summary>
@@ -136,7 +136,7 @@ namespace FLib.WorldCores
             foreach (var item in scripts)
                 SetDyn(et, item);
         }
-        
+
         /// <summary>
         /// 移除实体的指定类型的动态组件。
         /// </summary>
@@ -146,7 +146,7 @@ namespace FLib.WorldCores
         {
             RemoveDyn(et, typeof(T));
         }
-        
+
         /// <summary>
         /// 移除实体的指定类型的动态组件。
         /// </summary>
@@ -163,7 +163,7 @@ namespace FLib.WorldCores
             sparse[id] = -1;
             Soa.GetGroup(type).Free(et, compIdx, false);
         }
-        
+
         /// <summary>
         /// 检查实体是否拥有指定类型的动态组件。
         /// </summary>
@@ -174,7 +174,7 @@ namespace FLib.WorldCores
         {
             return HasDyn(et, typeof(T));
         }
-        
+
         /// <summary>
         /// 检查实体是否拥有指定类型的动态组件。
         /// </summary>
@@ -189,7 +189,7 @@ namespace FLib.WorldCores
             ref readonly var sparse = ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex);
             return compId < sparse.Count && sparse[compId] >= 0;
         }
-        
+
         /// <summary>
         /// 确保实体有动态组件索引，不存在则创建。
         /// </summary>
@@ -212,7 +212,7 @@ namespace FLib.WorldCores
                         sparse.Buffer.AsSpan(oldSize).Fill(-1);
                     sparse.Count = componentId.Raw;
                 }
-                
+
                 return ref sparse[compId];
             }
             else
@@ -224,7 +224,7 @@ namespace FLib.WorldCores
                 return ref DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[compId];
             }
         }
-        
+
         /// <summary>
         /// 尝试添加该组件的所有必需组件。
         /// </summary>
