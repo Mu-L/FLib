@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Effects
 {
@@ -42,5 +43,10 @@ namespace FLib.WorldCores.Effects
             for (var i = Containers.Count; i < entityCapacities; i++)
                 Containers.Add(new WorldEffectContainer());
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Ref<WorldEffectSystem> GetEffectSystem(this in WorldEntity et) => et.GetSta<WorldEffectSystem>();
     }
 }

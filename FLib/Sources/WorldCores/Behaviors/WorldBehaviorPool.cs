@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FLib.WorldCores.Entities;
 
 #pragma warning disable CA2211
 namespace FLib.WorldCores.Behaviors
@@ -14,12 +15,12 @@ namespace FLib.WorldCores.Behaviors
     {
         public static WorldBehavior[] Behaviors = new WorldBehavior[256];
         public static ConcurrentDictionary<Type, ConcurrentStack<int>> AllFrees = new(WorldGlobalSetting.ThreadConcurrencyLevel, 256);
-        
+
         private static readonly object SyncLock = new();
         private static int _count;
-        
+
         public static int Count => _count;
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -27,7 +28,7 @@ namespace FLib.WorldCores.Behaviors
         {
             if (AllFrees.TryGetValue(behaviorType, out var frees) && frees.TryPop(out var index))
                 return Behaviors[index];
-            
+
             if (_count >= Behaviors.Length)
             {
                 lock (SyncLock)
@@ -36,10 +37,10 @@ namespace FLib.WorldCores.Behaviors
                         Array.Resize(ref Behaviors, Behaviors.Length * 2);
                 }
             }
-            
+
             return NewBehavior(behaviorType);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -49,7 +50,7 @@ namespace FLib.WorldCores.Behaviors
             ++behavior.Version;
             AllFrees.GetOrAdd(behavior.GetType(), _ => new ConcurrentStack<int>()).Push(behavior.Id);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -67,7 +68,7 @@ namespace FLib.WorldCores.Behaviors
                     stack.Push(NewBehavior(type).Id);
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -78,5 +79,10 @@ namespace FLib.WorldCores.Behaviors
             behavior.Id = index;
             return behavior;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Ref<WorldBehaviorSystem> GetBehaviorSystem(this in WorldEntity et) => et.GetSta<WorldBehaviorSystem>();
     }
 }
