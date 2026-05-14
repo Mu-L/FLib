@@ -35,12 +35,12 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public ulong[][] Terrains;
+        public ulong[][] Terrain;
 
         /// <summary>
         /// 
         /// </summary>
-        public int LayerCount => Terrains.Length;
+        public int LayerCount => Terrain.Length;
 
         /// <summary>
         /// 
@@ -57,10 +57,8 @@ namespace FLib
         /// </summary>
         public bool this[int layer, in FVector2Int pos]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this[layer, PosToIdx(pos)];
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this[layer, PosToIdx(pos)] = value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => this[layer, PosToIdx(pos)];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => this[layer, PosToIdx(pos)] = value;
         }
 
         /// <summary>
@@ -68,10 +66,8 @@ namespace FLib
         /// </summary>
         public bool this[int layer, in int x, int y]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => this[layer, PosToIdx(new FVector2Int(x, y))];
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this[layer, PosToIdx(new FVector2Int(x, y))] = value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => this[layer, PosToIdx(new FVector2Int(x, y))];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => this[layer, PosToIdx(new FVector2Int(x, y))] = value;
         }
 
         /// <summary>
@@ -79,10 +75,8 @@ namespace FLib
         /// </summary>
         public bool this[int layer, int index]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => BitArrayOperator.GetBit(Terrains[layer], index);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => BitArrayOperator.SetBit(Terrains[layer], index, value);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => BitArrayOperator.GetBit(Terrain[layer], index);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => BitArrayOperator.SetBit(Terrain[layer], index, value);
         }
 
         /// <summary>
@@ -94,7 +88,7 @@ namespace FLib
             to.Offset = Offset;
             to.TileSize = TileSize;
             to.TerrainSize = TerrainSize;
-            to.Terrains = Terrains.Select(v => (ulong[])v.Clone()).ToArray();
+            to.Terrain = Terrain.Select(v => (ulong[])v.Clone()).ToArray();
         }
 
         /// <summary>
@@ -130,10 +124,10 @@ namespace FLib
         /// </summary>
         public virtual QuadMap SetLayers(int count)
         {
-            Array.Resize(ref Terrains, count);
+            Array.Resize(ref Terrain, count);
             var tileCount = TerrainSize.X * TerrainSize.Y;
             for (var i = 0; i < LayerCount; i++)
-                Array.Resize(ref Terrains[i], tileCount);
+                Array.Resize(ref Terrain[i], tileCount);
             return this;
         }
 
@@ -146,19 +140,19 @@ namespace FLib
             var h = Math.Min(TerrainSize.Y, size.Y);
             TerrainSize = size;
             if (layerCount > 0)
-                Array.Resize(ref Terrains, layerCount);
-            else if (Terrains == null)
-                Terrains = new ulong[1][];
+                Array.Resize(ref Terrain, layerCount);
+            else if (Terrain == null)
+                Terrain = new ulong[1][];
             for (var i = 0; i < LayerCount; i++)
             {
-                var oldTerrain = Terrains[i];
-                Array.Resize(ref Terrains[i], size.X * size.Y);
+                var oldTerrain = Terrain[i];
+                Array.Resize(ref Terrain[i], BitArrayOperator.GetBitsLength(size.X * size.Y));
                 if (oldTerrain != null)
                 {
                     for (var y = 0; y < h; y++)
                     {
                         for (var x = 0; x < w; x++)
-                            BitArrayOperator.SetBit(Terrains[i], y * size.X + x, BitArrayOperator.GetBit(oldTerrain, y * w + x));
+                            BitArrayOperator.SetBit(Terrain[i], y * size.X + x, BitArrayOperator.GetBit(oldTerrain, y * w + x));
                     }
                 }
             }
@@ -176,7 +170,7 @@ namespace FLib
         /// 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool CheckTile(int layer, in FVector2Int pos, bool value) => CheckTile(pos) && BitArrayOperator.GetBit(Terrains[layer], PosToIdx(pos)) == value;
+        public bool CheckTile(int layer, in FVector2Int pos, bool value) => CheckTile(pos) && BitArrayOperator.GetBit(Terrain[layer], PosToIdx(pos)) == value;
 
         /// <summary>
         /// 
@@ -324,14 +318,14 @@ namespace FLib
         /// </summary>
         public string ToString(bool isVerbose)
         {
-            if (Terrains == null)
+            if (Terrain == null)
                 return string.Empty;
             if (!isVerbose)
-                return $"layers:{Terrains.Length}|{string.Join(',', Terrains.Select(v => v.Length))}";
+                return $"layers:{Terrain.Length}|{string.Join(',', Terrain.Select(v => v.Length))}";
 
-            var strbuf = new StringBuilder(TerrainSize.X * TerrainSize.Y * Terrains.Length);
-            strbuf.AppendLine($"Layers {Terrains.Length}");
-            for (var i = 0; i < Terrains.Length; i++)
+            var strbuf = new StringBuilder(TerrainSize.X * TerrainSize.Y * Terrain.Length);
+            strbuf.AppendLine($"Layers {Terrain.Length}");
+            for (var i = 0; i < Terrain.Length; i++)
             {
                 for (var y = 0; y < TerrainSize.Y; y++)
                 {
@@ -349,23 +343,24 @@ namespace FLib
         /// </summary>
         public int[][] ToIntArray(int[][] dest = null)
         {
-            dest ??= new int[Terrains.Length][];
-            for (var i = 0; i < Terrains.Length; i++)
+            dest ??= new int[Terrain.Length][];
+            for (var i = 0; i < Terrain.Length; i++)
             {
-                dest[i] = new int[Terrains[i].Length / 32];
-                Terrains[i].CopyTo(dest[i], 0);
+                dest[i] = new int[Terrain[i].Length / 32];
+                Terrain[i].CopyTo(dest[i], 0);
             }
 
             return dest;
         }
 
         #region BytesSerializer
+
         public virtual void Z_BytesWrite(ref BytesWriter writer)
         {
             writer.Push(Offset);
             writer.Push(TileSize);
             writer.Push(TerrainSize);
-            writer.Push(Terrains);
+            writer.Push(Terrain);
         }
 
         public virtual void Z_BytesRead(ref BytesReader reader)
@@ -373,42 +368,9 @@ namespace FLib
             reader.Read(ref Offset);
             reader.Read(ref TileSize);
             reader.Read(ref TerrainSize);
-            Terrains = reader.ReadArray2<ulong>();
+            Terrain = reader.ReadArray2<ulong>();
         }
+
         #endregion
-    }
-
-    public class QuadMap<TTileData> : QuadMap
-    {
-        public TTileData[][] TileDatas = Array.Empty<TTileData[]>();
-
-        public override QuadMap SetSize(in FVector2Int size, int layerCount = -1)
-        {
-            base.SetSize(in size, layerCount);
-            InitializeData();
-            return this;
-        }
-
-        private void InitializeData()
-        {
-            TileDatas = new TTileData[LayerCount][];
-            for (var i = 0; i < LayerCount; i++)
-                TileDatas[i] = new TTileData[Terrains[i].Length];
-        }
-
-        public override void Z_BytesRead(ref BytesReader reader)
-        {
-            base.Z_BytesRead(ref reader);
-            InitializeData();
-        }
-
-        public ref TTileData GetTileData(byte layer, FVector2Int pos) => ref TileDatas[layer][PosToIdx(pos)];
-
-        public override void CopyTo(QuadMap to)
-        {
-            base.CopyTo(to);
-            if (to is QuadMap<TTileData> map)
-                map.TileDatas = TileDatas.Select(v => v.Select(w => w).ToArray()).ToArray();
-        }
     }
 }
