@@ -1037,11 +1037,11 @@ namespace FLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator ushort(FNum value) => (ushort)(value.RawValue);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(byte value) => new(value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator byte(FNum value) => (byte)(value.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(float value) => new((long)(value));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(float value) => new(value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator float(FNum value) => value.RawValue ;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(double value) => new((long)(value ));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(double value) => new((float)value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator double(FNum value) => value.RawValue ;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(in decimal value) => new((long)(value ));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(in decimal value) => new((float)value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator decimal(FNum value) => (decimal)value.RawValue ;
 #endif
 
