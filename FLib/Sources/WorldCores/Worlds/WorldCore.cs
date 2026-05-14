@@ -85,18 +85,14 @@ namespace FLib.WorldCores
 
         public bool IsDisposed => Handle.IsEmpty;
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
-        /// <param name="entityCapacity">实体容器的初始容量（默认值为 1024）</param>
-        public virtual void Initialize(int entityCapacity = 1024)
+        public WorldCore(int entityCapacity = 1024)
         {
             Update2 = new WorldUpdater();
             Update1 = new WorldUpdater();
             ArchetypeGroup = new WorldArchetypeGroup(this);
             Soa = new WorldSoaComponentGroupManager(this);
             Entities = new WorldEntityContainer(this, entityCapacity);
-            DynamicComponentSparse = new(entityCapacity >> 1);
+            DynamicComponentSparse = new FixedIndexList<PooledList<int>>(entityCapacity >> 1);
 
             var isLocking = false;
             _locker.Enter(ref isLocking);

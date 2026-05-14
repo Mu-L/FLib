@@ -84,10 +84,8 @@ namespace FLib.WorldCores.Entities
             var indexInChunk = entityInfo.IndexInChunk;
             if (initMemory)
             {
-                for (var i = 0; i < archetype.ComponentTypes.Length; i++)
-                {
-                    chunk.ClearMemory(indexInChunk, archetype.ComponentTypes[i]);
-                }
+                foreach (var t in archetype.ComponentTypes) 
+                    chunk.ClearMemory(indexInChunk, t);
             }
 
             return this;
