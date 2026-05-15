@@ -55,7 +55,7 @@ namespace FLib
             TotalTasks = _finishedTaskCount = 0;
             if (p.Op(EConfigGenerateOption.Clear))
             {
-                foreach (var item in Directory.GetFiles(p.DestDirPath, "?.Gen.cs", SearchOption.TopDirectoryOnly))
+                foreach (var item in Directory.GetFiles(p.DestDirPath, "*.Gen.cs", SearchOption.TopDirectoryOnly))
                 {
                     Log.Info?.Write($"remove config {item}", nameof(ConfigGenerator));
                     File.Delete(item);
@@ -63,7 +63,7 @@ namespace FLib
             }
 
             var tasks = new ConcurrentBag<Task>() { ProcessDefines(p) };
-            Directory.GetFiles(p.SourceDirPath, "?.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
+            Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
                 tasks.Add(ProcessConfig(jsonPath, p)));
 
             TotalTasks = tasks.Count;
@@ -189,12 +189,11 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        private static StringBuilder AppendBlockComment(this StringBuilder strbuf, int indent, Json5AnyValue value)
+        private static void AppendBlockComment(this StringBuilder strbuf, int indent, Json5AnyValue value)
         {
             strbuf.Indent(indent).AppendLine("/// <summary>");
             strbuf.Indent(indent).Append("/// ").Append(value.TryGet("Comment")?.ToString()).AppendLine();
             strbuf.Indent(indent).AppendLine("/// </summary>");
-            return strbuf;
         }
 
         /// <summary>
