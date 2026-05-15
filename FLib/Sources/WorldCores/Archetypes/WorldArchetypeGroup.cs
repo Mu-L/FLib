@@ -13,7 +13,7 @@ namespace FLib.WorldCores.Archetypes
         public readonly Dictionary<int, WorldArchetype> ArchetypeMap;
 
         public ushort Count => (ushort)ArchetypeMap.Count;
-        public WorldArchetype this[int key] => ArchetypeMap[key];
+
         public WorldArchetype this[ushort index] => Archetypes[index];
 
         public WorldArchetypeGroup(WorldCore world, int capacity = 16)
@@ -21,6 +21,14 @@ namespace FLib.WorldCores.Archetypes
             Archetypes = new WorldArchetype[capacity];
             ArchetypeMap = new Dictionary<int, WorldArchetype>(capacity);
             World = world;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public WorldArchetype GetByHash(int hash)
+        {
+            return ArchetypeMap[hash];
         }
 
         /// <summary>
