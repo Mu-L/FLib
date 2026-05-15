@@ -33,6 +33,11 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
+        public bool IsEmpty => Bytes == null || Bytes.Length == 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public readonly Memory<byte> InstanceBytes
         {
             get
@@ -94,6 +99,7 @@ namespace FLib
         }
 
         #region serialization
+
         public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
         {
             return ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
@@ -128,6 +134,7 @@ namespace FLib
             if (key == 1)
                 Z_BytesRead(ref reader);
         }
+
         #endregion
     }
 
@@ -138,6 +145,7 @@ namespace FLib
     public struct ScriptPackBytes<T> : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IScriptPackable where T : IBytesPackable
     {
         public byte[] Bytes;
+        public bool IsEmpty => Bytes == null || Bytes.Length == 0;
         public readonly string ScriptTypeName => Bytes?.Length == 0 ? string.Empty : new BytesReader(Bytes).ReadString();
         public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
         public Type ScriptBaseType => typeof(T);
@@ -155,6 +163,7 @@ namespace FLib
         public void SetInstance(IBytesPackable? instance) => Bytes = new ScriptPackBytes(instance).Bytes;
 
         #region serialization
+
         public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData) =>
             ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
 
@@ -180,6 +189,7 @@ namespace FLib
             if (key == 1)
                 Z_BytesRead(ref reader);
         }
+
         #endregion
     }
 }
