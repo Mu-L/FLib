@@ -12,7 +12,7 @@ namespace FLib.WorldCores.Entities
     /// <summary>
     /// 
     /// </summary>
-    public readonly struct WorldEntity : IEquatable<WorldEntity>
+    public readonly struct WorldEntity : IEquatable<WorldEntity>, IJson5Serializable
     {
         public readonly WorldHandle WorldHandle;
         public readonly WorldEntityId Id;
@@ -346,7 +346,8 @@ namespace FLib.WorldCores.Entities
                 strbuf.Append(TypeAssistant.GetTypeName(component.GetType())).Append(" : ").AppendLine(Json5.Serialize(component));
             return strbuf.ToString();
         }
-
+        
+        string IJson5Serializable.JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData) => ToString();
         public override int GetHashCode() => HashCode.Combine(WorldHandle, Id);
         public static implicit operator WorldEntityId(in WorldEntity helper) => helper.Id;
         public static implicit operator WorldCore(in WorldEntity helper) => helper.World;

@@ -9,7 +9,7 @@ namespace FLib.WorldCores.Entities
     /// <summary>
     /// 
     /// </summary>
-    public readonly struct WorldEntityId : IEquatable<WorldEntityId>
+    public readonly struct WorldEntityId : IEquatable<WorldEntityId>, IJson5Serializable
     {
         public readonly ushort Id;
         public readonly ushort Version;
@@ -22,6 +22,7 @@ namespace FLib.WorldCores.Entities
             Version = version;
         }
 
+        string IJson5Serializable.JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData) => ToString();
         public WorldEntity AsEntity(WorldHandle world) => new(world, this);
         public bool Equals(WorldEntityId other) => this == other;
         public override bool Equals(object obj) => obj is WorldEntityId other && Equals(other);
