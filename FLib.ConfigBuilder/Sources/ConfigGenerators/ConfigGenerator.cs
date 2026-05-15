@@ -55,7 +55,7 @@ namespace FLib
             TotalTasks = _finishedTaskCount = 0;
             if (p.Op(EConfigGenerateOption.Clear))
             {
-                foreach (var item in Directory.GetFiles(p.DestDirPath, "*.cs", SearchOption.TopDirectoryOnly))
+                foreach (var item in Directory.GetFiles(p.DestDirPath, "?.Gen.cs", SearchOption.TopDirectoryOnly))
                 {
                     Log.Info?.Write($"remove config {item}", nameof(ConfigGenerator));
                     File.Delete(item);
@@ -63,7 +63,7 @@ namespace FLib
             }
 
             var tasks = new ConcurrentBag<Task>() { ProcessDefines(p) };
-            Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
+            Directory.GetFiles(p.SourceDirPath, "?.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
                 tasks.Add(ProcessConfig(jsonPath, p)));
 
             TotalTasks = tasks.Count;
@@ -106,7 +106,7 @@ namespace FLib
             strbuf.Indent(indent).AppendLine("}");
             if (p.HasNamespace)
                 strbuf.Append('}');
-            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, $"{name}.cs"), strbuf.ToString());
+            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, $"{name}.Gen.cs"), strbuf.ToString());
             Interlocked.Increment(ref _finishedTaskCount);
         }
 
@@ -182,7 +182,7 @@ namespace FLib
             if (p.HasNamespace)
                 strbuf.Append('}');
 
-            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, "_ConfigDefines.cs"), strbuf.ToString());
+            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, "_ConfigDefines.Gen.cs"), strbuf.ToString());
             Interlocked.Increment(ref _finishedTaskCount);
         }
 
