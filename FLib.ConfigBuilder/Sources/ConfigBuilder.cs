@@ -67,7 +67,7 @@ namespace FLib
         {
             private SpinLock _locker;
             private uint _dynamicIdIncrement = 1;
-            private TypeCode IndexIdTypeCode;
+            private readonly TypeCode _indexIdTypeCode;
             public SourceFileMeta SourceFile;
             public Type ConfigType { get; set; }
             public FieldInfo IndexIdField { get; }
@@ -85,7 +85,7 @@ namespace FLib
                 ConfigType = type;
                 Options = options;
                 IndexIdField = ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(v => v.MetadataToken).First();
-                IndexIdTypeCode = Type.GetTypeCode(IndexIdField.FieldType);
+                _indexIdTypeCode = Type.GetTypeCode(IndexIdField.FieldType);
             }
 
             /// <summary>
@@ -134,7 +134,7 @@ namespace FLib
                 try
                 {
                     var index = AllConfigs.Count;
-                    var id = IndexIdTypeCode == TypeCode.String ? ConfigHelper.StringToUniqueId(objId.ToString()) : Convert.ToUInt32(objId);
+                    var id = _indexIdTypeCode == TypeCode.String ? ConfigHelper.StringToUniqueId(objId.ToString()) : Convert.ToUInt32(objId);
                     if (!AllConfigIdIndexes.TryAdd(id, index))
                         Log.Error?.Write($"存在相同Id配置: {ConfigType.Name}.{objId}\n{SourceFile}");
                     AllConfigs.Add((id, config));
@@ -203,29 +203,33 @@ namespace FLib
                     var name = Path.GetFileNameWithoutExtension(filePath);
                     if (name.StartsWith('~') || name.StartsWith('_') || name.EndsWith('~') || name.EndsWith(".schema", StringComparison.Ordinal))
                         continue;
-                    var meta = new SourceFileMeta() { FileSign = '*', FilePath = filePath, Builder = allConfigBuilders.GetValueOrDefault(Path.GetExtension(filePath)) };
+                    if (!allConfigBuilders.TryGetValue(Path.GetExtension(filePath), out var builder))
+                        continue;
+                    var meta = new SourceFileMeta() { FileSign = '*', FilePath = filePath, Builder = builder };
                     var argStartIndex = 0;
                     for (var i = 0; i < name.Length; i++)
                     {
-                        if (name[i] == '$')
+                        switch (name[i])
                         {
-                            meta.FileSign = name[++i]; // step $
-                        }
-                        else if (name[i] == '.')
-                        {
-                            if (argStartIndex == 0)
-                            {
+                            case '$':
+                                meta.FileSign = name[++i]; // step $
+                                break;
+                            case '.' when argStartIndex == 0:
                                 argStartIndex = i + 1;
-                            }
-                            else
-                            {
+                                break;
+                            case '.':
                                 (meta.Args ??= new List<string>()).Add(name[argStartIndex..]);
                                 argStartIndex = 0;
+                                break;
+                            default:
+                            {
+                                if (argStartIndex == 0)
+                                {
+                                    strbuf.Append(name[i]);
+                                }
+
+                                break;
                             }
-                        }
-                        else if (argStartIndex == 0)
-                        {
-                            strbuf.Append(name[i]);
                         }
                     }
 
@@ -236,7 +240,7 @@ namespace FLib
                     strbuf.Clear();
 
                     if (!sourceFileMetas.TryGetValue(meta.ConfigName, out var metaList))
-                        sourceFileMetas.Add(meta.ConfigName, metaList = new List<SourceFileMeta> { meta });
+                        sourceFileMetas.Add(meta.ConfigName, new List<SourceFileMeta> { meta });
                     else
                         metaList.Add(meta);
                 }
@@ -291,10 +295,10 @@ namespace FLib
                     }
                     else
                     {
-                        if (ctx.SourceFile.Builder == null)
-                            Log.Error?.Write($"not found config builder {type} {attr.ConfigFileName}");
+                        if (fileMeta.Builder == null)
+                            Log.Error?.Write($"not found config builder {type} {attr.ConfigFileName} {fileMeta.FilePath}");
                         else
-                            ctx.SourceFile.Builder.Build(ctx);
+                            fileMeta.Builder.Build(ctx);
                     }
                 }
                 catch (Exception ex)
