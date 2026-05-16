@@ -55,7 +55,11 @@ namespace FLib
         public string WriteCode;
         public string ReadCode;
         public EBytePackGenFieldOption Options;
-        public BytesPackGenFieldAttribute() { }
+
+        public BytesPackGenFieldAttribute()
+        {
+        }
+
         public BytesPackGenFieldAttribute(int key) => Key = key;
     }
 
@@ -70,7 +74,8 @@ namespace FLib
     public enum EBytePackGenFieldOption
     {
         None,
-        VInt = 0x1,
+        DisableTrim = 0x1,
+        VInt = 0x2,
     }
 
 
@@ -129,6 +134,7 @@ namespace FLib
                     //     return;
                     // }
                 }
+
                 writer.PushVInt(ValueStartPosition, writer.Position - ValueStartPosition);
                 ValueStartPosition = 0;
             }

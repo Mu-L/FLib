@@ -77,8 +77,9 @@ namespace FLib.Gen
                 if (attr == null) continue;
 
                 keyOffset = TypeHelper.GetKeyFromAttr(attr, keyOffset + 1);
+                var options = TypeHelper.GetOptionsFromAttr(attr);
                 var type = (member as IFieldSymbol)?.Type ?? ((IPropertySymbol)member).Type;
-                result.Add(new MemberInfo(member.Name, type, keyOffset));
+                result.Add(new MemberInfo(member.Name, type, keyOffset, options));
             }
 
             return result.ToArray();
@@ -132,7 +133,7 @@ namespace FLib.Gen
                 mod = hasParent ? " override" : " virtual";
 
             for (var i = 0; i < members.Length; i++)
-                members[i] = new MemberInfo(members[i].Name, members[i].Type, members[i].Key + parentKey);
+                members[i] = new MemberInfo(members[i].Name, members[i].Type, members[i].Key + parentKey, members[i].Options);
 
             EmitWrite(sb, symbol, members, mod, hasParent);
             EmitRead(sb, symbol, members, mod, hasParent);
@@ -154,9 +155,10 @@ namespace FLib.Gen
             var uid = 0;
             foreach (var m in members)
             {
-                var check = WriteEmitter.EmitNullCheck(sb, m.Name, m.Type, true);
+                var disableTrim = m.HasOption(FieldOption.DisableTrim);
+                var check = !disableTrim && WriteEmitter.EmitNullCheck(sb, m.Name, m.Type, true);
                 sb.Append("key.Push(ref writer, ").Append(m.Key).Append("); ");
-                WriteEmitter.Emit(m.Type, m.Name, sb, ref uid);
+                WriteEmitter.Emit(m.Type, m.Name, sb, ref uid, m.Options);
                 if (check) sb.Append("}\n");
                 ++uid;
             }
@@ -182,7 +184,7 @@ namespace FLib.Gen
                 foreach (var m in members)
                 {
                     sb.Append("case ").Append(m.Key).Append(": ");
-                    ReadEmitter.Emit(m.Type, m.Name, sb, ref uid);
+                    ReadEmitter.Emit(m.Type, m.Name, sb, ref uid, m.Options);
                     sb.Append("break;\n");
                     ++uid;
                 }
@@ -228,18 +230,29 @@ namespace FLib.Gen
         }
     }
 
-    /// <summary>一个待序列化字段的信息：名称、类型、协议 key</summary>
+    /// <summary>一个待序列化字段的信息：名称、类型、协议 key、选项</summary>
     internal readonly struct MemberInfo
     {
         public readonly string Name;
         public readonly ITypeSymbol Type;
         public readonly int Key;
+        public readonly int Options;
 
-        public MemberInfo(string name, ITypeSymbol type, int key)
+        public MemberInfo(string name, ITypeSymbol type, int key, int options = 0)
         {
             Name = name;
             Type = type;
             Key = key;
+            Options = options;
         }
+
+        public bool HasOption(int flag) => (Options & flag) != 0;
+    }
+
+    /// <summary>对应 EBytePackGenFieldOption 枚举值</summary>
+    internal static class FieldOption
+    {
+        public const int DisableTrim = 0x1;
+        public const int VInt = 0x2;
     }
 }

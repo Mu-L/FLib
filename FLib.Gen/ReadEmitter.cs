@@ -11,12 +11,12 @@ namespace FLib.Gen
     internal static class ReadEmitter
     {
         /// <summary>生成单个字段的读取代码</summary>
-        public static void Emit(ITypeSymbol type, string field, StringBuilder sb, ref int uid)
+        public static void Emit(ITypeSymbol type, string field, StringBuilder sb, ref int uid, int options = 0)
         {
             if (CustomCodeEmitter.TryEmit(type, field, sb, ref uid, isRead: true))
                 goto additional;
 
-            if (TypeHelper.IsVInt(type))
+            if (TypeHelper.IsVInt(type) || (options & FieldOption.VInt) != 0)
             {
                 sb.Append(field).Append(" = (").Append(type.Name).Append(")reader.ReadVInt();");
                 goto additional;

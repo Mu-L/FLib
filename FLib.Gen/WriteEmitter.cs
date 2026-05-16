@@ -10,12 +10,12 @@ namespace FLib.Gen
     internal static class WriteEmitter
     {
         /// <summary>生成单个字段的写入代码，uid 用于生成不重名的临时变量</summary>
-        public static void Emit(ITypeSymbol type, string field, StringBuilder sb, ref int uid)
+        public static void Emit(ITypeSymbol type, string field, StringBuilder sb, ref int uid, int options = 0)
         {
             if (CustomCodeEmitter.TryEmit(type, field, sb, ref uid, isRead: false))
                 goto additional;
 
-            if (TypeHelper.IsVInt(type))
+            if (TypeHelper.IsVInt(type) || (options & FieldOption.VInt) != 0)
             {
                 sb.Append("writer.PushVInt(").Append(field).Append(");");
                 goto additional;

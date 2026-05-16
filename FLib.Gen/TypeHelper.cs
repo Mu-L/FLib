@@ -56,6 +56,15 @@ namespace FLib.Gen
             return fallback;
         }
 
+        /// <summary>读取 Options 字段的枚举值（对应 EBytePackGenFieldOption）</summary>
+        public static int GetOptionsFromAttr(AttributeData attr)
+        {
+            foreach (var named in attr.NamedArguments)
+                if (named.Key == "Options" && named.Value.Value is int options)
+                    return options;
+            return 0;
+        }
+
         /// <summary>char ~ uint 范围的整数类型用变长编码(VInt)写入</summary>
         public static bool IsVInt(ITypeSymbol t)
         {
