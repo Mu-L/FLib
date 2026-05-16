@@ -137,7 +137,7 @@ namespace FLib
                     {
                         strbuf.AppendBlockComment(indent, field.Value);
                         strbuf.Indent(indent).Append(field.Key);
-                        if (item.Value.TryGet("Value", out var value))
+                        if (field.Value.TryGet("Value", out var value))
                         {
                             strbuf.Append(" = ").Append(value.ToString());
                         }
