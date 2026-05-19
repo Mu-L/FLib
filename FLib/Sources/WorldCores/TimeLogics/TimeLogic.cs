@@ -161,6 +161,6 @@ namespace FLib.WorldCores.TimeLogics
     /// </summary>
     public class EntityTimeLogic : TimeLogic
     {
-        public WorldEntity Entity;
+        [NonSerialized] public WorldEntity Entity;
     }
 }
