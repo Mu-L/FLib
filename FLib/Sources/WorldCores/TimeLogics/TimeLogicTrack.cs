@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace FLib.WorldCores.TimeLogic
+namespace FLib.WorldCores.TimeLogics
 {
     [BytesPackGenHoldKey(2), Comment("基础轨道")]
     public class TimeLogicTrack : IBytesPackable

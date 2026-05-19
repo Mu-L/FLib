@@ -2,7 +2,7 @@
 
 using System;
 
-namespace FLib.WorldCores.TimeLogic
+namespace FLib.WorldCores.TimeLogics
 {
     [BytesPackGenHoldKey(2), Comment("基础片段")]
     public class TimeLogicClip : IBytesPackable

@@ -4,9 +4,9 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using FLib.WorldCores.Entities;
-using FLib.WorldCores.TimeLogic;
+using FLib.WorldCores.TimeLogics;
 
-namespace FLib.WorldCores.TimeLogic
+namespace FLib.WorldCores.TimeLogics
 {
     [BytesPackGenHoldKey(2)]
     public class TimeLogic : IBytesPackable

@@ -1,6 +1,6 @@
 ﻿// ==================== qcbf@qq.com | 2025-07-01 ====================
 
-namespace FLib.WorldCores.TimeLogic
+namespace FLib.WorldCores.TimeLogics
 {
     [Comment("[编辑器]预览轨道")]
     public class TimeLogicEditorOnlyTrack : TimeLogicTrack

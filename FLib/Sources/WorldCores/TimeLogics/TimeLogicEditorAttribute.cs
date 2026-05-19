@@ -3,7 +3,7 @@
 using System;
 using System.Diagnostics;
 
-namespace FLib.WorldCores.TimeLogic
+namespace FLib.WorldCores.TimeLogics
 {
     [Conditional("DEBUG"), AttributeUsage(AttributeTargets.Class)]
     public class TimeLogicEditorAttribute : CommentAttribute
