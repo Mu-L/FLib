@@ -46,22 +46,13 @@ namespace FLib.WorldCores.TimeLogics
         public override string ToString() => $"{Name},{CurrentFrame}";
 
         /// <summary>
-        /// 
-        /// </summary>
-        public void TryInitialize()
-        {
-            if (Tracks != null)
-                return;
-            _frameDelta = FNum.One / FrameRate;
-        }
-
-        /// <summary>
         ///  
         /// </summary>
-        public void SetFrameRate(byte frameRate)
+        public TimeLogic SetFrameRate(byte frameRate)
         {
             _frameDelta = FNum.One / frameRate;
             FrameRate = frameRate;
+            return this;
         }
 
         /// <summary>
@@ -114,7 +105,6 @@ namespace FLib.WorldCores.TimeLogics
         /// </summary>
         public void UpdateCurrentFrame()
         {
-            TryInitialize();
             IsEndFrame = false;
             foreach (var pack in Tracks)
             {
@@ -150,6 +140,7 @@ namespace FLib.WorldCores.TimeLogics
                 IsLoop = reader.Read<bool>();
                 EndFrame = (int)reader.ReadVInt();
                 BytesPack.Unpack(ref Tracks, ref reader);
+                _frameDelta = FNum.One / FrameRate;
                 foreach (var item in Tracks)
                     item.Instance.Runtime = this;
             }
