@@ -10,7 +10,7 @@ namespace FLib.WorldCores.TimeLogics
     {
         [Comment("名称")] public string Name;
         [Comment("是否禁用")] public bool IsDisable;
-        public ScriptPackInstance<TimeLogicClip>[] Clips;
+        public ScriptPackInstance<TimeLogicClip>[] Clips = Array.Empty<ScriptPackInstance<TimeLogicClip>>();
         
         [NonSerialized] public TimeLogic Runtime;
         

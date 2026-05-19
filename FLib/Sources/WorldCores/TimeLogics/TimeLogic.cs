@@ -12,25 +12,25 @@ namespace FLib.WorldCores.TimeLogics
     public class TimeLogic : IBytesPackable
     {
         [NonSerialized] public object UserData;
-        
+
         /// <summary>
         /// obj is TimeLogicTrack or TimeLogicClip
         /// 返回 false 表示阻止执行
         /// </summary>
         [NonSerialized] public Func<object, bool> ExecuteVerifyHandler;
-        
+
         public bool IsLoop = true;
         public int EndFrame;
         public string Name;
         public byte FrameRate = 30;
         private FNum _currentFrame;
         private FNum _frameDelta;
-        public ScriptPackInstance<TimeLogicTrack>[] Tracks;
-        
+        public ScriptPackInstance<TimeLogicTrack>[] Tracks = Array.Empty<ScriptPackInstance<TimeLogicTrack>>();
+
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
         public ExternalReferenceStorer ExternalReferences;
-        
+
         public int CurrentFrame
         {
             get => (int)_currentFrame;
@@ -42,9 +42,9 @@ namespace FLib.WorldCores.TimeLogics
                 UpdateCurrentFrame();
             }
         }
-        
+
         public override string ToString() => $"{Name},{CurrentFrame}";
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -54,7 +54,7 @@ namespace FLib.WorldCores.TimeLogics
                 return;
             _frameDelta = FNum.One / FrameRate;
         }
-        
+
         /// <summary>
         ///  
         /// </summary>
@@ -63,7 +63,7 @@ namespace FLib.WorldCores.TimeLogics
             _frameDelta = FNum.One / frameRate;
             FrameRate = frameRate;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -83,7 +83,7 @@ namespace FLib.WorldCores.TimeLogics
                 }
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -108,7 +108,7 @@ namespace FLib.WorldCores.TimeLogics
                 UpdateCurrentFrame();
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -122,7 +122,7 @@ namespace FLib.WorldCores.TimeLogics
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
                     track.Update();
             }
-            
+
             foreach (var pack in Tracks)
             {
                 var track = pack.Instance;
@@ -130,7 +130,7 @@ namespace FLib.WorldCores.TimeLogics
                     track.LateUpdate();
             }
         }
-        
+
         public virtual void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {
             key.Push(ref writer, 1);
@@ -140,7 +140,7 @@ namespace FLib.WorldCores.TimeLogics
             writer.PushVInt(EndFrame);
             BytesPack.Pack(Tracks, ref writer);
         }
-        
+
         public virtual void Z_BytesPackRead(int key, ref BytesReader reader)
         {
             if (key == 1)
@@ -155,7 +155,7 @@ namespace FLib.WorldCores.TimeLogics
             }
         }
     }
-    
+
     /// <summary>
     /// 
     /// </summary>
