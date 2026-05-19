@@ -7,18 +7,25 @@ namespace FLib.WorldCores.TimeLogics
     [BytesPackGenHoldKey(2), Comment("基础片段")]
     public class TimeLogicClip : IBytesPackable
     {
-        [NonSerialized] public TimeLogicTrack Track;
-        
         [Comment("名称")] public string Name;
         [Comment("是否禁用")] public bool IsDisable;
         [Comment("开始帧")] public int BeginFrame;
         [Comment("结束帧")] public int EndFrame;
 
-        public TimeLogic Runtime => Track.Runtime;
-        public int CurrentFrame => Runtime.CurrentFrame;
-        public int CurrentClipFrame => Runtime.CurrentFrame - BeginFrame;
-        public FNum CurrentClipTime => (FNum)CurrentClipFrame / Runtime.FrameRate;
+        public TimeLogicTrack Track { get; private set; }
+        public TimeLogic Root => Track.Root;
+        public int CurrentFrame => Root.CurrentFrame;
+        public int CurrentClipFrame => Root.CurrentFrame - BeginFrame;
+        public FNum CurrentClipTime => (FNum)CurrentClipFrame / Root.FrameRate;
         public virtual int FrameCount => EndFrame - BeginFrame + 1;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void Initialize(TimeLogicTrack track)
+        {
+            Track = track;
+        }
 
         /// <summary>
         /// 
@@ -49,7 +56,7 @@ namespace FLib.WorldCores.TimeLogics
         }
 
         public T GetExternalReference<T>(in ExternalReferenceField<T> field) where T : class =>
-            field.Index < 0 || field.Index >= Runtime.ExternalReferences.GetArraySize() ? null : Runtime.ExternalReferences[field.Index] as T;
+            field.Index < 0 || field.Index >= Root.ExternalReferences.GetArraySize() ? null : Root.ExternalReferences[field.Index] as T;
 
         public bool TryGetExternalReference<T>(in ExternalReferenceField<T> field, out T val) where T : class => (val = GetExternalReference(field)) != null;
 
@@ -57,7 +64,7 @@ namespace FLib.WorldCores.TimeLogics
         {
             if (target.Index >= 0)
                 return GetExternalReference(target);
-            return Runtime.UserData as T;
+            return Root.UserData as T;
         }
 
         /// <summary>

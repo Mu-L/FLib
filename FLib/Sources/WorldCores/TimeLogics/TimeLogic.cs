@@ -25,7 +25,7 @@ namespace FLib.WorldCores.TimeLogics
         public byte FrameRate = 30;
         private FNum _currentFrame;
         private FNum _frameDelta;
-        public ScriptPackInstance<TimeLogicTrack>[] Tracks = Array.Empty<ScriptPackInstance<TimeLogicTrack>>();
+        public ScriptPackInstance<TimeLogicTrack>[] Tracks;
 
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
@@ -46,6 +46,18 @@ namespace FLib.WorldCores.TimeLogics
         public override string ToString() => $"{Name},{CurrentFrame}";
 
         /// <summary>
+        /// 
+        /// </summary>
+        public virtual TimeLogic Initialize()
+        {
+            _frameDelta = FNum.One / FrameRate;
+            Tracks ??= Array.Empty<ScriptPackInstance<TimeLogicTrack>>();
+            foreach (var item in Tracks)
+                item.Instance.Initialize(this);
+            return this;
+        }
+
+        /// <summary>
         ///  
         /// </summary>
         public TimeLogic SetFrameRate(byte frameRate)
@@ -60,6 +72,7 @@ namespace FLib.WorldCores.TimeLogics
         /// </summary>
         public void Stop(bool isResetFrame = true)
         {
+            System.Diagnostics.Debug.Assert(Tracks != null, "not initialized");
             if (isResetFrame)
                 _currentFrame = 0;
             foreach (var track in Tracks)
@@ -105,6 +118,7 @@ namespace FLib.WorldCores.TimeLogics
         /// </summary>
         public void UpdateCurrentFrame()
         {
+            System.Diagnostics.Debug.Assert(Tracks != null, "not initialized");
             IsEndFrame = false;
             foreach (var pack in Tracks)
             {
@@ -140,9 +154,6 @@ namespace FLib.WorldCores.TimeLogics
                 IsLoop = reader.Read<bool>();
                 EndFrame = (int)reader.ReadVInt();
                 BytesPack.Unpack(ref Tracks, ref reader);
-                _frameDelta = FNum.One / FrameRate;
-                foreach (var item in Tracks)
-                    item.Instance.Runtime = this;
             }
         }
     }
@@ -153,5 +164,13 @@ namespace FLib.WorldCores.TimeLogics
     public class EntityTimeLogic : TimeLogic
     {
         [NonSerialized] public WorldEntity Entity;
+
+
+        public EntityTimeLogic Initialize(WorldEntity entity)
+        {
+            base.Initialize();
+            Entity = entity;
+            return this;
+        }
     }
 }

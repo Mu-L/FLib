@@ -10,12 +10,22 @@ namespace FLib.WorldCores.TimeLogics
     {
         [Comment("名称")] public string Name;
         [Comment("是否禁用")] public bool IsDisable;
-        public ScriptPackInstance<TimeLogicClip>[] Clips = Array.Empty<ScriptPackInstance<TimeLogicClip>>();
-        
-        [NonSerialized] public TimeLogic Runtime;
-        
+        public ScriptPackInstance<TimeLogicClip>[] Clips;
+
+        public TimeLogic Root { get; private set; }
         public TimeLogicClip CurrentClip { get; private set; }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void Initialize(TimeLogic root)
+        {
+            Root = root;
+            Clips ??= Array.Empty<ScriptPackInstance<TimeLogicClip>>();
+            foreach (var clip in Clips)
+                clip.Instance.Initialize(this);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -23,7 +33,7 @@ namespace FLib.WorldCores.TimeLogics
         {
             ClearCurrentClip();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -35,13 +45,13 @@ namespace FLib.WorldCores.TimeLogics
             CurrentClip = null;
             temp.End();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
         public virtual void Update()
         {
-            var frame = Runtime.CurrentFrame;
+            var frame = Root.CurrentFrame;
             if (CurrentClip != null)
             {
                 try
@@ -51,20 +61,20 @@ namespace FLib.WorldCores.TimeLogics
                         CurrentClip.Update();
                         return;
                     }
-                    
+
                     CurrentClip.End();
                     CurrentClip = null;
                 }
                 catch (Exception e)
                 {
-                    Log.Error?.Write($"{Runtime.Name} {CommentAttribute.TryGetLabel(CurrentClip?.GetType())} {Runtime.UserData} {e}");
+                    Log.Error?.Write($"{Root.Name} {CommentAttribute.TryGetLabel(CurrentClip?.GetType())} {Root.UserData} {e}");
                 }
             }
-            
+
             foreach (var pack in Clips)
             {
                 var clip = pack.Instance;
-                if (!clip.IsDisable && Runtime.ExecuteVerifyHandler?.Invoke(clip) != false && clip.CheckFrame(frame))
+                if (!clip.IsDisable && Root.ExecuteVerifyHandler?.Invoke(clip) != false && clip.CheckFrame(frame))
                 {
                     try
                     {
@@ -74,26 +84,26 @@ namespace FLib.WorldCores.TimeLogics
                     }
                     catch (Exception e)
                     {
-                        Log.Error?.Write($"{Runtime.Name} {CommentAttribute.TryGetLabel(CurrentClip?.GetType())} {Runtime.UserData} {e}");
+                        Log.Error?.Write($"{Root.Name} {CommentAttribute.TryGetLabel(CurrentClip?.GetType())} {Root.UserData} {e}");
                     }
-                    
+
                     break;
                 }
             }
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void LateUpdate()
             => CurrentClip?.LateUpdate();
-        
+
 #if UNITY_PROJ
-        public T GetExternalReference<T>(in ExternalReferenceField<T> field) where T : class => field.Index < 0 ? null : Runtime.ExternalReferences[field.Index] as T;
+        public T GetExternalReference<T>(in ExternalReferenceField<T> field) where T : class => field.Index < 0 ? null : Root.ExternalReferences[field.Index] as T;
         public bool TryGetExternalReference<T>(in ExternalReferenceField<T> field, out T val) where T : class => (val = GetExternalReference(field)) != null;
         public T GetSelfOrExternalReference<T>(in ExternalReferenceField<T> target) where T : class
         {
             if (target.Index >= 0)
                 return GetExternalReference(target);
-            return Runtime.UserData as T;
+            return Root.UserData as T;
         }
 #endif
         public virtual void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
@@ -103,7 +113,7 @@ namespace FLib.WorldCores.TimeLogics
             writer.Push(Name);
             BytesPack.Pack(Clips, ref writer);
         }
-        
+
         public virtual void Z_BytesPackRead(int key, ref BytesReader reader)
         {
             if (key == 1)
@@ -111,8 +121,6 @@ namespace FLib.WorldCores.TimeLogics
                 IsDisable = reader.Read<bool>();
                 Name = reader.ReadString();
                 BytesPack.Unpack(ref Clips, ref reader);
-                foreach (var clip in Clips)
-                    clip.Instance.Track = this;
             }
         }
     }

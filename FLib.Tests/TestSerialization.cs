@@ -1,6 +1,6 @@
 // ==================== qcbf@qq.com | 2026-03-26 ====================
 
-using FLib.WorldCores.TimeLogic;
+using FLib.WorldCores.TimeLogics;
 
 namespace FLib.Tests;
 

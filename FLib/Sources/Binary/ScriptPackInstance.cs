@@ -77,6 +77,7 @@ namespace FLib
             }
 
             nodes.Nodes[--nodes.Position].Token = EJson5Token.ObjectOpen;
+            --reader.BracketOpenCount; // 因为上面 Token = EJson5Token.ObjectOpen 强制再open了一次, 为了让下面的json正确走入ObjectOpen解析
             instance = (IBytesPackable)nodes.To(TypeAssistant.GetType(typeName));
             reader.Close(ref nodes);
             return true;

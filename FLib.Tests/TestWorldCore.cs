@@ -10,7 +10,7 @@ using System.Reflection;
 using FLib.WorldCores.Components;
 using FLib.WorldCores;
 using FLib.WorldCores.Entities;
-using FLib.WorldCores.TimeLogic;
+using FLib.WorldCores.TimeLogics;
 
 namespace FLib.Tests;
 
