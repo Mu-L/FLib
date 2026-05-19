@@ -12,19 +12,19 @@ namespace FLib.WorldCores
 {
     public partial class WorldCore
     {
-        /// <summary>
-        /// 获取实体信息或空实体信息。
-        /// </summary>
-        /// <param name="et">目标实体</param>
-        /// <returns>实体信息的引用，如果实体无效则返回空信息</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref readonly WorldEntityInfo GetEntityInfoOrEmpty(in WorldEntityId et)
-        {
-            ref var eti = ref Entities[et.Id];
-            if (eti.Version != et.Version)
-                return ref WorldEntityInfo.Empty;
-            return ref eti;
-        }
+        // /// <summary>
+        // /// 获取实体信息或空实体信息。
+        // /// </summary>
+        // /// <param name="et">目标实体</param>
+        // /// <returns>实体信息的引用，如果实体无效则返回空信息</returns>
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public ref readonly WorldEntityInfo GetEntityInfoOrEmpty(in WorldEntityId et)
+        // {
+        //     ref var eti = ref Entities[et.Id];
+        //     if (eti.Version != et.Version)
+        //         return ref WorldEntityInfo.Empty;
+        //     return ref eti;
+        // }
 
         /// <summary>
         /// 获取实体信息。

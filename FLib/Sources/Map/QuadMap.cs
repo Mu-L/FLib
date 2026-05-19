@@ -125,7 +125,7 @@ namespace FLib
         public virtual QuadMap SetLayers(int count)
         {
             Array.Resize(ref Terrain, count);
-            var tileCount = TerrainSize.X * TerrainSize.Y;
+            var tileCount = BitArrayOperator.GetBitsLength(TerrainSize.X * TerrainSize.Y);
             for (var i = 0; i < LayerCount; i++)
                 Array.Resize(ref Terrain[i], tileCount);
             return this;

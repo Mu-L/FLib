@@ -32,7 +32,7 @@ namespace FLib
             {
                 var ctx = (ConfigBuilder.TableContext)options.UserData;
                 var indexIdFieldName = ctx.IndexIdField.Name;
-                for (var i = 0; i < nodes.Nodes.Count; i++)
+                for (var i = nodes.Position + 1; i < nodes.Nodes.Count; i++)
                 {
                     if (nodes.Nodes[i].Token != EJson5Token.Value) continue;
                     var key = nodes.Nodes[i].ContentSpan;
