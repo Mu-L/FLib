@@ -8,7 +8,7 @@ using FLib.WorldCores.TimeLogics;
 
 namespace FLib.WorldCores.TimeLogics
 {
-    [BytesPackGenHoldKey(2)]
+    [BytesPackGenHoldKey(2)][RenamedType("Worlds.TimeLogic.WorldTimeLogicRuntime")]
     public class TimeLogic : IBytesPackable
     {
         [NonSerialized] public object UserData;

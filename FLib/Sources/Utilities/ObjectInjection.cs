@@ -51,10 +51,8 @@ namespace FLib
 
             var receivers = new ConcurrentDictionary<string, (MethodInfo, List<(object, ObjectInjectToAttribute)>)>();
             var injections = new ConcurrentBag<(object, ObjectInjectToAttribute)>();
-            var selfAsm = typeof(ObjectInjection).Assembly;
             foreach (var asm in allAssemblies ?? TypeAssistant.AllAssemblies)
             {
-                if (asm == selfAsm) continue;
                 asm.GetExportedTypes().AsParallel().Where(t => !t.IsGenericType && !t.IsInterface && !t.IsEnum).ForAll(t =>
                 {
                     var receiverAttr = t.GetCustomAttribute<ObjectInjectionReceiverAttribute>();
@@ -96,6 +94,7 @@ namespace FLib
                     Log.Error?.Write($"{injection.Item1} not found receiver: {injection.Item2.Name}");
                     continue;
                 }
+
                 receiver.Item2.Add(injection);
             }
 

@@ -12,18 +12,18 @@ using System.Threading;
 
 namespace FLib
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
     public class RenamedTypeAttribute : ObjectInjectToAttribute
     {
         public string[] MoreOldNames;
-        
+
         public RenamedTypeAttribute(string oldName, string[] moreOldNames = null) : base(nameof(TypeAssistant))
         {
             StrParam = oldName;
             MoreOldNames = moreOldNames;
         }
     }
-    
+
     [ObjectInjectionReceiver(nameof(TypeAssistant), nameof(ReceiveInjection))]
     public static class TypeAssistant
     {
@@ -31,14 +31,14 @@ namespace FLib
         [NonSerialized] public static Assembly[] AllAssemblies = { typeof(TypeAssistant).Assembly };
         public static ReadOnlyDictionary<string, Type> CustomTypeMap;
         [ThreadStatic] private static Dictionary<string, Type> _typeFinderBuffer;
-        
-        
+
+
         private static readonly Func<Assembly, string, bool, Type> TypeFinder = (_, name, ignoreCase) =>
         {
             switch (name)
             {
                 #region base
-                
+
                 case "short":
                 case "System.Int16": return typeof(short);
                 case "int":
@@ -75,9 +75,9 @@ namespace FLib
                 case "System.Collections.Generic.Dictionary`2": return typeof(Dictionary<,>);
                 case "object":
                 case "System.Object": return typeof(object);
-                
+
                 #endregion
-                
+
                 default:
                     if (string.IsNullOrEmpty(name))
                         return null;
@@ -93,11 +93,11 @@ namespace FLib
                             return found;
                         }
                     }
-                    
+
                     return Type.GetType(name, false, ignoreCase);
             }
         };
-        
+
 #if UNITY_PROJ
         [UnityEngine.Scripting.Preserve]
 #endif
@@ -118,13 +118,16 @@ namespace FLib
                     }
                 }
             }
-            
+
             RegisterCustomFinderType(renames);
-            
+
             return;
-            
+
             static string ReplaceTypeNameSpan(string typeName, string newName)
             {
+                if (newName.Contains('.', StringComparison.Ordinal)) // 默认newName包含完整的命名空间
+                    return newName;
+
                 var lastSeparatorIndex = -1;
                 for (var i = typeName.Length - 1; i >= 0; i--)
                 {
@@ -134,25 +137,25 @@ namespace FLib
                         break;
                     }
                 }
-                
+
                 if (lastSeparatorIndex == -1)
                     return newName;
                 var prefixLength = lastSeparatorIndex + 1;
                 var resultLength = prefixLength + newName.Length;
-                
+
                 Span<char> buffer = stackalloc char[resultLength];
                 typeName.AsSpan(0, prefixLength).CopyTo(buffer);
                 newName.AsSpan().CopyTo(buffer[prefixLength..]);
                 return new string(buffer);
             }
         }
-        
+
         public static void Clear()
         {
             Array.Resize(ref AllAssemblies, 1);
             CustomTypeMap = null;
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -160,7 +163,7 @@ namespace FLib
         {
             ArrayFLibUtility.Remove(ref AllAssemblies, target);
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -174,7 +177,7 @@ namespace FLib
                 AllAssemblies = hash.ToArray();
             }
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -185,7 +188,7 @@ namespace FLib
                 return;
             ArrayFLibUtility.Add(ref AllAssemblies, asm);
         }
-        
+
         public static void UnregisterCustomFinderType(params string[] names)
         {
             if (CustomTypeMap == null)
@@ -195,12 +198,12 @@ namespace FLib
                 dict.Remove(s);
             CustomTypeMap = new ReadOnlyDictionary<string, Type>(dict);
         }
-        
+
         public static void RegisterCustomFinderType<T>(string name = null)
         {
             RegisterCustomFinderType(new Dictionary<string, Type>() { { (name ?? typeof(T).FullName)!, typeof(T) } });
         }
-        
+
         public static void RegisterCustomFinderType(Dictionary<string, Type> types)
         {
             if (CustomTypeMap != null)
@@ -208,35 +211,35 @@ namespace FLib
                 foreach (var type in CustomTypeMap)
                     types.TryAdd(type.Key, type.Value);
             }
-            
+
             CustomTypeMap = new ReadOnlyDictionary<string, Type>(types);
         }
-        
-        
+
+
         public static T New<T>()
         {
             return Activator.CreateInstance<T>();
         }
-        
-        
+
+
         public static object New(Type t)
         {
             return Activator.CreateInstance(t, Array.Empty<object>());
         }
-        
-        
+
+
         public static object New(Type t, params object[] args)
         {
             return Activator.CreateInstance(t, args);
         }
-        
-        
+
+
         public static object New(string name, bool ignoreCase = false, bool isThrowOnError = true, object[] args = null)
         {
             var type = GetType(name, ignoreCase, isThrowOnError);
             return type == null ? null : Activator.CreateInstance(type, args ?? Array.Empty<object>());
         }
-        
+
         public static Type GetType(string name, bool ignoreCase = false, bool isThrowOnError = true)
         {
             var result = Type.GetType(name, null, TypeFinder, false, ignoreCase);
@@ -244,7 +247,7 @@ namespace FLib
                 throw new TypeLoadException(name);
             return result;
         }
-        
+
         public static string GetTypeName(Type t)
         {
             if (t == typeof(byte)) return "b";
@@ -261,7 +264,7 @@ namespace FLib
             return t == typeof(Type) ? "type" : t.ToString();
         }
     }
-    
+
     // ReSharper disable once UnusedTypeParameter
     public static class TypeId<T>
     {
