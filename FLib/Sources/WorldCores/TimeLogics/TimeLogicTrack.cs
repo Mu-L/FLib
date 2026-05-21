@@ -10,10 +10,11 @@ namespace FLib.WorldCores.TimeLogics
     {
         [Comment("名称")] public string Name;
         [Comment("是否禁用")] public bool IsDisable;
-        public ScriptPackInstance<TimeLogicClip>[] Clips;
+        public ScriptPackInstance[] Clips;
 
         public TimeLogic Root { get; private set; }
         public TimeLogicClip CurrentClip { get; private set; }
+        public TimeLogicClip this[int index] => (TimeLogicClip)Clips[index].Instance;
 
         /// <summary>
         /// 
@@ -21,9 +22,9 @@ namespace FLib.WorldCores.TimeLogics
         public virtual void Initialize(TimeLogic root)
         {
             Root = root;
-            Clips ??= Array.Empty<ScriptPackInstance<TimeLogicClip>>();
+            Clips ??= Array.Empty<ScriptPackInstance>();
             foreach (var clip in Clips)
-                clip.Instance.Initialize(this);
+                ((TimeLogicClip)clip.Instance).Initialize(this);
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace FLib.WorldCores.TimeLogics
 
             foreach (var pack in Clips)
             {
-                var clip = pack.Instance;
+                var clip = (TimeLogicClip)pack.Instance;
                 if (!clip.IsDisable && Root.ExecuteVerifyHandler?.Invoke(clip) != false && clip.CheckFrame(frame))
                 {
                     try

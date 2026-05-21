@@ -25,11 +25,12 @@ namespace FLib.WorldCores.TimeLogics
         public byte FrameRate = 30;
         private FNum _currentFrame;
         private FNum _frameDelta;
-        public ScriptPackInstance<TimeLogicTrack>[] Tracks;
+        public ScriptPackInstance[] Tracks;
 
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
         public ExternalReferenceStorer ExternalReferences;
+        public TimeLogicTrack this[int index] => (TimeLogicTrack)Tracks[index].Instance;
 
         public int CurrentFrame
         {
@@ -51,9 +52,9 @@ namespace FLib.WorldCores.TimeLogics
         public virtual TimeLogic Initialize()
         {
             _frameDelta = FNum.One / FrameRate;
-            Tracks ??= Array.Empty<ScriptPackInstance<TimeLogicTrack>>();
+            Tracks ??= Array.Empty<ScriptPackInstance>();
             foreach (var item in Tracks)
-                item.Instance.Initialize(this);
+                ((TimeLogicTrack)item.Instance).Initialize(this);
             return this;
         }
 
@@ -79,7 +80,7 @@ namespace FLib.WorldCores.TimeLogics
             {
                 try
                 {
-                    track.Instance.Stop();
+                    ((TimeLogicTrack)track.Instance).Stop();
                 }
                 catch (Exception e)
                 {
@@ -122,14 +123,14 @@ namespace FLib.WorldCores.TimeLogics
             IsEndFrame = false;
             foreach (var pack in Tracks)
             {
-                var track = pack.Instance;
+                var track = (TimeLogicTrack)pack.Instance;
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
                     track.Update();
             }
 
             foreach (var pack in Tracks)
             {
-                var track = pack.Instance;
+                var track = (TimeLogicTrack)pack.Instance;
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
                     track.LateUpdate();
             }
