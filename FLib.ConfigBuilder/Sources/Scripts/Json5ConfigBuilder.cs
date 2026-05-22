@@ -9,15 +9,6 @@ using System.Reflection;
 
 namespace FLib
 {
-    /// <summary>
-    /// <code>
-    /// {
-    ///     meta: {Name: {Sign: 'c',Default: "not found"}},
-    ///     $1001: {Name: "abc"},
-    ///     $1002: {Name: "XXX"},
-    /// }
-    /// </code>
-    /// </summary>
     public class Json5ConfigBuilder : ConfigBuilder.IBuildable
     {
         public string Extension => ".json5";

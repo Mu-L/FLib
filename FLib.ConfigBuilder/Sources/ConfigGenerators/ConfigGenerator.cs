@@ -89,16 +89,17 @@ namespace FLib
                 .Indent(indent).Append("public partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
             ++indent;
 
-            foreach (var field in json["Fields"].Dict)
+            foreach (var (key, fieldValue) in json["Fields"].Dict)
             {
-                strbuf.AppendBlockComment(indent, field.Value);
+                strbuf.AppendBlockComment(indent, fieldValue);
                 strbuf.Indent(indent).Append("[BytesPackGenField] ")
-                    .Append("public ").Append(field.Value["Type"].ToString()).Append(' ')
-                    .Append(field.Key);
+                    .Append("public ").Append(fieldValue["Type"].ToString()).Append(' ')
+                    .Append(key);
                 if (p.Op(EConfigGenerateOption.UseProperty))
-                    strbuf.Append(" { get; private set; }");
+                    strbuf.Append(" { get; private set; }").AppendDefaultValue(fieldValue);
                 else
-                    strbuf.Append(';');
+                    strbuf.AppendDefaultValue(fieldValue)?.Append(';');
+
                 strbuf.AppendLine().AppendLine();
             }
 
@@ -184,6 +185,17 @@ namespace FLib
 
             await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, "_ConfigDefines.Gen.cs"), strbuf.ToString());
             Interlocked.Increment(ref _finishedTaskCount);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static StringBuilder AppendDefaultValue(this StringBuilder strbuf, Json5AnyValue field)
+        {
+            if (!field.TryGet("DefaultValue", out var value))
+                return strbuf;
+            strbuf.Append(" = ").Append(value.ToString()).Append(';');
+            return null;
         }
 
         /// <summary>
