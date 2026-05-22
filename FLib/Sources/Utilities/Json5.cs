@@ -80,7 +80,7 @@ namespace FLib
         OnlySerializableFields = 0x2,
 
         /// <summary>
-        /// 
+        /// 格式化输出：短内容单行紧凑，长或嵌套内容多行缩进，兼顾可读性与紧凑性
         /// </summary>
         Pretty = 0x4,
 
@@ -139,6 +139,51 @@ namespace FLib
     /// </summary>
     public static class Json5Serializer
     {
+        const int PrettyInlineMaxLen = 120;
+
+        static void AppendPrettyBlock(List<string> entries, StringBuilder strbuf, int indent, char open, char close)
+        {
+            strbuf.Append(open);
+            if (entries.Count == 0)
+            {
+                strbuf.Append(close);
+                return;
+            }
+
+            var containsNewline = false;
+            var totalLen = 0;
+            foreach (var e in entries)
+            {
+                totalLen += e.Length;
+                if (e.IndexOf('\n') >= 0) containsNewline = true;
+            }
+
+            if (!containsNewline && totalLen + (entries.Count - 1) * 2 <= PrettyInlineMaxLen)
+            {
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    if (i > 0) strbuf.Append(", ");
+                    strbuf.Append(entries[i]);
+                }
+            }
+            else
+            {
+                var newIndent = indent + 1;
+                strbuf.Append('\n');
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    strbuf.Append('\t', newIndent);
+                    strbuf.Append(entries[i]);
+                    if (i < entries.Count - 1) strbuf.Append(',');
+                    strbuf.Append('\n');
+                }
+
+                strbuf.Append('\t', indent);
+            }
+
+            strbuf.Append(close);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -231,6 +276,27 @@ namespace FLib
                 return;
             }
 
+            if (opData.Op(EJson5SerializeOption.Pretty) && !opData.Op(EJson5SerializeOption.LogText))
+            {
+                var elements = new List<string>();
+                var buf = new StringBuilder();
+                try
+                {
+                    while (iterator.MoveNext())
+                    {
+                        buf.Clear();
+                        PushValue(iterator.Current, buf, indent + 1, opData);
+                        elements.Add(buf.ToString());
+                    }
+                }
+                catch
+                {
+                }
+
+                AppendPrettyBlock(elements, strbuf, indent, '[', ']');
+                return;
+            }
+
             strbuf.Append('[');
             var isMoveNext = false;
             try
@@ -283,6 +349,23 @@ namespace FLib
         {
             // ReSharper disable AssignNullToNotNullAttribute
             // ReSharper disable GenericEnumeratorNotDisposed
+            if (opData.Op(EJson5SerializeOption.Pretty))
+            {
+                var entries = new List<string>();
+                var buf = new StringBuilder();
+                var it = dict.GetEnumerator();
+                while (it.MoveNext())
+                {
+                    buf.Clear();
+                    PushDictKey(it.Key, buf, indent + 1, opData);
+                    PushValue(it.Value, buf, indent + 1, opData);
+                    entries.Add(buf.ToString());
+                }
+
+                AppendPrettyBlock(entries, strbuf, indent, '{', '}');
+                return;
+            }
+
             strbuf.Append('{');
             var iterator = dict.GetEnumerator();
             if (iterator.MoveNext())
@@ -314,6 +397,8 @@ namespace FLib
                 if (opData.Op(EJson5SerializeOption.Compatible))
                     strbuf.Append('"');
                 strbuf.Append(':');
+                if (opData.Op(EJson5SerializeOption.Pretty))
+                    strbuf.Append(' ');
             }
         }
 
@@ -341,9 +426,25 @@ namespace FLib
                 return;
             }
 
-            strbuf.Append('{');
             var fields = t.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var len = fields.Length;
+
+            if (opData.Op(EJson5SerializeOption.Pretty))
+            {
+                var fieldEntries = new List<string>();
+                var buf = new StringBuilder();
+                for (var i = 0; i < len; i++)
+                {
+                    buf.Clear();
+                    if (PushField(obj, fields[i], buf, indent + 1, opData) && buf.Length > 0)
+                        fieldEntries.Add(buf.ToString());
+                }
+
+                AppendPrettyBlock(fieldEntries, strbuf, indent, '{', '}');
+                return;
+            }
+
+            strbuf.Append('{');
             for (var i = 0; i < len; i++)
             {
                 var success = PushField(obj, fields[i], strbuf, indent, opData);
