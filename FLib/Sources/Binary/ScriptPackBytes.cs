@@ -98,6 +98,8 @@ namespace FLib
             }
         }
 
+        public override string ToString() => $"{ScriptTypeName}[{FIO.FormatSize((Bytes?.Length).GetValueOrDefault())}]";
+
         #region serialization
 
         public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
@@ -161,6 +163,7 @@ namespace FLib
         IBytesPackable? IScriptPackable.CreateInstance() => CreateInstance();
         public readonly T? CreateInstance() => (T?)new ScriptPackBytes(Bytes).CreateInstance();
         public void SetInstance(IBytesPackable? instance) => Bytes = new ScriptPackBytes(instance).Bytes;
+        public override string ToString() => $"{ScriptTypeName}[{FIO.FormatSize((Bytes?.Length).GetValueOrDefault())}]";
 
         #region serialization
 

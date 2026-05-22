@@ -21,6 +21,7 @@ namespace FLib
         public void SetInstance(IBytesPackable instance) => Instance = instance;
         public IBytesPackable CreateInstance() => Instance;
 
+        public override string ToString() => Instance?.ToString() ?? "null";
         public bool Equals(ScriptPackInstance other) => EqualityComparer<object>.Default.Equals(Instance, other.Instance);
         public override bool Equals(object obj) => obj is ScriptPackInstance other && Equals(other);
         public override int GetHashCode() => EqualityComparer<object>.Default.GetHashCode(Instance);
@@ -127,6 +128,7 @@ namespace FLib
         public void SetInstance(IBytesPackable instance) => Instance = (T)instance;
         public IBytesPackable CreateInstance() => Instance;
 
+        public override string ToString() => Instance?.ToString() ?? "null";
         public static implicit operator T(in ScriptPackInstance<T> v) => v.Instance;
         public static implicit operator ScriptPackInstance<T>(T v) => new(v);
         public bool Equals(ScriptPackInstance<T> other) => EqualityComparer<T>.Default.Equals(Instance, other.Instance);

@@ -18,6 +18,7 @@ namespace FLib
     {
         public static Dictionary<Type, IJson5Deserializable>? CustomDeserializers;
         public static Dictionary<Type, IJson5Serializable>? CustomSerializers;
+        public static HashSet<Type>? NonSerialized;
 
         // ReSharper disable Unity.PerformanceAnalysis
         public static string SerializeToLog(object? val, Json5SerializeOptionData opData = default)
@@ -59,6 +60,7 @@ namespace FLib
     }
 
     #region Serialize
+
     /// <summary>
     /// 
     /// </summary>
@@ -77,7 +79,11 @@ namespace FLib
         /// </summary>
         OnlySerializableFields,
 
-        // Pretty = 0x2,
+        /// <summary>
+        /// 
+        /// </summary>
+        Pretty = 0x2,
+
         /// <summary>
         /// 包含空字符串的字段，最终得到 Field:""
         /// </summary>
@@ -190,12 +196,19 @@ namespace FLib
                         strbuf.Append('"');
                     break;
                 default:
-                    if (obj is int or uint or long or sbyte or byte or short or ushort or ulong)
-                        strbuf.Append(obj);
-                    else if (obj is bool)
-                        strbuf.Append(obj.ToString()!.ToLowerInvariant());
-                    else
-                        PushObject(obj, strbuf, indent, opData);
+                    switch (obj)
+                    {
+                        case int or uint or long or sbyte or byte or short or ushort or ulong:
+                            strbuf.Append(obj);
+                            break;
+                        case bool:
+                            strbuf.Append(obj.ToString()!.ToLowerInvariant());
+                            break;
+                        default:
+                            PushObject(obj, strbuf, indent, opData);
+                            break;
+                    }
+
                     break;
             }
 
@@ -210,6 +223,7 @@ namespace FLib
             IEnumerator iterator;
             try
             {
+                // ReSharper disable once GenericEnumeratorNotDisposed
                 iterator = array.GetEnumerator(); // default ArraySegment会异常
             }
             catch
@@ -268,6 +282,7 @@ namespace FLib
         public static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
         {
             // ReSharper disable AssignNullToNotNullAttribute
+            // ReSharper disable GenericEnumeratorNotDisposed
             strbuf.Append('{');
             var iterator = dict.GetEnumerator();
             if (iterator.MoveNext())
@@ -341,9 +356,9 @@ namespace FLib
 
             static bool PushField(object obj, FieldInfo field, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
             {
-                if (field.IsInitOnly || field.IsLiteral || field.IsDefined(typeof(NonSerializedAttribute)) ||
-                    ((opData.Options & EJson5SerializeOption.OnlySerializableFields) != 0 && !field.IsDefined(typeof(SerializableAttribute))) ||
-                    field.FieldType.IsSubclassOf(typeof(Delegate)))
+                if (field.IsInitOnly || field.IsLiteral || ((opData.Options & EJson5SerializeOption.OnlySerializableFields) != 0 && !field.IsDefined(typeof(SerializableAttribute))) ||
+                    (Json5.NonSerialized != null && (Json5.NonSerialized.Contains(field.FieldType) || Json5.NonSerialized.Contains(field.FieldType.BaseType))) ||
+                    field.IsDefined(typeof(NonSerializedAttribute)) || field.FieldType.IsSubclassOf(typeof(Delegate)))
                     return false;
 
                 var fieldName = field.Name;
@@ -372,9 +387,11 @@ namespace FLib
             }
         }
     }
+
     #endregion
 
     #region Deserialize
+
     /// <summary>
     /// 
     /// </summary>
@@ -1045,9 +1062,11 @@ namespace FLib
             return result.Result;
         }
     }
+
     #endregion
 
     #region other
+
     /// <summary>
     /// 
     /// </summary>
@@ -1076,7 +1095,7 @@ namespace FLib
         public bool Has(int index) => AsArray?.Length > index;
         public bool Has(string key) => AsDict?.ContainsKey(key) == true;
         public override string ToString() => Raw.ToString()!;
-        public static implicit operator string(Json5AnyValue val) => Convert.ToString(val.Raw)!;
+        public static implicit operator string(Json5AnyValue val) => Convert.ToString(val.Raw);
         public static implicit operator bool(Json5AnyValue val) => Convert.ToBoolean(val.Raw);
         public static implicit operator byte(Json5AnyValue val) => Convert.ToByte(val.Raw);
         public static implicit operator sbyte(Json5AnyValue val) => Convert.ToSByte(val.Raw);
@@ -1098,5 +1117,6 @@ namespace FLib
 #endif
             ?? AsDict?.Cast<object>().GetEnumerator() ?? Enumerable.Empty<object>().GetEnumerator();
     }
+
     #endregion
 }
