@@ -77,32 +77,32 @@ namespace FLib
         /// <summary>
         /// 只序列化标记了Serializable的字段
         /// </summary>
-        OnlySerializableFields,
+        OnlySerializableFields = 0x2,
 
         /// <summary>
         /// 
         /// </summary>
-        Pretty = 0x2,
+        Pretty = 0x4,
 
         /// <summary>
         /// 包含空字符串的字段，最终得到 Field:""
         /// </summary>
-        IncludeEmptyStringField = 0x4,
+        IncludeEmptyStringField = 0x8,
 
         /// <summary>
         /// 日志方式序列化，如果类型有override ToString那么就直接调用ToString而不是序列化每个字段
         /// </summary>
-        LogText = 0x8,
+        LogText = 0x10,
 
         /// <summary>
         /// 保留字符串原始内容，而不添加转义字符和双引号
         /// </summary>
-        RetainString = 0x10,
+        RetainString = 0x20,
 
         /// <summary>
         /// 不要写入字典的空key， {"a":11, "":22}得到a:11, 22而不是 a:11, "":22， 方便做一些特殊的json值
         /// </summary>
-        DictDoNotWriteEmptyKeyWithColonChar = 0x20,
+        DictDoNotWriteEmptyKeyWithColonChar = 0x40,
     }
 
     /// <summary>
