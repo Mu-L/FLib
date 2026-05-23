@@ -24,13 +24,13 @@ namespace FLib.WorldCores.Behaviors
         public bool IsEmpty => SystemPtr == null;
 
         public uint StartFrame { get; set; }
-        public virtual byte Priority { get; set; }
+        public virtual byte CurrentPriority { get; set; }
         public virtual byte InitialPriority => 0;
         public abstract uint Mask { get; }
 
         public virtual bool CheckDo(bool isFirst) => isFirst;
 
-        public virtual bool CheckPriority(WorldBehavior target) => target.Priority >= Priority;
+        public virtual bool CheckPriority(WorldBehavior target) => target.CurrentPriority >= CurrentPriority;
         public virtual bool CheckFriend(WorldBehavior targetBehavior, bool isFirst) => false;
 
 
