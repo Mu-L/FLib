@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace FLib
@@ -139,50 +138,7 @@ namespace FLib
     /// </summary>
     public static class Json5Serializer
     {
-        const int PrettyInlineMaxLen = 120;
-
-        static void AppendPrettyBlock(List<string> entries, StringBuilder strbuf, int indent, char open, char close)
-        {
-            strbuf.Append(open);
-            if (entries.Count == 0)
-            {
-                strbuf.Append(close);
-                return;
-            }
-
-            var containsNewline = false;
-            var totalLen = 0;
-            foreach (var e in entries)
-            {
-                totalLen += e.Length;
-                if (e.IndexOf('\n') >= 0) containsNewline = true;
-            }
-
-            if (!containsNewline && totalLen + (entries.Count - 1) * 2 <= PrettyInlineMaxLen)
-            {
-                for (var i = 0; i < entries.Count; i++)
-                {
-                    if (i > 0) strbuf.Append(", ");
-                    strbuf.Append(entries[i]);
-                }
-            }
-            else
-            {
-                var newIndent = indent + 1;
-                strbuf.Append('\n');
-                for (var i = 0; i < entries.Count; i++)
-                {
-                    strbuf.Append('\t', newIndent);
-                    strbuf.Append(entries[i]);
-                    if (i < entries.Count - 1) strbuf.Append(',');
-                    strbuf.Append('\n');
-                }
-
-                strbuf.Append('\t', indent);
-            }
-
-            strbuf.Append(close);
-        }
+        private const int PrettyInlineMaxLen = 120;
 
         /// <summary>
         /// 
@@ -280,17 +236,11 @@ namespace FLib
             {
                 var elements = new List<string>();
                 var buf = new StringBuilder();
-                try
+                while (iterator.MoveNext())
                 {
-                    while (iterator.MoveNext())
-                    {
-                        buf.Clear();
-                        PushValue(iterator.Current, buf, indent + 1, opData);
-                        elements.Add(buf.ToString());
-                    }
-                }
-                catch
-                {
+                    buf.Clear();
+                    PushValue(iterator.Current, buf, indent + 1, opData);
+                    elements.Add(buf.ToString());
                 }
 
                 AppendPrettyBlock(elements, strbuf, indent, '[', ']');
@@ -486,6 +436,52 @@ namespace FLib
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void AppendPrettyBlock(List<string> entries, StringBuilder strbuf, int indent, char open, char close)
+        {
+            strbuf.Append(open);
+            if (entries.Count == 0)
+            {
+                strbuf.Append(close);
+                return;
+            }
+
+            var containsNewline = false;
+            var totalLen = 0;
+            foreach (var e in entries)
+            {
+                totalLen += e.Length;
+                if (e.IndexOf('\n') >= 0) containsNewline = true;
+            }
+
+            if (!containsNewline && totalLen + (entries.Count - 1) * 2 <= PrettyInlineMaxLen)
+            {
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    if (i > 0) strbuf.Append(", ");
+                    strbuf.Append(entries[i]);
+                }
+            }
+            else
+            {
+                var newIndent = indent + 1;
+                strbuf.Append('\n');
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    strbuf.Append('\t', newIndent);
+                    strbuf.Append(entries[i]);
+                    if (i < entries.Count - 1) strbuf.Append(',');
+                    strbuf.Append('\n');
+                }
+
+                strbuf.Append('\t', indent);
+            }
+
+            strbuf.Append(close);
         }
     }
 
@@ -898,14 +894,24 @@ namespace FLib
             var node = nodes.MoveNext(EJson5Token.Value | EJson5Token.ArrayOpen | EJson5Token.ObjectOpen);
             try
             {
-                if (node.Token == EJson5Token.ObjectOpen)
-                    obj = ToObject(ref nodes, toType, options);
-                else if (node.Token == EJson5Token.ArrayOpen)
-                    obj = ToArray(ref nodes, toType, options);
-                else if (toType == typeof(Json5AnyValue))
-                    obj = new Json5AnyValue(ParseValue(typeof(object), ref options, node));
-                else
-                    obj = ParseValue(toType, ref options, node);
+                switch (node.Token)
+                {
+                    case EJson5Token.ObjectOpen:
+                        obj = ToObject(ref nodes, toType, options);
+                        break;
+                    case EJson5Token.ArrayOpen:
+                        obj = ToArray(ref nodes, toType, options);
+                        break;
+                    default:
+                    {
+                        if (toType == typeof(Json5AnyValue))
+                            obj = new Json5AnyValue(ParseValue(typeof(object), ref options, node));
+                        else
+                            obj = ParseValue(toType, ref options, node);
+                        break;
+                    }
+                }
+
                 return obj;
             }
             catch (Exception e)
