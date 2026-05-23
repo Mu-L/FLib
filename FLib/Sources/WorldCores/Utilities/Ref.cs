@@ -1,6 +1,7 @@
 // ==================== qcbf@qq.com | 2026-01-03 ====================
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace FLib.WorldCores
