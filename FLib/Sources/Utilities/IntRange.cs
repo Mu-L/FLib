@@ -10,6 +10,8 @@ namespace FLib
         public int Begin;
         public int End;
 
+        public bool IsSingleValue => Begin >= End;
+
         public IntRange(int beginEnd) => Begin = End = beginEnd;
 
         public IntRange(int begin, int end)
@@ -20,6 +22,7 @@ namespace FLib
 
         public int AddBegin(int v) => Begin += v;
         public int AddEnd(int v) => End += v;
+        public bool Contains(int v) => v >= Begin && v <= End;
 
         public override string ToString() => $"{Begin}-{End}";
         public static implicit operator Range(in IntRange range) => new(range.Begin, range.End);
@@ -38,11 +41,12 @@ namespace FLib
             var temp = StringFLibUtility.SegmentTextReadWithMoveNext(ref content);
             if (!temp.IsEmpty)
             {
-                Begin = temp.ToInt();
+                Begin = End = temp.ToInt();
                 temp = StringFLibUtility.SegmentTextReadWithMoveNext(ref content);
                 if (!temp.IsEmpty)
                     End = temp.ToInt();
             }
+
             reader.Close(ref nodes);
             return true;
         }
