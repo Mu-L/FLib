@@ -103,6 +103,8 @@ namespace FLib
                 strbuf.AppendLine().AppendLine();
             }
 
+            strbuf.Indent(indent).AppendLine("public override string ToString() => Json5.SerializeToLog(this);").AppendLine();
+
             --indent;
             strbuf.Indent(indent).AppendLine("}");
             if (p.HasNamespace)
