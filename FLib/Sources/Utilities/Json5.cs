@@ -651,9 +651,7 @@ namespace FLib
         /// </summary>
         public Json5SyntaxNode Read(ref Json5SyntaxNodes nodes, EJson5Token token = EJson5Token.Value)
         {
-            if (!TryRead(ref nodes, out var node, token))
-                throw new ArgumentException();
-            return node;
+            return !TryRead(ref nodes, out var node, token) ? throw new ArgumentException() : node;
         }
 
         /// <summary>

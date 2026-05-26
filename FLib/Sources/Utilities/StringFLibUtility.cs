@@ -345,7 +345,7 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public static ReadOnlySpan<char> SegmentTextRead(ReadOnlySpan<char> text, string breaks = ",/|+")
+        public static ReadOnlySpan<char> SegmentTextRead(ReadOnlySpan<char> text, string breaks = "+-")
         {
             return SegmentTextReadWithMoveNext(ref text, breaks);
         }
