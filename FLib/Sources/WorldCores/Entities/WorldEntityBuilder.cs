@@ -84,7 +84,7 @@ namespace FLib.WorldCores.Entities
             var indexInChunk = entityInfo.IndexInChunk;
             if (initMemory)
             {
-                foreach (var t in archetype.ComponentTypes) 
+                foreach (var t in archetype.ComponentTypes)
                     chunk.ClearMemory(indexInChunk, t);
             }
 
@@ -134,6 +134,7 @@ namespace FLib.WorldCores.Entities
         }
 
         #region privates
+
         /// <summary>
         /// 
         /// </summary>
@@ -170,9 +171,10 @@ namespace FLib.WorldCores.Entities
                 world.ThrowException($"static component[{TypeAssistant.GetTypeName(info.Type)}] not support start");
         }
 
+        #endregion
+
         public static implicit operator WorldEntityId(in WorldEntityBuilder builder) => builder.EntityId;
         public static implicit operator WorldEntity(in WorldEntityBuilder builder) => builder.EntityId.AsEntity(builder.World);
         public static implicit operator WorldCore(in WorldEntityBuilder builder) => builder.World;
-        #endregion
     }
 }
