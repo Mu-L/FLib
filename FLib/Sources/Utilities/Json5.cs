@@ -551,6 +551,7 @@ namespace FLib
         }
 
         public static implicit operator Json5CustomDeserializeResult(bool v) => new() { HookedType = (byte)(v ? 1 : 0) };
+        public static implicit operator Json5CustomDeserializeResult(byte v) => new() { HookedType = v };
         public static implicit operator bool(in Json5CustomDeserializeResult v) => v.HookedType > 0;
     }
 
