@@ -149,6 +149,7 @@ namespace FLib.WorldCores.Behaviors
             }
 
             slot = bhv.Id;
+            Mask |= bhv.Mask;
             Awake(bhv, evt);
 
             if (stopBhvSecondary != null)
@@ -264,7 +265,7 @@ namespace FLib.WorldCores.Behaviors
         /// 检查标记组合是否全部被当前行为掩码包含。
         /// </summary>
         public readonly bool IsRunning(uint mask)
-            => (Mask & mask) == mask;
+            => (Mask & mask) != 0;
 
         /// <summary>
         /// 判断给定泛型类型的行为是否正在运行。
