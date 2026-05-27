@@ -16,6 +16,7 @@ namespace FLib.WorldCores.Entities
         public WorldCore World;
         public WorldEntityId EntityId;
         internal PooledList<WorldComponentMeta> Components;
+        internal PooledList<WorldSoaComponentHandle> DynComponents;
 
 
         public WorldEntity Entity => EntityId.AsEntity(World);
@@ -67,6 +68,20 @@ namespace FLib.WorldCores.Entities
         /// <summary>
         /// 
         /// </summary>
+        public WorldEntityBuilder SetDyn<T>(in T component)
+        {
+            Debug.Assert(!EntityId.IsEmpty, "must call PrepareEntity first");
+            var id = WorldComponentRegistry.GetId<T>();
+            ref var eti = ref World.GetEntityInfo(Entity);
+            var group = World.Soa.GetGroup<T>();
+            World.TryAddRequiredComponents(EntityId, ref eti, WorldComponentRegistry.GetInfo(typeof(T)));
+            DynComponents.Add(new WorldSoaComponentHandle(World.EnsureDynamicComponentIndex(id, ref eti) = group.AllocWithoutAwake(EntityId, component), id));
+            return this;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="initMemory">是否初始化内存, false:性能会更高,但会导致字段不是默认值</param>
         public WorldEntityBuilder PrepareEntity(bool initMemory = true)
         {
@@ -98,20 +113,30 @@ namespace FLib.WorldCores.Entities
         {
             if (EntityId.IsEmpty)
                 PrepareEntity();
-            var count = Components.Count;
-            if (count > 0)
+            try
             {
-                ref readonly var eti = ref World.GetEntityInfo(EntityId);
-                for (var i = 0; i < count; i++)
+                var count = Components.Count;
+                if (count > 0)
                 {
-                    var meta = Components[i];
-                    ref readonly var info = ref WorldComponentRegistry.GetInfo(meta);
-                    if (!info.IsShared)
-                        info.Awake.Invoke(ref *(byte*)eti.Chunk.Get(eti.IndexInChunk, meta), World, EntityId);
+                    ref readonly var eti = ref World.GetEntityInfo(EntityId);
+                    for (var i = 0; i < count; i++)
+                    {
+                        var meta = Components[i];
+                        ref readonly var info = ref WorldComponentRegistry.GetInfo(meta);
+                        if (!info.IsShared)
+                            info.Awake.Invoke(ref *(byte*)eti.Chunk.Get(eti.IndexInChunk, meta), World, EntityId);
+                    }
                 }
+
+                foreach (var dynComp in DynComponents)
+                    World.Soa.GetGroup(dynComp.TypeId).InvokeAwake(EntityId, dynComp.Index);
+            }
+            finally
+            {
+                DynComponents.Dispose();
+                Components.Dispose();
             }
 
-            Components.Dispose();
             return this;
         }
 

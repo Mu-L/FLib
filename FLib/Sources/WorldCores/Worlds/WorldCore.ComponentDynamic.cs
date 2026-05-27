@@ -200,7 +200,7 @@ namespace FLib.WorldCores
 #if NET6_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
 #endif
-        private ref int EnsureDynamicComponentIndex(WorldIncrementId componentId, ref WorldEntityInfo eti)
+        internal ref int EnsureDynamicComponentIndex(WorldIncrementId componentId, ref WorldEntityInfo eti)
         {
             var compId = componentId.Id;
             if (eti.HasDynamicComponent)
@@ -232,7 +232,7 @@ namespace FLib.WorldCores
         /// <param name="et">目标实体</param>
         /// <param name="eti">实体信息的引用</param>
         /// <param name="info">组件信息</param>
-        private void TryAddRequiredComponents(WorldEntityId et, ref WorldEntityInfo eti, in WorldComponentInfo info)
+        internal void TryAddRequiredComponents(WorldEntityId et, ref WorldEntityInfo eti, in WorldComponentInfo info)
         {
             if (info.Options?.RequiredComponents == null)
                 return;

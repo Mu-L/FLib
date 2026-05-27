@@ -24,8 +24,7 @@ namespace FLib.WorldCores.SoaComponents
 
         public virtual ref T this[int index]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Components[index];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref Components[index];
         }
 
         public WorldSoaComponentGroup(WorldCore world)
@@ -65,6 +64,25 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         public virtual int Alloc(in WorldEntityId et, in T component)
         {
+            var index = AllocWithoutAwake(et, component);
+            InvokeAwake(et, index);
+            return index;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void InvokeAwake(WorldEntityId et, int componentIndex)
+        {
+            WorldComponentRegistry.GetInfo<T>().Awake.Invoke(ref Unsafe.As<T, byte>(ref Components[componentIndex]), World, et);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal int AllocWithoutAwake(in WorldEntityId et, in T component)
+        {
             if (!Frees.TryPop(out var index))
             {
                 if (Count >= Components.Length)
@@ -75,7 +93,6 @@ namespace FLib.WorldCores.SoaComponents
             ++Count;
             Components[index] = component;
             ComponentEntities[index] = et;
-            WorldComponentRegistry.GetInfo<T>().Awake.Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et); // 目前主要是Destroy需要info判断是否调用组件的生命周期事件，Awake不需要，所以这里直接传入default
             return index;
         }
 
