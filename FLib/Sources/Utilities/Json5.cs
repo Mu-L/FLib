@@ -925,7 +925,12 @@ namespace FLib
         private static object ParseValue(Type toType, ref Json5DeserializeOptionData options, in Json5SyntaxNode node)
         {
             if (toType.IsEnum)
-                return Enum.TryParse(toType, node.ContentSpan.ToString(), false, out var enumObj) ? enumObj! : Enum.Parse(toType, node.ContentMem.ToString().Replace('|', ','));
+            {
+                if (node.ContentSpan.IsEmpty)
+                    return toType.DefaultValue();
+                return Enum.TryParse(toType, node.ContentCopyString, false, out var enumObj) ? enumObj! : Enum.Parse(toType, node.ContentCopyString.Replace('|', ','));
+            }
+
             if (toType == typeof(object))
             {
                 if (long.TryParse(node.ContentSpan, out var l))
