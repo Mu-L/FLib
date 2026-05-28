@@ -6,11 +6,14 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+#pragma warning disable CA1806
+
 namespace FLib
 {
     public static class SystemMethodExtensions
     {
         #region extends string class
+
         public static sbyte ToSByte(this string str) => sbyte.TryParse(str, out var result) ? result : (sbyte)str.ToFloat();
         public static sbyte ToSByte(this in ReadOnlySpan<char> str) => sbyte.TryParse(str, out var result) ? result : (sbyte)str.ToFloat();
         public static byte ToByte(this string str) => byte.TryParse(str, out var result) ? result : (byte)str.ToFloat();
@@ -75,64 +78,10 @@ namespace FLib
             return rt;
         }
 
-        public static unsafe T ToBuiltinType<T>(this in ReadOnlySpan<char> str)
-        {
-            void* ptr = null;
-            switch (Type.GetTypeCode(typeof(T)))
-            {
-                case TypeCode.Boolean:
-                    var boolVal = bool.TryParse(str, out var result) ? result : str.ToInt() == 1;
-                    ptr = &boolVal;
-                    break;
-                case TypeCode.Byte:
-                    var byteVal = str.ToByte();
-                    ptr = &byteVal;
-                    break;
-                case TypeCode.SByte:
-                    var sByteVal = str.ToSByte();
-                    ptr = &sByteVal;
-                    break;
-                case TypeCode.Int16:
-                    var int16Val = str.ToShort();
-                    ptr = &int16Val;
-                    break;
-                case TypeCode.UInt16:
-                    var uint16Val = str.ToUShort();
-                    ptr = &uint16Val;
-                    break;
-                case TypeCode.Int32:
-                    var int32Val = str.ToInt();
-                    ptr = &int32Val;
-                    break;
-                case TypeCode.UInt32:
-                    var uint32Val = str.ToUInt();
-                    ptr = &uint32Val;
-                    break;
-                case TypeCode.Int64:
-                    var int64Val = str.ToLong();
-                    ptr = &int64Val;
-                    break;
-                case TypeCode.UInt64:
-                    var uint64Val = str.ToULong();
-                    ptr = &uint64Val;
-                    break;
-                case TypeCode.Single:
-                    var floatVal = str.ToFloat();
-                    ptr = &floatVal;
-                    break;
-                case TypeCode.Double:
-                    var doubleVal = str.ToDouble();
-                    ptr = &doubleVal;
-                    break;
-                default:
-                    throw new Exception($"not found type: {typeof(T)}");
-            }
-
-            return ptr != null ? Unsafe.AsRef<T>(ptr) : default;
-        }
         #endregion
 
         #region Type
+
         /// <summary>
         /// 获取当前类型默认值
         /// </summary>
@@ -150,9 +99,11 @@ namespace FLib
         {
             return t.IsAbstract && t.IsSealed;
         }
+
         #endregion
 
         #region task
+
         /// <summary>
         ///
         /// </summary>
@@ -194,13 +145,16 @@ namespace FLib
                 Log.Error?.Write(task.Exception);
                 return true;
             }
+
             if (task.IsCanceled)
             {
                 // Log.Info?.Write($"A task[{task.Id}] was canceled.");
                 return true;
             }
+
             return false;
         }
+
         #endregion
     }
 }
