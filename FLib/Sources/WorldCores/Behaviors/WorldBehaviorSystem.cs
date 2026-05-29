@@ -54,11 +54,11 @@ namespace FLib.WorldCores.Behaviors
             return Do(behaviorType);
         }
 
-        /// <summary>
-        /// 启动指定泛型类型的行为（无参数）。
-        /// </summary>
-        public bool Do<T>() where T : WorldBehavior
-            => Do(typeof(T));
+        // /// <summary>
+        // /// 启动指定泛型类型的行为（无参数）。
+        // /// </summary>
+        // public bool Do<T>() where T : WorldBehavior
+        //     => Do(typeof(T));
 
         /// <summary>
         /// 尝试激活或新建指定行为类型：
@@ -66,7 +66,7 @@ namespace FLib.WorldCores.Behaviors
         /// - 否则根据优先级/友好关系决定是否创建新实例并替换。
         /// 返回是否成功执行行为。
         /// </summary>
-        public unsafe bool Do(Type behaviorType)
+        public bool Do(Type behaviorType)
         {
             var evt = new WorldDoBehaviorEvent(ref this);
             WorldBehavior bhv;
