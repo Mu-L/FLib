@@ -42,7 +42,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public bool Do<T>(Type behaviorType, in T param)
         {
-            World.Assert(typeof(WorldBehavior<T>).IsAssignableFrom(behaviorType));
+            World.Assert(typeof(WorldBehavior<T>).IsAssignableFrom(behaviorType), Self.Id, "skill mismatch param type");
             WorldBehavior<T>.NewParam = param;
             return Do(behaviorType);
         }
@@ -280,7 +280,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         private readonly void Awake(WorldBehavior bhv, in WorldDoBehaviorEvent evt)
         {
-            bhv.OnAwake(evt.IsFirst);
+            bhv.OnBehaviorAwake(evt.IsFirst);
             Self.DispatchEvent(evt);
         }
 
@@ -327,7 +327,7 @@ namespace FLib.WorldCores.Behaviors
             Mask &= ~bhv.Mask;
             try
             {
-                bhv.OnDestroy();
+                bhv.OnBehaviorDestroy();
                 bhv.ComponentManaged.Dispose();
                 Self.DispatchEvent(new WorldStopBehaviorEvent(ref this, bhv, isPrimary));
             }

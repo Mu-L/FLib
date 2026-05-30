@@ -38,11 +38,11 @@ namespace FLib.WorldCores.Behaviors
         {
         }
 
-        public virtual void OnAwake(bool isFirst)
+        public virtual void OnBehaviorAwake(bool isFirst)
         {
         }
 
-        public virtual void OnDestroy()
+        public virtual void OnBehaviorDestroy()
         {
         }
 
@@ -65,12 +65,12 @@ namespace FLib.WorldCores.Behaviors
         [ThreadStatic] protected internal static TParam NewParam;
         public TParam Param;
 
-        public override void OnAwake(bool isFirst)
+        public override void OnBehaviorAwake(bool isFirst)
         {
             Param = NewParam;
         }
 
-        public override void OnDestroy()
+        public override void OnBehaviorDestroy()
         {
             Param = default;
         }
