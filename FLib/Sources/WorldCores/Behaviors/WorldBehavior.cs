@@ -19,7 +19,7 @@ namespace FLib.WorldCores.Behaviors
 
         public int Id { get; internal set; }
         public ref WorldBehaviorSystem System => ref *SystemPtr;
-        public ref WorldEntity Entity => ref SystemPtr->Self;
+        public ref WorldEntity Self => ref SystemPtr->Self;
         public WorldCore World => SystemPtr->Self.World;
         public bool IsEmpty => SystemPtr == null;
 
