@@ -38,14 +38,7 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
-        /// 执行指定行为类型并传入参数，如果已有相同行为则复用；返回执行是否成功。
-        /// </summary>
-        public bool Do<TBehavior, TParam>(in TParam param) where TBehavior : WorldBehavior
-            => Do(typeof(TBehavior), param);
-
-        /// <summary>
         /// 执行给定行为类型，并通过静态泛型承载参数。
-        /// 参数值会提前存储到 <see cref="WorldBehavior{TParam}.NewParam"/>。
         /// </summary>
         public bool Do<T>(Type behaviorType, in T param)
         {
@@ -62,8 +55,8 @@ namespace FLib.WorldCores.Behaviors
 
         /// <summary>
         /// 尝试激活或新建指定行为类型：
-        /// - 如果当前主或次行为已是该类型，则直接检查并唤醒；
-        /// - 否则根据优先级/友好关系决定是否创建新实例并替换。
+        /// <p>- 如果当前主或次行为已是该类型，则直接检查并唤醒；</p>
+        /// <p>- 否则根据优先级/友好关系决定是否创建新实例并替换。</p>
         /// 返回是否成功执行行为。
         /// </summary>
         public bool Do(Type behaviorType)
