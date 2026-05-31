@@ -12,23 +12,23 @@ namespace FLib
     public struct PooledList<T> : IList<T>, IDisposable
     {
         public T[] Buffer;
-        
+
         public int Count { get; set; }
-        
+
         public readonly Span<T> Span => new(Buffer, 0, Count);
         public readonly ArraySegment<T> Array => new(Buffer, 0, Count);
         public readonly Memory<T> Memory => new(Buffer, 0, Count);
         public readonly bool IsInitialized => Buffer != null;
         public readonly bool IsEmpty => Count == 0;
-        
+
         readonly bool ICollection<T>.IsReadOnly => false;
-        
+
         T IList<T>.this[int index]
         {
             readonly get => this[index];
             set => this[index] = value;
         }
-        
+
         public readonly ref T this[int index]
         {
             get
@@ -37,7 +37,7 @@ namespace FLib
                 return ref Buffer[index];
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -51,7 +51,7 @@ namespace FLib
             object IEnumerator.Current => Current;
             public bool MoveNext() => _index++ < Count;
             public void Reset() => _index = 0;
-            
+
             public void Dispose()
             {
                 if (DisposeBuffer)
@@ -60,7 +60,7 @@ namespace FLib
                     Reset();
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -71,7 +71,7 @@ namespace FLib
             public IEnumerator<T> GetEnumerator() => new Enumerator() { Buffer = Buffer, Count = Count, DisposeBuffer = true };
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -81,7 +81,7 @@ namespace FLib
             Count = 0;
             Allocate(capacity);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -89,7 +89,7 @@ namespace FLib
         {
             return index < Count ? Buffer[index] : defaultValue;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -102,11 +102,11 @@ namespace FLib
                 System.Array.Copy(Buffer, newArr, Buffer.Length);
                 ArrayPool<T>.Shared.Return(Buffer);
             }
-            
+
             Buffer = newArr;
             return true;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -117,7 +117,7 @@ namespace FLib
             Buffer![Count] = item;
             return ref Buffer[Count++];
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -130,7 +130,7 @@ namespace FLib
             values.CopyTo(Buffer!, Count);
             Count = newCount;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -143,7 +143,7 @@ namespace FLib
                 Buffer![i] = Buffer[i - 1];
             Buffer![index] = item;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -152,11 +152,21 @@ namespace FLib
             Log.Assert(index < Count)?.Write($"Index Error: {index}/{Count}");
             Count--;
             for (var i = index; i < Count; i++)
-            {
                 Buffer[i] = Buffer[i + 1];
-            }
+            Buffer[Count] = default;
         }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void RemoveAtSwapBack(int index)
+        {
+            Log.Assert(index < Count)?.Write($"Index Error: {index}/{Count}");
+            Count--;
+            Buffer[index] = Buffer[Count];
+            Buffer[Count] = default;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -167,12 +177,23 @@ namespace FLib
             RemoveAt(index);
             return true;
         }
-        
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool RemoveSwapBack(in T item)
+        {
+            var index = IndexOf(item);
+            if (index < 0) return false;
+            RemoveAtSwapBack(index);
+            return true;
+        }
+
         /// <summary>
         /// 
         /// </summary>
         public void Clear() => Clear(false);
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -182,7 +203,7 @@ namespace FLib
                 System.Array.Fill(Buffer, default, 0, Count);
             Count = 0;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -195,10 +216,10 @@ namespace FLib
                     return i;
                 }
             }
-            
+
             return -1;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -211,27 +232,27 @@ namespace FLib
                     return true;
                 }
             }
-            
+
             return false;
         }
-        
+
         public readonly void CopyTo(T[] array, int arrayIndex)
         {
             Buffer?.CopyTo(array, arrayIndex);
         }
-        
+
         public readonly T[] ToArray()
         {
             return new Span<T>(Buffer, 0, Count).ToArray();
         }
-        
+
         public T[] ToArrayAndDispose()
         {
             var result = ToArray();
             Dispose();
             return result;
         }
-        
+
         public void ReleasePool(bool clearArray = false)
         {
             if (Buffer == null) return;
@@ -239,20 +260,20 @@ namespace FLib
             ArrayPool<T>.Shared.Return(Buffer, clearArray);
             Buffer = null;
         }
-        
+
         public void Dispose()
         {
             ReleasePool();
         }
-        
-        
+
+
         readonly int IList<T>.IndexOf(T item) => IndexOf(item);
         void IList<T>.Insert(int index, T item) => Insert(index, item);
         void ICollection<T>.Add(T item) => Add(item);
         readonly bool ICollection<T>.Contains(T item) => Contains(item);
         bool ICollection<T>.Remove(T item) => Remove(item);
         public readonly Enumerator GetEnumerator() => new() { Count = Count, Buffer = Buffer };
-        
+
         public EnumeratorWithDispose ForEachWithDispose()
         {
             var rs = new EnumeratorWithDispose { Count = Count, Buffer = Buffer };
@@ -260,10 +281,10 @@ namespace FLib
             Buffer = null;
             return rs;
         }
-        
+
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
         readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         public static implicit operator Span<T>(PooledList<T> list) => new(list.Buffer, 0, list.Count);
         public static implicit operator Memory<T>(PooledList<T> list) => new(list.Buffer, 0, list.Count);
         public static implicit operator ArraySegment<T>(PooledList<T> list) => new(list.Buffer, 0, list.Count);
