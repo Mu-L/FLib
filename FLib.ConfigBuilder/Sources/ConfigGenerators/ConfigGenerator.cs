@@ -103,7 +103,12 @@ namespace FLib
                 strbuf.AppendLine().AppendLine();
             }
 
-            strbuf.Indent(indent).AppendLine("public override string ToString() => Json5.SerializeToLog(this);").AppendLine();
+            strbuf.Indent(indent).Append("public override string ToString() => ");
+            var logFields = json["Fields"].Dict.Keys.Take(4).Select(k => $"Json5.SerializeToLog({k})").ToArray();
+            if (logFields.Length > 0)
+                strbuf.Append("string.Join(\",\", new[] { ").Append(string.Join(", ", logFields)).AppendLine(" });").AppendLine();
+            else
+                strbuf.AppendLine("string.Empty;").AppendLine();
 
             --indent;
             strbuf.Indent(indent).AppendLine("}");
