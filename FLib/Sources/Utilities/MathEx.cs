@@ -15,14 +15,20 @@ namespace FLib
         public static readonly FNum Deg2Rad = Pi / 180;
         public static readonly FNum Rad2Deg = 1 / Deg2Rad;
 
+        /// <summary>
+        /// 
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetNextPowerOfTwo(int v) => (int)GetNextPowerOfTwo((long)v);
+        public static int GetNextCapacityLength(int currentLength) =>
+            currentLength < 4096
+                ? GetNextPowerOfTwo(currentLength + 1)
+                : currentLength + (currentLength < 16384 ? currentLength >> 1 : Math.Max(8192, currentLength >> 2));
 
         /// <summary>
         /// 如果当前不是2的次幂寻找下一个2的次幂的数字
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long GetNextPowerOfTwo(long v)
+        public static int GetNextPowerOfTwo(int v)
         {
             --v;
             v |= v >> 1;
