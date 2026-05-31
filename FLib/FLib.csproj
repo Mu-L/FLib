@@ -6,43 +6,39 @@
         <LangVersion>9</LangVersion>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <DefineConstants>FIXED_POINT_NUMBER</DefineConstants>
-    </PropertyGroup>
-
     <ItemGroup>
         <None Remove="**/*.meta"/>
         <None Remove="**/*.asmdef"/>
         <None Remove="**/package.json"/>
         <None Remove="**/csc.rsp"/>
-        
+
         <None Update="Sources\WorldCores\Components\WorldComponents.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>WorldComponents.cs</LastGenOutput>
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>WorldComponents.cs</LastGenOutput>
         </None>
         <None Update="Sources\WorldCores\World\WorldCore.CreateEntity.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>WorldCore.CreateEntity.cs</LastGenOutput>
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>WorldCore.CreateEntity.cs</LastGenOutput>
         </None>
         <None Update="Sources\WorldCores\World\WorldCore.Get.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>WorldCore.Get.cs</LastGenOutput>
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>WorldCore.Get.cs</LastGenOutput>
         </None>
         <None Update="Sources\WorldCores\World\WorldCore.Query.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>WorldCore.Query.cs</LastGenOutput>
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>WorldCore.Query.cs</LastGenOutput>
         </None>
         <None Update="Sources\WorldCores\Worlds\WorldCore.Query.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>WorldCore.Query.cs</LastGenOutput>
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>WorldCore.Query.cs</LastGenOutput>
         </None>
         <None Update="Sources\WorldCores\Utility.ttinclude">
-          <Generator>TextTemplatingFilePreprocessor</Generator>
-          <LastGenOutput>Utility.cs</LastGenOutput>
+            <Generator>TextTemplatingFilePreprocessor</Generator>
+            <LastGenOutput>Utility.cs</LastGenOutput>
         </None>
         <None Update="Sources\WorldCores\Worlds\WorldCore.Get.tt">
-          <Generator>TextTemplatingFileGenerator</Generator>
-          <LastGenOutput>WorldCore.Get.cs</LastGenOutput>
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>WorldCore.Get.cs</LastGenOutput>
         </None>
     </ItemGroup>
 
@@ -55,26 +51,26 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Sources\WorldCores\Components\WorldComponents.cs">
-        <DependentUpon>WorldComponents.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Sources\WorldCores\World\WorldCore.Get.cs">
-        <DependentUpon>WorldCore.Get.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Sources\WorldCores\World\WorldCore.Query.cs">
-        <AutoGen>True</AutoGen>
-        <DesignTime>True</DesignTime>
-        <DependentUpon>WorldCore.Query.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Sources\WorldCores\World\WorldCore.CreateEntity.cs">
-        <DependentUpon>WorldCore.CreateEntity.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Sources\WorldCores\Worlds\WorldCore.Query.cs">
-        <DependentUpon>WorldCore.Query.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Sources\WorldCores\Worlds\WorldCore.Get.cs">
-        <DependentUpon>WorldCore.Get.tt</DependentUpon>
-      </Compile>
+        <Compile Update="Sources\WorldCores\Components\WorldComponents.cs">
+            <DependentUpon>WorldComponents.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Sources\WorldCores\World\WorldCore.Get.cs">
+            <DependentUpon>WorldCore.Get.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Sources\WorldCores\World\WorldCore.Query.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>WorldCore.Query.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Sources\WorldCores\World\WorldCore.CreateEntity.cs">
+            <DependentUpon>WorldCore.CreateEntity.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Sources\WorldCores\Worlds\WorldCore.Query.cs">
+            <DependentUpon>WorldCore.Query.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Sources\WorldCores\Worlds\WorldCore.Get.cs">
+            <DependentUpon>WorldCore.Get.tt</DependentUpon>
+        </Compile>
     </ItemGroup>
 
 </Project>
