@@ -27,7 +27,7 @@ namespace FLib
         public static Meta[] AllMetas;
         public static IReadOnlyDictionary<uint, int> IdMetas;
         public static int Count => (AllMetas?.Length).GetValueOrDefault();
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -37,14 +37,14 @@ namespace FLib
             public T Value;
             public ConfigHelper.EOption Options;
         }
-        
+
         /// <summary>
         ///
         /// </summary>
         public struct Enumerator : IEnumerator<T>, IEnumerable<T>
         {
             public int Index;
-            
+
             public readonly ref T CurrentRef
             {
                 get
@@ -54,21 +54,21 @@ namespace FLib
                     return ref meta.Value;
                 }
             }
-            
+
             public readonly T Current => CurrentRef;
             readonly object IEnumerator.Current => Current;
             public bool MoveNext() => ++Index < Count;
             public void Reset() => Index = 0;
-            
+
             public readonly void Dispose()
             {
             }
-            
+
             public readonly Enumerator GetEnumerator() => this;
             readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
             readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -76,7 +76,7 @@ namespace FLib
         {
             return Contains(ConfigHelper.StringToUniqueId(id));
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -84,7 +84,7 @@ namespace FLib
         {
             return IdMetas.ContainsKey(id);
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -95,7 +95,7 @@ namespace FLib
                 return ref DefaultConfig;
             return ref Index(index);
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -106,7 +106,7 @@ namespace FLib
                 return ref DefaultConfig;
             return ref Index(index);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -117,7 +117,7 @@ namespace FLib
             Log.Get(logLevel)?.Write($"{typeof(T).Name} not found id: {id}");
             return -1;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -128,7 +128,7 @@ namespace FLib
             Log.Get(logLevel)?.Write($"{typeof(T).Name} not found id: {id}");
             return -1;
         }
-        
+
         // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         ///
@@ -140,13 +140,13 @@ namespace FLib
                 Log.Get(logLevel)?.Write($"not found config index {typeof(T).Name}.{configMetaIndex}");
                 return ref DefaultConfig;
             }
-            
+
             ref var v = ref AllMetas[configMetaIndex];
             TryDecompressRawBytes(ref v);
             TryDeserializeData(ref v);
             return ref v.Value;
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -156,7 +156,7 @@ namespace FLib
             TryDecompressRawBytes(ref meta);
             BytesPack.Unpack(ref to, meta.RawBytes);
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -164,7 +164,7 @@ namespace FLib
         {
             return new Enumerator { Index = -1 };
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -189,7 +189,7 @@ namespace FLib
                 throw new Exception($"not found Id: {typeof(T).Name}.{id}");
             }
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -205,7 +205,7 @@ namespace FLib
             {
                 meta.RawBytes = reader.ReadArray<byte>();
             }
-            
+
             try
             {
                 if (!isSkip && (meta.Options & ConfigHelper.EOption.AlwaysDeserializeData) != 0)
@@ -222,17 +222,17 @@ namespace FLib
                 Log.Error?.Write($"deserialize config error: {typeof(T).Name}->{id}\n{ex}");
             }
         }
-        
+
         private static void TryDeserializeData(ref Meta meta)
         {
             if ((meta.Options & ConfigHelper.EOption.__DeserializedData) != 0) return;
             meta.Options |= ConfigHelper.EOption.__DeserializedData;
             meta.Value = new T();
             BytesPack.Unpack(ref meta.Value, meta.RawBytes);
-            if ((meta.Options & ConfigHelper.EOption.AlwaysStoreRawBytes) == 0) 
+            if ((meta.Options & ConfigHelper.EOption.AlwaysStoreRawBytes) == 0)
                 meta.RawBytes = null;
         }
-        
+
         private static void TryDecompressRawBytes(ref Meta meta, bool isWithDeserialize = false)
         {
             if ((meta.Options & ConfigHelper.EOption.AlwaysCompressRawData) != 0)
@@ -240,11 +240,11 @@ namespace FLib
                 meta.RawBytes = Compressor.Uncompress(meta.RawBytes).ToArray();
                 meta.Options &= ~ConfigHelper.EOption.AlwaysCompressRawData;
             }
-            
+
             if (isWithDeserialize)
                 TryDeserializeData(ref meta);
         }
-        
+
         internal static int DeserializeConfigTable(in Memory<byte> buffer)
         {
             BytesReader reader = buffer;
@@ -259,7 +259,7 @@ namespace FLib
                     throw new Exception($"found already exist sid: {typeof(T).Name}.{id}");
                 AllMetas[i] = meta;
             }
-            
+
             IdMetas =
 #if NET6_0_OR_GREATER
                 System.Collections.Immutable.ImmutableDictionary.ToImmutableDictionary(idMetas);
@@ -269,7 +269,7 @@ namespace FLib
             return reader.Position;
         }
     }
-    
+
     /// <summary>
     ///
     /// </summary>
@@ -282,22 +282,22 @@ namespace FLib
             /// 总是保留字节数据，而不是反序列之后释放 （该选项会增加内存占用）
             /// </summary>
             AlwaysStoreRawBytes = 0x1,
-            
+
             /// <summary>
             /// 总是反序列化数据，而不是等待使用时反序列化 （该选项会增加内存占用和性能峰值过高）
             /// </summary>
             AlwaysDeserializeData = 0x2,
-            
+
             /// <summary>
             /// 总是压缩，默认是根据数据大小自动压缩 (该选项会增加性能开销，减少内存占用)
             /// </summary>
             AlwaysCompressRawData = 0x4,
-            
+
             /// <summary>
             /// 按照id排序
             /// </summary>
             OrderById = 0x8,
-            
+
             /// <summary>
             /// 已经反序列过数据（主要运行时内部使用的标识）
             /// </summary>
@@ -305,7 +305,7 @@ namespace FLib
             // ReSharper disable once InconsistentNaming
             __DeserializedData = 0x80,
         }
-        
+
         /// <summary>
         ///
         /// </summary>
@@ -314,12 +314,12 @@ namespace FLib
         {
             return (uint)StringFLibUtility.ShortStringToHash(str);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
         public static int DeserializeAll(string path, out int buildConfigCount) => DeserializeAll(File.ReadAllBytes(path), out buildConfigCount);
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -344,24 +344,24 @@ namespace FLib
                     var configTypeWrap = typeof(Config<>).MakeGenericType(configType);
                     reader.Position += (int)configTypeWrap.GetMethod("DeserializeConfigTable", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, deserializeConfigTableParams)!;
                 }
-                
+
                 var initializer = configType.GetMethod("OnAllConfigInitialized", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 if (initializer != null)
                     initializers.Add(initializer);
             }
-            
+
             foreach (var initializer in initializers)
                 initializer.Invoke(null, null);
             return reader.Position;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy<T>(uint id, ref T to) where T : IBytesPackable, new()
         {
             Config<T>.CopyTo(id, ref to);
         }
     }
-    
+
     /// <summary>
     ///
     /// </summary>
@@ -370,14 +370,14 @@ namespace FLib
     {
         public string ConfigFileName => Name;
         public ConfigHelper.EOption Options;
-        
+
         public ConfigAttribute(string configFileName) : base(configFileName)
         {
         }
-        
+
         public ConfigAttribute(string configFileName, ConfigHelper.EOption options) : this(configFileName) => Options = options;
     }
-    
+
     /// <summary>
     /// 当配置表build之后的回调
     /// </summary>
@@ -385,7 +385,7 @@ namespace FLib
     {
         void OnConfigPostBuildProcess(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts);
     }
-    
+
     /// <summary>
     /// 当配置表build之后的回调, 自己注册
     /// </summary>
@@ -395,7 +395,7 @@ namespace FLib
         public Type CfgType;
         public IConfigPostBuildProcessable Process;
     }
-    
+
     /// <summary>
     /// 配置文件自定义构建到表, 由自己写入到context
     /// </summary>
@@ -403,7 +403,7 @@ namespace FLib
     {
         void ConfigFileDeserializeToTable(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts);
     }
-    
+
     /// <summary>
     /// 配置表构建上下文
     /// </summary>

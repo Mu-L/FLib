@@ -61,8 +61,8 @@ public class TestWorldBehavior
         Assert.Equal(typeof(IdleBehavior), bSys.Secondary?.GetType());
         Assert.Equal(10, ((MoveBehavior)bSys.Primary!).CurrentPriority);
         Assert.ThrowsAny<Exception>(() => et.Get<WorldBehaviorSystem>().Do(typeof(IdleBehavior), new MoveBehavior.ParamData { Priority = 10 }));
-        Assert.True(bSys.Do<ZBehavior>());
-        Assert.False(bSys.Do<IdleBehavior>());
+        Assert.True(bSys.Do(typeof(ZBehavior)));
+        Assert.False(bSys.Do(typeof(IdleBehavior)));
         Assert.True(bSys.Stop<ZBehavior>());
         Assert.Equal(typeof(IdleBehavior), bSys.Primary?.GetType());
         Assert.False(bSys.HasSecondary);
