@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using FLib.WorldCores.Entities;
 
@@ -61,6 +62,8 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public bool Do(Type behaviorType)
         {
+            AssertNotCopied();
+
             var evt = new WorldDoBehaviorEvent(ref this);
             WorldBehavior bhv;
             if (Primary?.GetType() == behaviorType)
@@ -251,6 +254,8 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public T? Get<T>() where T : WorldBehavior
         {
+            AssertNotCopied();
+
             return Primary as T ?? Secondary as T;
         }
 
@@ -258,19 +263,31 @@ namespace FLib.WorldCores.Behaviors
         /// 检查标记组合是否全部被当前行为掩码包含。
         /// </summary>
         public readonly bool IsRunning(uint mask)
-            => (Mask & mask) != 0;
+        {
+            AssertNotCopied();
+
+            return (Mask & mask) != 0;
+        }
 
         /// <summary>
         /// 判断给定泛型类型的行为是否正在运行。
         /// </summary>
         public readonly bool IsRunning<T>() where T : WorldBehavior
-            => Primary is T || Secondary is T;
+        {
+            AssertNotCopied();
+
+            return Primary is T || Secondary is T;
+        }
 
         /// <summary>
         /// 判断指定类型的行为是否作为主或次正在运行。
         /// </summary>
         public readonly bool IsRunning(Type behaviorType)
-            => Primary?.GetType() == behaviorType || Secondary?.GetType() == behaviorType;
+        {
+            AssertNotCopied();
+
+            return Primary?.GetType() == behaviorType || Secondary?.GetType() == behaviorType;
+        }
 
 
         // ===== privates =====
@@ -299,6 +316,8 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         internal void Stop(ref int id, bool isDoDefault = true)
         {
+            AssertNotCopied();
+
             var bhv = WorldBehaviorPool.Behaviors[id];
             var bhvType = bhv.GetType();
             var isPrimary = id == PrimaryId;
@@ -345,6 +364,16 @@ namespace FLib.WorldCores.Behaviors
             to = bhv.Id;
             bhv.OnSwap(conflictType);
             Self.DispatchEvent(new WorldSwapBehaviorEvent(conflictType, bhv));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Conditional("DEBUG")]
+        private readonly unsafe void AssertNotCopied()
+        {
+            if (Unsafe.AsPointer(ref Unsafe.AsRef(in this)) != Unsafe.AsPointer(ref World.GetStaRef<WorldBehaviorSystem>(Self.Id)))
+                World.ThrowException("WorldBehaviorSystem was copied. Use ref WorldBehaviorSystem.", Self);
         }
     }
 }
