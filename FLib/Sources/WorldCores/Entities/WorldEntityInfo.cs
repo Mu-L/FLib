@@ -23,10 +23,9 @@ namespace FLib.WorldCores.Entities
         /// </summary>
         public readonly ushort ArchetypeIndex => (ushort)(_destroyFlagWithArchetypeIndex & 0x7fff);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public readonly bool IsDestroying => (_destroyFlagWithArchetypeIndex & 0x8000) == 0;
+
+        public override string ToString() => $"{Version},{IndexInChunk},{_dynamicComponentIndex}";
 
         /// <summary>
         /// 

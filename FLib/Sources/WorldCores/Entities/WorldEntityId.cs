@@ -14,7 +14,7 @@ namespace FLib.WorldCores.Entities
         public readonly ushort Id;
         public readonly ushort Version;
         public bool IsEmpty => Version == 0;
-        public override string ToString() => Id.ToString();
+    public override string ToString() => ((uint)this).ToString();
 
         public WorldEntityId(ushort id, ushort version)
         {
@@ -29,5 +29,7 @@ namespace FLib.WorldCores.Entities
         public override int GetHashCode() => HashCode.Combine(Id, Version);
         public static bool operator ==(in WorldEntityId left, in WorldEntityId right) => left.Id == right.Id && left.Version == right.Version;
         public static bool operator !=(in WorldEntityId left, in WorldEntityId right) => left.Id != right.Id || left.Version != right.Version;
+        public static implicit operator uint(in WorldEntityId id) => (uint)(id.Id << 16) | id.Version;
+        public static implicit operator int(in WorldEntityId id) => (id.Id << 16) | id.Version;
     }
 }

@@ -35,7 +35,10 @@ namespace FLib.WorldCores
         public ref WorldEntityInfo GetEntityInfo(in WorldEntityId et)
         {
             ref var eti = ref Entities[et.Id];
-            Assert(eti.Version == et.Version, msg: "version error");
+#if DEBUG
+            if (eti.Version != et.Version)
+                ThrowException($"version error {eti} | {et}", et);
+#endif
             return ref eti;
         }
 
