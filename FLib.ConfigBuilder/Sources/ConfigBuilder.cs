@@ -13,7 +13,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+// ReSharper disable SuspiciousTypeConversion.Global
 #pragma warning disable CA2211
+
 namespace FLib
 {
     public static class ConfigBuilder
@@ -320,17 +322,14 @@ namespace FLib
                 {
                     try
                     {
-                        foreach (var (id, cfg) in ctx.AllConfigs)
+                        if (ctx.AllConfigs.Count > 2048)
                         {
-                            try
-                            {
-                                // ReSharper disable once SuspiciousTypeConversion.Global
-                                ((IConfigPostBuildProcessable)cfg).OnConfigPostBuildProcess(Sign, ctx, allContexts);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error?.Write($"{id}.{ctx}\n{ex}");
-                            }
+                            ctx.AllConfigs.AsParallel().ForAll(cfgLine => processConfigPostBuild(cfgLine.Id, cfgLine.Cfg, ctx, allContexts));
+                        }
+                        else
+                        {
+                            foreach (var (id, cfg) in ctx.AllConfigs)
+                                processConfigPostBuild(id, cfg, ctx, allContexts);
                         }
                     }
                     catch (Exception ex)
@@ -339,6 +338,19 @@ namespace FLib
                     }
                 }
             });
+            return;
+
+            static void processConfigPostBuild(uint id, IBytesPackable cfg, IConfigBuildTableContext ctx, IReadOnlyDictionary<Type, IConfigBuildTableContext> allContexts)
+            {
+                try
+                {
+                    ((IConfigPostBuildProcessable)cfg).OnConfigPostBuildProcess(Sign, ctx, allContexts);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error?.Write($"{id}.{ctx}\n{ex}");
+                }
+            }
         }
 
         /// <summary>
