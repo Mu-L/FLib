@@ -39,7 +39,7 @@ namespace FLib
         {
             if (!_frees.TryPop(out var index))
             {
-                SetCapacity(MathEx.GetNextPowerOfTwo(Count + 1));
+                SetCapacity(MathEx.GetNextCapacityLength(Count));
                 index = _frees.Pop();
             }
             _values[index] = val;

@@ -86,7 +86,7 @@ namespace FLib.WorldCores.SoaComponents
             if (!Frees.TryPop(out var index))
             {
                 if (Count >= Components.Length)
-                    EnsureCapacity(MathEx.GetNextPowerOfTwo(Count + 1));
+                    EnsureCapacity(MathEx.GetNextCapacityLength(Count));
                 index = Count;
             }
 

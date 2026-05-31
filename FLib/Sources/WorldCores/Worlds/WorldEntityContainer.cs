@@ -47,7 +47,7 @@ namespace FLib.WorldCores
         {
             if (!Frees.TryPop(out var id))
             {
-                EnsureCapacity(MathEx.GetNextPowerOfTwo(Count + 1));
+                EnsureCapacity(MathEx.GetNextCapacityLength(Count));
                 id = checked((ushort)Count++);
             }
 

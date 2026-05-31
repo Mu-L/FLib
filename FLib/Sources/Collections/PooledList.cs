@@ -113,7 +113,7 @@ namespace FLib
         public ref T Add(in T item)
         {
             if (Buffer == null || Count >= Buffer.Length)
-                Allocate(Math.Max(8, MathEx.GetNextPowerOfTwo(Count + 1)));
+                Allocate(Math.Max(8, MathEx.GetNextCapacityLength(Count)));
             Buffer![Count] = item;
             return ref Buffer[Count++];
         }
@@ -137,7 +137,7 @@ namespace FLib
         public void Insert(int index, in T item)
         {
             if (Buffer == null || Count >= Buffer.Length)
-                Allocate(Math.Max(8, MathEx.GetNextPowerOfTwo(Count + 1)));
+                Allocate(Math.Max(8, MathEx.GetNextCapacityLength(Count)));
             Count++;
             for (var i = Count - 1; i > index; i--)
                 Buffer![i] = Buffer[i - 1];

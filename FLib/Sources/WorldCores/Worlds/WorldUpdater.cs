@@ -40,7 +40,7 @@ namespace FLib.WorldCores
             var index = Count++;
             if (Count >= ModuleActions.Length)
             {
-                Array.Resize(ref ModuleActions, MathEx.GetNextPowerOfTwo(Count));
+                Array.Resize(ref ModuleActions, MathEx.GetNextCapacityLength(index));
                 Array.Resize(ref ModulePriorities, ModuleActions.Length);
             }
 

@@ -38,9 +38,9 @@ namespace FLib
         public void EnsureCapacity(int capacity)
         {
             if (Values.Length >= capacity) return;
-            Array.Resize(ref Values, MathEx.GetNextPowerOfTwo(capacity));
+            Array.Resize(ref Values, capacity);
 #if NET6_0_OR_GREATER
-            Frees.EnsureCapacity(capacity >> 1);
+            Frees.EnsureCapacity(capacity);
 #endif
         }
 
@@ -55,7 +55,7 @@ namespace FLib
             if (Frees == null || !Frees.TryPop(out var index))
             {
                 if (Values == null || Values.Length <= Count)
-                    Array.Resize(ref Values, MathEx.GetNextPowerOfTwo(Count + 1));
+                    Array.Resize(ref Values, MathEx.GetNextCapacityLength(Count));
                 index = Count;
             }
 

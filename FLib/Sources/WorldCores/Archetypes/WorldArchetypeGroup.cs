@@ -39,7 +39,7 @@ namespace FLib.WorldCores.Archetypes
             var index = Count;
             var archetype = new WorldArchetype(World, builder, index);
             if (Archetypes.Length <= index)
-                Array.Resize(ref Archetypes, MathEx.GetNextPowerOfTwo(index + 1));
+                Array.Resize(ref Archetypes, MathEx.GetNextCapacityLength(Archetypes.Length));
             ArchetypeMap.Add(hash, Archetypes[index] = archetype);
             return archetype;
         }
