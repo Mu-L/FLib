@@ -112,30 +112,9 @@ namespace FLib.WorldCores
         /// <param name="et">目标实体</param>
         /// <param name="list">用于存储组件的列表，为 null 时会创建新列表</param>
         /// <returns>包含实体所有组件对象的列表</returns>
-        public IList<object> GetAllEntities(WorldEntityId et, IList<object> list = null)
+        public IList<object> GetAllEntities(IList<object> list = null)
         {
-            list ??= new List<object>();
-            var eti = GetEntityInfo(et);
-            var chunk = eti.Chunk;
-            foreach (var meta in ArchetypeGroup[eti.ArchetypeIndex].ComponentTypes)
-                list.Add(chunk.GetObj(eti.IndexInChunk, meta));
-
-            if (eti.HasDynamicComponent)
-            {
-                var sparse = DynamicComponentSparse[eti.DynamicComponentSparseIndex];
-                var denseIndexes = sparse;
-                for (var i = 0; i < denseIndexes.Count; i++)
-                {
-                    var denseIndex = denseIndexes[i];
-                    if (denseIndex < 0) continue;
-                    var meta = WorldComponentRegistry.GetInfo(new WorldIncrementId(i + 1)).Meta;
-                    var compIdx = DynamicComponentSparse.GetRef(denseIndex)[meta.Id];
-                    var val = Soa.GetGroup(meta.Type).Components.GetValue(compIdx);
-                    list.Add(val);
-                }
-            }
-
-            return list;
+            throw new NotImplementedException();
         }
     }
 }
