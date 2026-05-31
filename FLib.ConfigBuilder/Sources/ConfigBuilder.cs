@@ -165,12 +165,12 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static int Build(string sourceDirPath, bool isMultithread = true)
+        public static int Build(string sourceDirPath)
         {
             try
             {
                 ConfigPostBuildProcessData.AdditionConfigPostBuildProcesses = new List<ConfigPostBuildProcessData>();
-                var tableContexts = BuildTables(sourceDirPath, isMultithread);
+                var tableContexts = BuildTables(sourceDirPath);
                 PostBuildProcess(tableContexts);
                 ConfigPostBuildProcessData.AdditionConfigPostBuildProcesses = null;
                 var outPath = Path.GetFullPath(OutputPath);
@@ -189,7 +189,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        private static IReadOnlyDictionary<Type, IConfigBuildTableContext> BuildTables(string sourceDirPath, bool isMultithread)
+        private static IReadOnlyDictionary<Type, IConfigBuildTableContext> BuildTables(string sourceDirPath)
         {
             var sourceFileMetas = new Dictionary<string, List<SourceFileMeta>>();
             var allConfigBuilders = GetConfigBuilders();
@@ -252,17 +252,7 @@ namespace FLib
 
             var contexts = new ConcurrentDictionary<Type, IConfigBuildTableContext>(Environment.ProcessorCount, 1024);
             CustomBuilder?.Invoke(contexts, sourceFileMetas);
-
-            if (isMultithread)
-            {
-                GetAllTypes().AsParallel().ForAll(t => BuildTablesAddContext(t, contexts, sourceFileMetas));
-            }
-            else
-            {
-                foreach (var type in GetAllTypes())
-                    BuildTablesAddContext(type, contexts, sourceFileMetas);
-            }
-
+            GetAllTypes().AsParallel().ForAll(t => BuildTablesAddContext(t, contexts, sourceFileMetas));
             return contexts;
         }
 
@@ -323,25 +313,32 @@ namespace FLib
                     throw new Exception($"not found config {item.CfgType}");
             }
 
-            foreach (var item in allContexts)
+            allContexts.AsParallel().ForAll(item =>
             {
                 var ctx = item.Value;
                 if (typeof(IConfigPostBuildProcessable).IsAssignableFrom(ctx.ConfigType))
                 {
-                    foreach (var (id, cfg) in ctx.AllConfigs)
+                    try
                     {
-                        try
+                        foreach (var (id, cfg) in ctx.AllConfigs)
                         {
-                            // ReSharper disable once SuspiciousTypeConversion.Global
-                            ((IConfigPostBuildProcessable)cfg).OnConfigPostBuildProcess(Sign, ctx, allContexts);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error?.Write($"{id}.{ctx}\n{ex}");
+                            try
+                            {
+                                // ReSharper disable once SuspiciousTypeConversion.Global
+                                ((IConfigPostBuildProcessable)cfg).OnConfigPostBuildProcess(Sign, ctx, allContexts);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error?.Write($"{id}.{ctx}\n{ex}");
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Log.Error?.Write($"{ctx}\n{ex}");
+                    }
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -354,7 +351,7 @@ namespace FLib
             writer.PushLength(contexts.Count);
 
             var packBuffer = new BytesWriter();
-            foreach (var ctx in contexts)
+            foreach (var ctx in contexts.OrderBy(v => v.Key.MetadataToken))
             {
                 var options = ctx.Value.Options;
                 writer.Push(TypeAssistant.GetTypeName(ctx.Key), Encoding.ASCII);
