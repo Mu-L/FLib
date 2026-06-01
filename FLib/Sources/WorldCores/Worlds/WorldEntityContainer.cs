@@ -70,11 +70,11 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly EntityEvent? DispatchEvent(ushort id) => Events[id];
+        public readonly EntityEvent? GetDispatchEvent(ushort id) => Events[id];
 
         /// <summary>
         /// 
         /// </summary>
-        public readonly EntityEvent Event(ushort id) => Events[id] ??= new EntityEvent { Entity = new WorldEntity(World, new WorldEntityId(id, EntityInfos[id].Version)) };
+        public readonly EntityEvent GetEvent(ushort id) => Events[id] ??= new EntityEvent { Entity = new WorldEntity(World, new WorldEntityId(id, EntityInfos[id].Version)) };
     }
 }
