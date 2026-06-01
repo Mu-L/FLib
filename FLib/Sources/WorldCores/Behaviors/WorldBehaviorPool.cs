@@ -46,7 +46,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public static unsafe void Free(WorldBehavior behavior)
         {
-            behavior.SystemPtr = null;
+            behavior.BehaviorSystemPtr = null;
             ++behavior.Version;
             AllFrees.GetOrAdd(behavior.GetType(), _ => new ConcurrentStack<int>()).Push(behavior.Id);
         }

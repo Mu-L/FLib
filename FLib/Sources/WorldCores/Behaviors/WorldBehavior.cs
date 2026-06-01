@@ -12,16 +12,16 @@ namespace FLib.WorldCores.Behaviors
     /// </summary>
     public abstract unsafe class WorldBehavior
     {
-        internal WorldBehaviorSystem* SystemPtr;
+        internal WorldBehaviorSystem* BehaviorSystemPtr;
         protected internal byte Version;
 
         public WorldSoaComponentManaged ComponentManaged;
 
         public int Id { get; internal set; }
-        public ref WorldBehaviorSystem System => ref *SystemPtr;
-        public ref WorldEntity Self => ref SystemPtr->Self;
-        public WorldCore World => SystemPtr->Self.World;
-        public bool IsEmpty => SystemPtr == null;
+        public ref WorldBehaviorSystem BehaviorSystem => ref *BehaviorSystemPtr;
+        public ref WorldEntity Self => ref BehaviorSystemPtr->Self;
+        public WorldCore World => BehaviorSystemPtr->Self.World;
+        public bool IsEmpty => BehaviorSystemPtr == null;
 
         public uint StartFrame { get; set; }
         public virtual byte CurrentPriority { get; set; }
@@ -48,10 +48,10 @@ namespace FLib.WorldCores.Behaviors
 
         public void StopSelf(bool isDoDefault = true)
         {
-            if (System.PrimaryId == Id)
-                System.Stop(ref System.PrimaryId, isDoDefault);
-            else if (System.SecondaryId == Id)
-                System.Stop(ref System.SecondaryId, isDoDefault);
+            if (BehaviorSystem.PrimaryId == Id)
+                BehaviorSystem.Stop(ref BehaviorSystem.PrimaryId, isDoDefault);
+            else if (BehaviorSystem.SecondaryId == Id)
+                BehaviorSystem.Stop(ref BehaviorSystem.SecondaryId, isDoDefault);
             else
                 throw new Exception($"not found behavior {this}");
         }

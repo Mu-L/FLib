@@ -63,7 +63,6 @@ namespace FLib.WorldCores.Behaviors
         public bool Do(Type behaviorType)
         {
             AssertNotCopied();
-
             var evt = new WorldDoBehaviorEvent(ref this);
             WorldBehavior bhv;
             if (Primary?.GetType() == behaviorType)
@@ -94,7 +93,7 @@ namespace FLib.WorldCores.Behaviors
         private unsafe bool DoNewBehavior(Type behaviorType, ref WorldDoBehaviorEvent evt)
         {
             var bhv = WorldBehaviorPool.Rent(behaviorType);
-            bhv.SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this);
+            bhv.BehaviorSystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref this);
             bhv.ComponentManaged.Entity = Self;
             bhv.StartFrame = World.Frame;
 
@@ -250,12 +249,21 @@ namespace FLib.WorldCores.Behaviors
         }
 
         /// <summary>
+        /// 尝试获取指定类型的行为实例。
+        /// </summary>
+        public bool TryGet<T>(out T? bhv) where T : WorldBehavior
+        {
+            AssertNotCopied();
+            bhv = Primary as T ?? Secondary as T;
+            return bhv != null;
+        }
+
+        /// <summary>
         /// 获取指定类型的行为实例。
         /// </summary>
         public T? Get<T>() where T : WorldBehavior
         {
             AssertNotCopied();
-
             return Primary as T ?? Secondary as T;
         }
 
@@ -265,7 +273,6 @@ namespace FLib.WorldCores.Behaviors
         public readonly bool IsRunning(uint mask)
         {
             AssertNotCopied();
-
             return (Mask & mask) != 0;
         }
 
@@ -275,7 +282,6 @@ namespace FLib.WorldCores.Behaviors
         public readonly bool IsRunning<T>() where T : WorldBehavior
         {
             AssertNotCopied();
-
             return Primary is T || Secondary is T;
         }
 
@@ -285,7 +291,6 @@ namespace FLib.WorldCores.Behaviors
         public readonly bool IsRunning(Type behaviorType)
         {
             AssertNotCopied();
-
             return Primary?.GetType() == behaviorType || Secondary?.GetType() == behaviorType;
         }
 
@@ -317,7 +322,6 @@ namespace FLib.WorldCores.Behaviors
         internal void Stop(ref int id, bool isDoDefault = true)
         {
             AssertNotCopied();
-
             var bhv = WorldBehaviorPool.Behaviors[id];
             var bhvType = bhv.GetType();
             var isPrimary = id == PrimaryId;
