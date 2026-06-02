@@ -28,9 +28,10 @@ namespace FLib
 
         #region serialization
 
-        public readonly string JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        public readonly bool JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
         {
-            return JsonSerializeImpl(Instance, 0);
+            JsonSerializeImpl(jsonText, Instance, 0);
+            return true;
         }
 
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)
@@ -84,16 +85,15 @@ namespace FLib
             return true;
         }
 
-        internal static string JsonSerializeImpl(IBytesPackable instance, int nsLen)
+        internal static void JsonSerializeImpl(StringBuilder strbuf, IBytesPackable instance, int nsLen)
         {
-            string json;
             if (instance == null)
             {
-                json = "{}";
+                strbuf.Append("{}");
             }
             else
             {
-                var strbuf = new StringBuilder(64);
+                var startLen = strbuf.Length;
                 Json5Serializer.PushDictKey(ScriptTypeJsonKey, strbuf, 0, default);
                 var typeName = TypeAssistant.GetTypeName(instance.GetType());
                 if (nsLen > 0)
@@ -102,13 +102,10 @@ namespace FLib
                 strbuf.Append(',').Append(' ');
                 var pos = strbuf.Length;
                 Json5Serializer.PushValue(instance, strbuf, 0, default);
-                for (var i = pos; i > 0; i--)
+                for (var i = pos; i > startLen; i--)
                     strbuf[i] = strbuf[i - 1];
-                strbuf[0] = '{';
-                json = strbuf.ToString();
+                strbuf[startLen] = '{';
             }
-
-            return json;
         }
 
         #endregion
@@ -137,9 +134,10 @@ namespace FLib
 
         #region serialization
 
-        public readonly string JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        public readonly bool JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
         {
-            return ScriptPackInstance.JsonSerializeImpl(Instance, typeof(T).Namespace?.Length ?? 0);
+            ScriptPackInstance.JsonSerializeImpl(jsonText, Instance, typeof(T).Namespace?.Length ?? 0);
+            return true;
         }
 
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)

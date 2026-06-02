@@ -120,7 +120,16 @@ namespace FLib
     /// </summary>
     public interface IJson5Serializable
     {
-        string? JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="jsonText"></param>
+        /// <param name="serializeObject"></param>
+        /// <param name="customData">目前有一下情况:解析对象时的字段字符串名称, 外部调用PushObject传入的值</param>
+        /// <param name="indent"></param>
+        /// <param name="opData"></param>
+        /// <returns>是否已经处理, 如果返回true则跳过正常解析</returns>
+        bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData);
     }
 
     /// <summary>
@@ -128,9 +137,9 @@ namespace FLib
     /// </summary>
     public class Json5CustomSerializeWrap : IJson5Serializable
     {
-        public Func<object, object?, int, Json5SerializeOptionData, string?> Handler;
-        public Json5CustomSerializeWrap(Func<object, object?, int, Json5SerializeOptionData, string?> handler) => Handler = handler;
-        public string? JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData) => Handler(serializeObject, customData, indent, opData);
+        public Func<StringBuilder, object, object?, int, Json5SerializeOptionData, bool> Handler;
+        public Json5CustomSerializeWrap(Func<StringBuilder, object, object?, int, Json5SerializeOptionData, bool> handler) => Handler = handler;
+        public bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData) => Handler(jsonText, serializeObject, customData, indent, opData);
     }
 
     /// <summary>
@@ -355,7 +364,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData = null)
         {
             var t = obj.GetType();
             var declaringType = (opData.Options & EJson5SerializeOption.LogText) == 0
@@ -369,12 +378,8 @@ namespace FLib
 
             if (Json5.CustomSerializers == null || !Json5.CustomSerializers.TryGetValue(t, out var serializer))
                 serializer = obj as IJson5Serializable;
-            var customJson = serializer?.JsonSerialize(obj, null, indent, opData);
-            if (customJson != null)
-            {
-                strbuf.Append(customJson);
+            if (serializer?.JsonSerialize(strbuf, obj, customData, indent, opData) != true)
                 return;
-            }
 
             var fields = t.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var len = fields.Length;
@@ -413,19 +418,8 @@ namespace FLib
                     return false;
 
                 var fieldName = field.Name;
-
-                if (obj is IJson5Serializable serializer)
-                {
-                    var customJson = serializer.JsonSerialize(obj, fieldName, indent, opData);
-                    if (customJson != null)
-                    {
-                        PushDictKey(fieldName, strbuf, indent, opData);
-                        strbuf.Append(customJson);
-                    }
-
+                if ((obj as IJson5Serializable)?.JsonSerialize(strbuf, obj, fieldName, indent, opData) == true)
                     return true;
-                }
-
                 var val = field.GetValue(obj);
                 if (val != null && (val is not string str || str.Length > 0 || (opData.Options & EJson5SerializeOption.IncludeEmptyStringField) != 0))
                 {

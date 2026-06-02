@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Text;
 using FLib.WorldCores;
 
 namespace FLib.WorldCores.Entities
@@ -22,7 +23,11 @@ namespace FLib.WorldCores.Entities
             Version = version;
         }
 
-        string IJson5Serializable.JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData) => ToString();
+        bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        {
+            jsonText.Append(ToString());
+            return true;
+        }
         public WorldEntity AsEntity(WorldHandle world) => new(world, this);
         public bool Equals(WorldEntityId other) => this == other;
         public override bool Equals(object obj) => obj is WorldEntityId other && Equals(other);

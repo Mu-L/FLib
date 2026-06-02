@@ -2,6 +2,7 @@
 
 #nullable enable
 using System;
+using System.Text;
 
 namespace FLib
 {
@@ -102,9 +103,10 @@ namespace FLib
 
         #region serialization
 
-        public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
+        public readonly bool JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
         {
-            return ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
+            ScriptPackInstance.JsonSerializeImpl(jsonText, CreateInstance(), 0);
+            return true;
         }
 
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options)
@@ -167,8 +169,11 @@ namespace FLib
 
         #region serialization
 
-        public readonly string JsonSerialize(object serializeObject, object? customData, int indent, Json5SerializeOptionData opData) =>
-            ScriptPackInstance.JsonSerializeImpl(CreateInstance(), 0);
+        public readonly bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
+        {
+            ScriptPackInstance.JsonSerializeImpl(jsonText, CreateInstance(), 0);
+            return true;
+        }
 
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object? otherData, in Json5DeserializeOptionData options)
         {

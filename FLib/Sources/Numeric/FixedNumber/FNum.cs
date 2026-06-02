@@ -8,6 +8,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 using FLib.FixedNumber;
 
 namespace FLib
@@ -968,7 +969,11 @@ namespace FLib
         public readonly void Z_BytesWrite(ref BytesWriter writer) => writer.Push((float)this);
         public void Z_BytesRead(ref BytesReader reader) => this = (FNum)reader.Read<float>();
         readonly Json5CustomDeserializeResult IJson5Deserializable.JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options) => nodes.TryMoveNextValueOrCloseToken(out var node) ? new Json5CustomDeserializeResult(new FNum(node.ContentSpan)) : false;
-        readonly string IJson5Serializable.JsonSerialize(object obj, object customData, int indent, Json5SerializeOptionData opData) => ToString("0.####");
+        readonly bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        {
+            jsonText.Append(ToString("0.####"));
+            return true;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly override bool Equals(object obj) => obj is FNum num && num.RawValue == RawValue;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly bool Equals(FNum other) => RawValue == other.RawValue;

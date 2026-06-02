@@ -424,7 +424,12 @@ namespace FLib.WorldCores.Entities
             return strbuf.ToString();
         }
 
-        string IJson5Serializable.JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData) => ToString();
+        bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        {
+            jsonText.Append(ToString());
+            return true;
+        }
+
         public override int GetHashCode() => HashCode.Combine(WorldHandle, Id);
         public static implicit operator WorldEntityId(in WorldEntity helper) => helper.Id;
         public static implicit operator WorldCore(in WorldEntity helper) => helper.World;

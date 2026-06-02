@@ -44,7 +44,11 @@ namespace FLib
         }
 
 
-        string IJson5Serializable.JsonSerialize(object obj, object customData, int indent, Json5SerializeOptionData opData) => $"[{X:0.###},{Y:0.###}]";
+        bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        {
+            jsonText.Append('[').Append(X.ToString("0.###")).Append(',').Append(Y.ToString("0.###")).Append(']');
+            return true;
+        }
 
         Json5CustomDeserializeResult IJson5Deserializable.JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)
         {
