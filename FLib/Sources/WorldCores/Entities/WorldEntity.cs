@@ -27,6 +27,7 @@ namespace FLib.WorldCores.Entities
         }
 
         #region Simple
+
         /// <summary>
         /// 获取实体的组件（静态或动态）。
         /// </summary>
@@ -61,9 +62,11 @@ namespace FLib.WorldCores.Entities
         /// 获得实体上所有组件类型的列表。
         /// </summary>
         public List<Type> GetAllTypes(List<Type> result = null) => World.GetAllTypes(Id, result);
+
         #endregion
 
         #region Static
+
         /// <summary>
         /// 获取实体的静态组件并返回一个 <see cref="Ref{T}"/> 包装。
         /// </summary>
@@ -118,9 +121,11 @@ namespace FLib.WorldCores.Entities
         /// 获取实体的指定类型静态组件（非泛型）。
         /// </summary>
         public object GetSta(Type componentType) => World.GetSta(Id, componentType);
+
         #endregion
 
         #region Dynamic
+
         /// <summary>
         /// 获取实体的动态组件并返回引用。
         /// </summary>
@@ -175,17 +180,32 @@ namespace FLib.WorldCores.Entities
         /// 检查实体是否包含指定类型的动态组件。
         /// </summary>
         public bool HasDyn(Type type) => World.HasDyn(Id, type);
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// 分发事件（后处理）。
         /// </summary>
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public void DispatchEvent<T>(in T evtData, object dispatcher = null)
-            => World.Entities.GetDispatchEvent(Id.Id)?.DispatchEvent(evtData, dispatcher);
+        public void DispatchEvent<T>(in T evtData)
+        {
+            var etEvt = World.Entities.GetDispatchEvent(Id.Id);
+            if (etEvt == null)
+            {
+                using var e = new GlobalObjectPoolAutoVal<EntityEvent>();
+                e.Val.Entity = this;
+                World.DispatchEvent(evtData, e.Val);
+            }
+            else
+            {
+                etEvt.DispatchEvent(evtData);
+                World.DispatchEvent(evtData, etEvt);
+            }
+        }
 
         /// <summary>
         /// 按 ID 分发事件（后处理）。
@@ -193,8 +213,21 @@ namespace FLib.WorldCores.Entities
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public void DispatchEventById<T>(int evtId, in T evtData, object dispatcher = null)
-            => World.Entities.GetDispatchEvent(Id.Id)?.DispatchEventById(evtId, evtData, dispatcher);
+        public void DispatchEventById<T>(int evtId, in T evtData)
+        {
+            var etEvt = World.Entities.GetDispatchEvent(Id.Id);
+            if (etEvt == null)
+            {
+                using var e = new GlobalObjectPoolAutoVal<EntityEvent>();
+                e.Val.Entity = this;
+                World.DispatchEventById(evtId, evtData, e.Val);
+            }
+            else
+            {
+                etEvt.DispatchEventById(evtId, evtData);
+                World.DispatchEventById(evtId, evtData, etEvt);
+            }
+        }
 
         /// <summary>
         /// 按 ID 分发空事件（后处理）。
@@ -202,8 +235,21 @@ namespace FLib.WorldCores.Entities
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public void DispatchEventById(int evtId, object dispatcher = null)
-            => World.Entities.GetDispatchEvent(Id.Id)?.DispatchEventById(evtId, dispatcher);
+        public void DispatchEventById(int evtId)
+        {
+            var etEvt = World.Entities.GetDispatchEvent(Id.Id);
+            if (etEvt == null)
+            {
+                using var e = new GlobalObjectPoolAutoVal<EntityEvent>();
+                e.Val.Entity = this;
+                World.DispatchEventById(evtId, e.Val);
+            }
+            else
+            {
+                etEvt.DispatchEventById(evtId);
+                World.DispatchEventById(evtId, etEvt);
+            }
+        }
 
         /// <summary>
         /// 分发前置事件，返回是否继续执行。
@@ -212,8 +258,18 @@ namespace FLib.WorldCores.Entities
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public bool DispatchPreEvent<T>(ref T evtData, object dispatcher = null)
-            => World.Entities.GetDispatchEvent(Id.Id)?.DispatchPreEvent(ref evtData, dispatcher) != false;
+        public bool DispatchPreEvent<T>(ref T evtData)
+        {
+            var etEvt = World.Entities.GetDispatchEvent(Id.Id);
+            if (etEvt == null)
+            {
+                using var e = new GlobalObjectPoolAutoVal<EntityEvent>();
+                e.Val.Entity = this;
+                return World.DispatchPreEvent(ref evtData, e.Val);
+            }
+
+            return World.DispatchPreEvent(ref evtData, etEvt) && etEvt.DispatchPreEvent(ref evtData);
+        }
 
         /// <summary>
         /// 按 ID 分发前置事件，返回是否继续执行。
@@ -222,8 +278,18 @@ namespace FLib.WorldCores.Entities
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public bool DispatchPreEventById<T>(int evtId, ref T evtData, object dispatcher = null)
-            => World.Entities.GetDispatchEvent(Id.Id)?.DispatchPreEventById(evtId, ref evtData, dispatcher) != false;
+        public bool DispatchPreEventById<T>(int evtId, ref T evtData)
+        {
+            var etEvt = World.Entities.GetDispatchEvent(Id.Id);
+            if (etEvt == null)
+            {
+                using var e = new GlobalObjectPoolAutoVal<EntityEvent>();
+                e.Val.Entity = this;
+                return World.DispatchPreEventById(evtId, ref evtData, e.Val);
+            }
+
+            return World.DispatchPreEventById(evtId, ref evtData, etEvt) && etEvt.DispatchPreEventById(evtId, ref evtData);
+        }
 
         /// <summary>
         /// 按 ID 分发前置空事件，返回是否继续执行。
@@ -232,8 +298,18 @@ namespace FLib.WorldCores.Entities
 #if UNITY_2021_1_OR_NEWER
         [UnityEngine.HideInCallstack]
 #endif
-        public bool DispatchPreEventById(int evtId, object dispatcher = null)
-            => World.Entities.GetDispatchEvent(Id.Id)?.DispatchPreEventById(evtId, dispatcher) != false;
+        public bool DispatchPreEventById(int evtId)
+        {
+            var etEvt = World.Entities.GetDispatchEvent(Id.Id);
+            if (etEvt == null)
+            {
+                using var e = new GlobalObjectPoolAutoVal<EntityEvent>();
+                e.Val.Entity = this;
+                return World.DispatchPreEventById(evtId, e.Val);
+            }
+
+            return World.DispatchPreEventById(evtId, etEvt) && etEvt.DispatchPreEventById(evtId);
+        }
 
         /// <summary>
         /// 监听事件（后处理）。
@@ -324,6 +400,7 @@ namespace FLib.WorldCores.Entities
         /// </summary>
         public void ClearListenEvents()
             => World.Entities.GetEvent(Id.Id).ClearListenEvents();
+
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -346,7 +423,7 @@ namespace FLib.WorldCores.Entities
                 strbuf.Append(TypeAssistant.GetTypeName(component.GetType())).Append(" : ").AppendLine(Json5.Serialize(component));
             return strbuf.ToString();
         }
-        
+
         string IJson5Serializable.JsonSerialize(object serializeObject, object customData, int indent, Json5SerializeOptionData opData) => ToString();
         public override int GetHashCode() => HashCode.Combine(WorldHandle, Id);
         public static implicit operator WorldEntityId(in WorldEntity helper) => helper.Id;
