@@ -41,11 +41,13 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 执行给定行为类型，并通过静态泛型承载参数。
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Do<T>(Type behaviorType, in T param)
         {
             World.Assert(typeof(WorldBehavior<T>).IsAssignableFrom(behaviorType), Self.Id, "skill mismatch param type");
             WorldBehavior<T>.NewParam = param;
-            return Do(behaviorType);
+            Log.Verbose?.Write($"{Self} {TypeAssistant.GetTypeName(behaviorType)} {Json5.SerializeToLog(param)}\n{ToString()}", nameof(WorldBehaviorSystem), nameof(Do));
+            return DoImpl(behaviorType);
         }
 
         // /// <summary>
@@ -60,7 +62,17 @@ namespace FLib.WorldCores.Behaviors
         /// <p>- 否则根据优先级/友好关系决定是否创建新实例并替换。</p>
         /// 返回是否成功执行行为。
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Do(Type behaviorType)
+        {
+            Log.Verbose?.Write($"{Self} {TypeAssistant.GetTypeName(behaviorType)}\n{ToString()}", nameof(WorldBehaviorSystem), nameof(Do));
+            return DoImpl(behaviorType);
+        }
+
+        /// <summary>
+        /// 执行指定行为,返回执行是否成功
+        /// </summary>
+        private bool DoImpl(Type behaviorType)
         {
             AssertNotCopied();
             var evt = new WorldDoBehaviorEvent(ref this);
@@ -68,22 +80,25 @@ namespace FLib.WorldCores.Behaviors
             if (Primary?.GetType() == behaviorType)
             {
                 if (!CheckDo(ref evt, bhv = Primary, false))
-                    return false;
+                    goto fail;
                 Awake(bhv, evt);
             }
             else if (Secondary?.GetType() == behaviorType)
             {
                 if (!CheckDo(ref evt, bhv = Secondary, false))
-                    return false;
+                    goto fail;
                 Awake(bhv, evt);
             }
             else
             {
-                if (!DoNewBehavior(behaviorType, ref evt)) // 这里传ref还是直接传值copy更好?
-                    return false;
+                if (!DoNewBehavior(behaviorType, ref evt))
+                    goto fail;
             }
 
             return true;
+            fail:
+            Log.Verbose?.Write($"{Self} {TypeAssistant.GetTypeName(behaviorType)}\n{ToString()}", nameof(WorldBehaviorSystem), "Do Fail");
+            return false;
         }
 
         /// <summary>
@@ -347,6 +362,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         private void Stop(WorldBehavior bhv, bool isPrimary)
         {
+            Log.Verbose?.Write($"{Self} {TypeAssistant.GetTypeName(bhv.GetType())}\n{ToString()}\n{bhv}", nameof(WorldBehaviorSystem), nameof(Stop));
             Mask &= ~bhv.Mask;
             try
             {
