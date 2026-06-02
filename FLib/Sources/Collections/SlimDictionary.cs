@@ -65,9 +65,10 @@ namespace FLib
         {
             get
             {
+                var hashCode = key.GetHashCode();
                 var entries = mEntries;
                 var collisionCount = 0;
-                var bucketIndex = key.GetHashCode() & (mBuckets.Length - 1);
+                var bucketIndex = hashCode & (mBuckets.Length - 1);
                 for (var i = mBuckets[bucketIndex] - 1; (uint)i < (uint)entries.Length; i = entries[i].Next)
                 {
                     if (mComparer.Equals(key, entries[i].Key))
@@ -143,17 +144,19 @@ namespace FLib
 
             public bool MoveNext()
             {
-                while (++_realIndex < Dict.mEntries.Length && Dict.mEntries[_realIndex].Next < -1)
+                var entries = Dict.mEntries;
+                while (++_realIndex < entries.Length && entries[_realIndex].Next < -1)
                 {
                 }
 
-                return ++_moveIndex < Math.Min(Dict.Count, _initialCount) && _realIndex < Dict.mEntries.Length;
+                return ++_moveIndex < _initialCount && _realIndex < entries.Length;
             }
 
             public void RemoveSelf()
             {
                 ref var entry = ref Dict.mEntries[_realIndex];
-                ref var entryIndex = ref Dict.mBuckets[entry.Key.GetHashCode() & (Dict.mBuckets.Length - 1)];
+                var hashCode = entry.Key.GetHashCode();
+                ref var entryIndex = ref Dict.mBuckets[hashCode & (Dict.mBuckets.Length - 1)];
                 if (Dict.mComparer.Equals(Dict.mEntries[entryIndex - 1].Key, entry.Key))
                 {
                     if (entry.Next == -1)
@@ -245,7 +248,7 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void TryAddCapacity(int addCapacity) => EnsureCapacity(Count + addCapacity);
 
@@ -254,32 +257,34 @@ namespace FLib
         /// </summary>
         public void EnsureCapacity(int capacity)
         {
+            capacity = MathEx.GetNextPowerOfTwo(Math.Max(2, capacity));
             if (mEntries.Length < capacity)
             {
-                // TODO: 待优化
-                var temp = mEntries.Where(v => v.Next >= -1).Take(_count).ToArray();
-                ResetToCapacity(capacity);
-                for (var i = 0; i < temp.Length; i++)
-                {
-                    GetOrAddValueRef(temp[i].Key) = temp[i].Value;
-                }
+                Resize(capacity);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int FindEntry(TKey key, int hashCode, out int bucketIndex)
+        {
+            bucketIndex = hashCode & (mBuckets.Length - 1);
+            var entries = mEntries;
+            var collisionCount = 0;
+
+            for (var i = mBuckets[bucketIndex] - 1; (uint)i < (uint)entries.Length; i = entries[i].Next)
+            {
+                if (mComparer.Equals(key, entries[i].Key))
+                    return i;
+                if (collisionCount++ == entries.Length)
+                    throw new InvalidOperationException("looping forever");
+            }
+            return -1;
         }
 
         public bool ContainsKey(in TKey key)
         {
-            var collisionCount = 0;
-            var bucketIndex = key.GetHashCode() & (mBuckets.Length - 1);
-            for (var i = mBuckets[bucketIndex] - 1; (uint)i < (uint)mEntries.Length; i = mEntries[i].Next)
-            {
-                if (mComparer.Equals(key, mEntries[i].Key))
-                    return true;
-                if (collisionCount == mEntries.Length)
-                    throw new InvalidOperationException("looping forever");
-                collisionCount++;
-            }
-
-            return false;
+            var hashCode = key.GetHashCode();
+            return FindEntry(key, hashCode, out _) >= 0;
         }
 
         /// <summary>
@@ -287,19 +292,8 @@ namespace FLib
         /// </summary>
         public int GetEntryIndex(TKey key)
         {
-            var entries = mEntries;
-            var collisionCount = 0;
-            var bucketIndex = key.GetHashCode() & (mBuckets.Length - 1);
-            for (var i = mBuckets[bucketIndex] - 1; (uint)i < (uint)entries.Length; i = entries[i].Next)
-            {
-                if (mComparer.Equals(key, entries[i].Key))
-                    return i;
-                if (collisionCount == entries.Length)
-                    throw new InvalidOperationException("looping forever");
-                collisionCount++;
-            }
-
-            return -1;
+            var hashCode = key.GetHashCode();
+            return FindEntry(key, hashCode, out _);
         }
 
         /// <summary>
@@ -326,19 +320,12 @@ namespace FLib
         /// <returns>true if the key is present, otherwise false</returns>
         public bool TryGetValue(in TKey key, out TValue value)
         {
-            var entries = mEntries;
-            var collisionCount = 0;
-            for (var i = mBuckets[key.GetHashCode() & (mBuckets.Length - 1)] - 1; (uint)i < (uint)entries.Length; i = entries[i].Next)
+            var hashCode = key.GetHashCode();
+            var index = FindEntry(key, hashCode, out _);
+            if (index >= 0)
             {
-                if (mComparer.Equals(key, entries[i].Key))
-                {
-                    value = entries[i].Value;
-                    return true;
-                }
-
-                if (collisionCount == entries.Length)
-                    throw new InvalidOperationException("looping forever");
-                collisionCount++;
+                value = mEntries[index].Value;
+                return true;
             }
 
             value = default;
@@ -352,8 +339,9 @@ namespace FLib
         /// <returns>true if the key is present, false if it is not</returns>
         public bool Remove(in TKey key)
         {
+            var hashCode = key.GetHashCode();
             var entries = mEntries;
-            var bucketIndex = key.GetHashCode() & (mBuckets.Length - 1);
+            var bucketIndex = hashCode & (mBuckets.Length - 1);
             var entryIndex = mBuckets[bucketIndex] - 1;
 
             var lastIndex = -1;
@@ -419,9 +407,10 @@ namespace FLib
         /// <returns>Reference to the new or existing value</returns>
         public ref TValue GetOrAddValueRef(TKey key)
         {
+            var hashCode = key.GetHashCode();
             var entries = mEntries;
             var collisionCount = 0;
-            var bucketIndex = key.GetHashCode() & (mBuckets.Length - 1);
+            var bucketIndex = hashCode & (mBuckets.Length - 1);
             for (var i = mBuckets[bucketIndex] - 1; (uint)i < (uint)entries.Length; i = entries[i].Next)
             {
                 if (mComparer.Equals(key, entries[i].Key))
@@ -480,7 +469,8 @@ namespace FLib
                 if (_count == entries.Length || entries.Length == 1)
                 {
                     entries = Resize(0);
-                    bucketIndex = key.GetHashCode() & (mBuckets.Length - 1);
+                    var hashCode = key.GetHashCode();
+                    bucketIndex = hashCode & (mBuckets.Length - 1);
                     // entry indexes were not changed by Resize
                 }
 
@@ -503,16 +493,14 @@ namespace FLib
                 newSize = mEntries.Length * 2;
             }
 
-            if ((uint)newSize > int.MaxValue) // uint cast handles overflow
-                throw new OverflowException();
-
             var entries = new Entry[newSize];
             Array.Copy(mEntries, 0, entries, 0, count);
 
             var newBuckets = new int[entries.Length];
             while (count-- > 0)
             {
-                var bucketIndex = entries[count].Key.GetHashCode() & (newBuckets.Length - 1);
+                var hashCode = entries[count].Key.GetHashCode();
+                var bucketIndex = hashCode & (newBuckets.Length - 1);
                 entries[count].Next = newBuckets[bucketIndex] - 1;
                 newBuckets[bucketIndex] = count + 1;
             }
@@ -528,19 +516,21 @@ namespace FLib
 
         public bool ChangeKey(in TKey oldKey, in TKey newKey, bool isOverride = false)
         {
-            var index = GetEntryIndex(oldKey);
-            if (index >= 0)
+            var oldHashCode = oldKey.GetHashCode();
+            var oldIndex = FindEntry(oldKey, oldHashCode, out _);
+            if (oldIndex >= 0)
             {
-                ref var v = ref GetEntryValue(index);
-                index = GetEntryIndex(newKey);
-                if (index < 0)
+                ref var v = ref GetEntryValue(oldIndex);
+                var newHashCode = newKey.GetHashCode();
+                var newIndex = FindEntry(newKey, newHashCode, out var newBucketIndex);
+                if (newIndex < 0)
                 {
-                    AddKey(newKey, newKey.GetHashCode() & (mBuckets.Length - 1)) = v;
+                    AddKey(newKey, newBucketIndex) = v;
                     Remove(oldKey);
                 }
                 else if (isOverride)
                 {
-                    SetEntryValue(index, v);
+                    SetEntryValue(newIndex, v);
                 }
                 else
                 {
@@ -555,8 +545,35 @@ namespace FLib
 
         #region misc
 
-        public ICollection<TKey> Keys => mEntries.Where(v => v.Next >= -1).Take(Count).Select(v => v.Key).ToArray();
-        public ICollection<TValue> Values => mEntries.Where(v => v.Next >= -1).Take(Count).Select(v => v.Value).ToArray();
+        public ICollection<TKey> Keys
+        {
+            get
+            {
+                var keys = new TKey[Count];
+                var index = 0;
+                for (var i = 0; i < mEntries.Length && index < Count; i++)
+                {
+                    if (mEntries[i].Next >= -1)
+                        keys[index++] = mEntries[i].Key;
+                }
+                return keys;
+            }
+        }
+
+        public ICollection<TValue> Values
+        {
+            get
+            {
+                var values = new TValue[Count];
+                var index = 0;
+                for (var i = 0; i < mEntries.Length && index < Count; i++)
+                {
+                    if (mEntries[i].Next >= -1)
+                        values[index++] = mEntries[i].Value;
+                }
+                return values;
+            }
+        }
         ICollection IDictionary.Keys => (ICollection)Keys;
         ICollection IDictionary.Values => (ICollection)Values;
         bool IDictionary.IsFixedSize => false;
