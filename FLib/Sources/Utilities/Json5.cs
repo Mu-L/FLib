@@ -378,7 +378,7 @@ namespace FLib
 
             if (Json5.CustomSerializers == null || !Json5.CustomSerializers.TryGetValue(t, out var serializer))
                 serializer = obj as IJson5Serializable;
-            if (serializer?.JsonSerialize(strbuf, obj, customData, indent, opData) != true)
+            if (serializer?.JsonSerialize(strbuf, obj, customData, indent, opData) == true)
                 return;
 
             var fields = t.GetFields(BindingFlags.Public | BindingFlags.Instance);

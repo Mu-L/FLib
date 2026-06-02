@@ -8,7 +8,8 @@ using FLib.WorldCores.TimeLogics;
 
 namespace FLib.WorldCores.TimeLogics
 {
-    [BytesPackGenHoldKey(2)][RenamedType("Worlds.TimeLogic.WorldTimeLogicRuntime")]
+    [BytesPackGenHoldKey(2)]
+    [RenamedType("Worlds.TimeLogic.WorldTimeLogicRuntime")]
     public class TimeLogic : IBytesPackable
     {
         [NonSerialized] public object UserData;
@@ -29,6 +30,7 @@ namespace FLib.WorldCores.TimeLogics
 
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
+        public FNum Duration => EndFrame * (FNum.One / FrameRate);
         public ExternalReferenceStorer ExternalReferences;
         public TimeLogicTrack this[int index] => (TimeLogicTrack)Tracks[index].Instance;
 
