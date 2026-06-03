@@ -102,7 +102,7 @@ namespace FLib
 
         #endregion
 
-        #region task
+        #region Task
 
         /// <summary>
         ///
@@ -153,6 +153,19 @@ namespace FLib
             }
 
             return false;
+        }
+
+        #endregion
+
+        #region List
+
+        /// <summary> 移除指定索引的元素，并将最后一个元素移动到指定索引位置 </summary>
+        public static void RemoveAtSwapBack(this IList list, int index)
+        {
+            var lastIndex = list.Count - 1;
+            if (index < lastIndex)
+                list[index] = list[lastIndex];
+            list.RemoveAt(lastIndex);
         }
 
         #endregion

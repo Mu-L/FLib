@@ -413,7 +413,7 @@ namespace FLib
             static bool PushField(object obj, FieldInfo field, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
             {
                 if (field.IsInitOnly || field.IsLiteral || ((opData.Options & EJson5SerializeOption.OnlySerializableFields) != 0 && !field.IsDefined(typeof(SerializableAttribute))) ||
-                    (Json5.NonSerialized != null && (Json5.NonSerialized.Contains(field.FieldType) || Json5.NonSerialized.Contains(field.FieldType.BaseType))) ||
+                    (Json5.NonSerialized != null && (Json5.NonSerialized.Contains(field.FieldType) || Json5.NonSerialized.Contains(field.FieldType.BaseType!))) ||
                     field.IsDefined(typeof(NonSerializedAttribute)) || field.FieldType.IsSubclassOf(typeof(Delegate)))
                     return false;
 
@@ -1200,7 +1200,7 @@ namespace FLib
         public bool Has(int index) => AsArray?.Length > index;
         public bool Has(string key) => AsDict?.ContainsKey(key) == true;
         public override string ToString() => Raw.ToString()!;
-        public static implicit operator string(Json5AnyValue val) => Convert.ToString(val.Raw);
+        public static implicit operator string(Json5AnyValue val) => Convert.ToString(val.Raw)!;
         public static implicit operator bool(Json5AnyValue val) => Convert.ToBoolean(val.Raw);
         public static implicit operator byte(Json5AnyValue val) => Convert.ToByte(val.Raw);
         public static implicit operator sbyte(Json5AnyValue val) => Convert.ToSByte(val.Raw);
