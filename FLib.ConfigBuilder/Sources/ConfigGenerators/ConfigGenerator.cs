@@ -205,14 +205,12 @@ namespace FLib
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary>  </summary>
         private static void AppendBlockComment(this StringBuilder strbuf, int indent, Json5AnyValue value)
         {
-            strbuf.Indent(indent).AppendLine("/// <summary>");
-            strbuf.Indent(indent).Append("/// ").Append(value.TryGet("Comment")?.ToString()).AppendLine();
-            strbuf.Indent(indent).AppendLine("/// </summary>");
+            strbuf.Indent(indent).Append("/// <summary> ")
+                .Append(value.TryGet("Comment")?.ToString())
+                .Append(" </summary>");
         }
 
         /// <summary>

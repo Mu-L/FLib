@@ -103,7 +103,7 @@ namespace FLib
 
         #region serialization
 
-        public readonly bool JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        public readonly bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
         {
             ScriptPackInstance.JsonSerializeImpl(jsonText, CreateInstance(), 0);
             return true;
