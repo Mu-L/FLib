@@ -13,33 +13,41 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
+// ReSharper disable StaticMemberInGenericType
 #pragma warning disable CA2211
 // ReSharper disable MemberHidesStaticFromOuterClass
 
 namespace FLib
 {
     /// <summary>
-    /// 
+    /// 配置表运行时访问入口。
     /// </summary>
     public static class Config<T> where T : IBytesPackable, new()
     {
+        /// <summary> 未找到配置时返回的默认值。 </summary>
         public static readonly T DefaultConfig = default;
+        /// <summary> 所有配置元数据，按表内顺序存储。 </summary>
         public static Meta[] AllMetas;
+        /// <summary> 配置 ID 到表内索引的映射。 </summary>
         public static IReadOnlyDictionary<uint, int> IdMetas;
+        /// <summary> 当前配置数量。 </summary>
         public static int Count => (AllMetas?.Length).GetValueOrDefault();
 
         /// <summary>
-        ///
+        /// 单条配置的缓存状态。
         /// </summary>
         public struct Meta
         {
+            /// <summary> 原始序列化数据，可能为压缩数据。 </summary>
             public byte[] RawBytes;
+            /// <summary> 反序列化后的配置值。 </summary>
             public T Value;
+            /// <summary> 当前存储和加载选项。 </summary>
             public ConfigHelper.EOption Options;
         }
 
         /// <summary>
-        ///
+        /// 配置遍历入口。
         /// </summary>
         public readonly struct Enumerable : IEnumerable<T>
         {
@@ -49,12 +57,14 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 配置遍历器。
         /// </summary>
         public struct Enumerator : IEnumerator<T>
         {
+            /// <summary> 当前表内索引。 </summary>
             public int Index;
 
+            /// <summary> 当前配置的引用，会按需解压和反序列化。 </summary>
             public readonly ref T CurrentRef
             {
                 get
@@ -76,7 +86,7 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 判断字符串 ID 对应的配置是否存在。
         /// </summary>
         public static bool Contains(string id)
         {
@@ -84,7 +94,7 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 判断数值 ID 对应的配置是否存在。
         /// </summary>
         public static bool Contains(uint id)
         {
@@ -92,7 +102,7 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 按字符串 ID 获取配置引用；未找到时返回默认值。
         /// </summary>
         public static ref readonly T Get(string id, ELogLevel logLevel = ELogLevel.Fatal)
         {
@@ -103,7 +113,7 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 按数值 ID 获取配置引用；未找到时返回默认值。
         /// </summary>
         public static ref readonly T Get(uint id, ELogLevel logLevel = ELogLevel.Fatal)
         {
@@ -114,7 +124,7 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// 按数值 ID 获取表内索引；未找到返回 -1。
         /// </summary>
         public static int GetIndex(uint id, ELogLevel logLevel = ELogLevel.Fatal)
         {
@@ -125,7 +135,7 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// 按字符串 ID 获取表内索引；未找到返回 -1。
         /// </summary>
         public static int GetIndex(string id, ELogLevel logLevel = ELogLevel.Fatal)
         {
@@ -137,7 +147,7 @@ namespace FLib
 
         // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
-        ///
+        /// 按表内索引获取配置引用；索引无效时返回默认值。
         /// </summary>
         public static ref readonly T Index(int configMetaIndex, ELogLevel logLevel = ELogLevel.Fatal)
         {
@@ -154,7 +164,7 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 将指定 ID 的配置反序列化到目标实例。
         /// </summary>
         public static void CopyTo(uint id, ref T to)
         {
@@ -164,12 +174,12 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 所有配置的可遍历视图。
         /// </summary>
         public static Enumerable All => default;
 
         /// <summary>
-        ///
+        /// 创建配置遍历器。
         /// </summary>
         public static Enumerator GetEnumerator()
         {
@@ -177,7 +187,7 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// 设置或追加一条配置。
         /// </summary>
         public static void Set(uint id, in T v, bool isAdd = false)
         {
@@ -202,7 +212,7 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// 从字节流解析单条配置元数据。
         /// </summary>
         public static void DeserializeConfigParse(uint id, ref BytesReader reader, out Meta meta, bool isSkip = false, ConfigHelper.EOption addOptions = default)
         {
@@ -282,7 +292,7 @@ namespace FLib
     }
 
     /// <summary>
-    ///
+    /// 配置表通用工具。
     /// </summary>
     public static class ConfigHelper
     {
@@ -318,7 +328,7 @@ namespace FLib
         }
 
         /// <summary>
-        ///
+        /// 将字符串 ID 转为配置表使用的数值 ID。
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint StringToUniqueId(string str)
@@ -327,12 +337,12 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// 从文件加载全部配置表。
         /// </summary>
         public static int DeserializeAll(string path, out int buildConfigCount) => DeserializeAll(File.ReadAllBytes(path), out buildConfigCount);
 
         /// <summary>
-        /// 
+        /// 从内存数据加载全部配置表。
         /// </summary>
         public static int DeserializeAll(Memory<byte> buffer, out int buildConfigCount)
         {
@@ -366,6 +376,7 @@ namespace FLib
             return reader.Position;
         }
 
+        /// <summary> 将指定 ID 的配置复制到目标实例。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy<T>(uint id, ref T to) where T : IBytesPackable, new()
         {
@@ -374,18 +385,22 @@ namespace FLib
     }
 
     /// <summary>
-    ///
+    /// 标记类型对应的配置表文件。
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
     public class ConfigAttribute : CommentAttribute
     {
+        /// <summary> 配置文件名。 </summary>
         public string ConfigFileName => Name;
+        /// <summary> 配置加载选项。 </summary>
         public ConfigHelper.EOption Options;
 
+        /// <summary> 指定配置文件名。 </summary>
         public ConfigAttribute(string configFileName) : base(configFileName)
         {
         }
 
+        /// <summary> 指定配置文件名和加载选项。 </summary>
         public ConfigAttribute(string configFileName, ConfigHelper.EOption options) : this(configFileName) => Options = options;
     }
 
@@ -402,8 +417,11 @@ namespace FLib
     /// </summary>
     public class ConfigPostBuildProcessData
     {
+        /// <summary> 额外注册的构建后处理。 </summary>
         public static List<ConfigPostBuildProcessData> AdditionConfigPostBuildProcesses;
+        /// <summary> 目标配置类型。 </summary>
         public Type CfgType;
+        /// <summary> 构建后处理实例。 </summary>
         public IConfigPostBuildProcessable Process;
     }
 
