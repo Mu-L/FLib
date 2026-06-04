@@ -85,13 +85,14 @@ namespace FLib
             var fileName = Path.GetFileNameWithoutExtension(jsonPath)[..^7];
             Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
 
-            strbuf.Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
+            strbuf.AppendComment(indent, json, "Design")
+                .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
                 .Indent(indent).Append("public partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
             ++indent;
 
             foreach (var (key, fieldValue) in json["Fields"].Dict)
             {
-                strbuf.AppendBlockComment(indent, fieldValue);
+                strbuf.AppendComment(indent, fieldValue);
                 strbuf.Indent(indent).Append("[BytesPackGenField] ")
                     .Append("public ").Append(fieldValue["Type"].ToString()).Append(' ')
                     .Append(key);
@@ -132,7 +133,7 @@ namespace FLib
             foreach (var item in json["Enums"].Dict)
             {
                 Log.Info?.Write($"Generate Define Enum {item.Key}", nameof(ConfigGenerator));
-                strbuf.AppendBlockComment(indent, item.Value);
+                strbuf.AppendComment(indent, item.Value);
                 var isFlags = item.Value["IsFlags"];
                 if (isFlags)
                     strbuf.Indent(indent).AppendLine("[Flags]");
@@ -143,7 +144,7 @@ namespace FLib
                     var index = 0;
                     foreach (var field in fields.Dict)
                     {
-                        strbuf.AppendBlockComment(indent, field.Value);
+                        strbuf.AppendComment(indent, field.Value);
                         strbuf.Indent(indent).Append(field.Key);
                         if (field.Value.TryGet("Value", out var value))
                         {
@@ -168,7 +169,7 @@ namespace FLib
                 foreach (var item in types.AsDict!)
                 {
                     Log.Info?.Write($"Generate Define Type {item.Key}", nameof(ConfigGenerator));
-                    strbuf.AppendBlockComment(indent, item.Value);
+                    strbuf.AppendComment(indent, item.Value);
                     strbuf.Indent(indent).AppendLine("[BytesPackGen]");
                     strbuf.Indent(indent).Append("public partial ").Append(item.Value["Type"].ToString()).Append(' ').Append(item.Key).Append(" {").AppendLine();
                     ++indent;
@@ -176,7 +177,7 @@ namespace FLib
                     {
                         foreach (var field in fields.Dict)
                         {
-                            strbuf.AppendBlockComment(indent, field.Value);
+                            strbuf.AppendComment(indent, field.Value);
                             strbuf.Indent(indent).Append("[BytesPackGenField] ")
                                 .Append("public ").Append(field.Value.ToString()).Append(' ').Append(field.Key).Append(';').AppendLine();
                         }
@@ -206,11 +207,12 @@ namespace FLib
         }
 
         /// <summary>  </summary>
-        private static void AppendBlockComment(this StringBuilder strbuf, int indent, Json5AnyValue value)
+        private static StringBuilder AppendComment(this StringBuilder strbuf, int indent, Json5AnyValue value, string key = "Comment")
         {
             strbuf.Indent(indent).Append("/// <summary> ")
-                .Append(value.TryGet("Comment")?.ToString())
+                .Append(value.TryGet(key)?.ToString())
                 .Append(" </summary>");
+            return strbuf;
         }
 
         /// <summary>

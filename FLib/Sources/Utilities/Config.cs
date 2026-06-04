@@ -41,7 +41,17 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public struct Enumerator : IEnumerator<T>, IEnumerable<T>
+        public readonly struct Enumerable : IEnumerable<T>
+        {
+            public Enumerator GetEnumerator() => Config<T>.GetEnumerator();
+            IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public struct Enumerator : IEnumerator<T>
         {
             public int Index;
 
@@ -58,15 +68,11 @@ namespace FLib
             public readonly T Current => CurrentRef;
             readonly object IEnumerator.Current => Current;
             public bool MoveNext() => ++Index < Count;
-            public void Reset() => Index = 0;
+            public void Reset() => Index = -1;
 
             public readonly void Dispose()
             {
             }
-
-            public readonly Enumerator GetEnumerator() => this;
-            readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-            readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         /// <summary>
@@ -156,6 +162,11 @@ namespace FLib
             TryDecompressRawBytes(ref meta);
             BytesPack.Unpack(ref to, meta.RawBytes);
         }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public static Enumerable All => default;
 
         /// <summary>
         ///
