@@ -211,7 +211,7 @@ namespace FLib
         {
             strbuf.Indent(indent).Append("/// <summary> ")
                 .Append(value.TryGet(key)?.ToString())
-                .Append(" </summary>");
+                .AppendLine(" </summary>");
             return strbuf;
         }
 
