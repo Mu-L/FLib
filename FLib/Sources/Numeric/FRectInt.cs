@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace FLib
 {
     /// <summary>
-    /// aabb
+    /// aabb, [Min, Max)
     /// </summary>
     [Serializable]
     public struct FRectInt : IEquatable<FRectInt>, IJson5Deserializable
@@ -39,14 +39,10 @@ namespace FLib
         /// </summary>
         public void TryUpdateMinMax(FVector2Int point)
         {
-            if (point < Min)
-            {
-                Min = point;
-            }
-            else if (point > Max)
-            {
-                Max = point;
-            }
+            Min.X = Math.Min(Min.X, point.X);
+            Min.Y = Math.Min(Min.Y, point.Y);
+            Max.X = Math.Max(Max.X, point.X + 1);
+            Max.Y = Math.Max(Max.Y, point.Y + 1);
         }
 
         /// <summary>
@@ -60,8 +56,8 @@ namespace FLib
 
         public static FRectInt CreateByCenter(in FVector2Int center, in FVector2Int extends) => new(center - extends, center + extends);
         public readonly override string ToString() => $"{Min},{Max}";
-        public readonly bool Contains(in FVector2Int point) => point >= Min && point <= Max;
-        public readonly bool Contains(in FVector2Int point, in FVector2Int expand) => point >= Min - expand && point <= Max + expand;
+        public readonly bool Contains(in FVector2Int point) => point >= Min && point < Max;
+        public readonly bool Contains(in FVector2Int point, in FVector2Int expand) => point >= Min - expand && point < Max + expand;
 
         public readonly bool TrimPoint(ref FVector2Int point)
         {
@@ -71,9 +67,9 @@ namespace FLib
                 point.X = Min.X;
                 result = true;
             }
-            else if (point.X > Max.X)
+            else if (point.X >= Max.X)
             {
-                point.X = Max.X;
+                point.X = Max.X - 1;
                 result = true;
             }
             if (point.Y < Min.Y)
@@ -81,9 +77,9 @@ namespace FLib
                 point.Y = Min.Y;
                 result = true;
             }
-            else if (point.Y > Max.Y)
+            else if (point.Y >= Max.Y)
             {
-                point.Y = Max.Y;
+                point.Y = Max.Y - 1;
                 result = true;
             }
             return result;

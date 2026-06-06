@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace FLib
 {
     /// <summary>
-    /// aabb
+    /// aabb, [Min, Max)
     /// </summary>
     [Serializable]
     public struct FRect : IEquatable<FRect>, IJson5Deserializable
@@ -39,14 +39,8 @@ namespace FLib
         /// </summary>
         public void TryUpdateMinMax(FVector2 point)
         {
-            if (point < Min)
-            {
-                Min = point;
-            }
-            else if (point > Max)
-            {
-                Max = point;
-            }
+            Min = FVector2.Min(Min, point);
+            Max = FVector2.Max(Max, point);
         }
 
         /// <summary>
@@ -60,7 +54,7 @@ namespace FLib
 
         public static FRect CreateByCenter(in FVector2 center, in FVector2 extends) => new(center - extends, center + extends);
         public readonly override string ToString() => $"{Min},{Max}";
-        public readonly bool IsIntersect(in FRect rect) => Max >= rect.Min && Min <= rect.Max;
+        public readonly bool IsIntersect(in FRect rect) => Max > rect.Min && Min < rect.Max;
         public readonly bool IsIntersectCircle(in FVector2 circleCenter, in FNum circleRadius) => IsIntersectSqrCircle(circleCenter, circleRadius * circleRadius);
 
         public readonly bool IsIntersectSqrCircle(in FVector2 circleCenter, in FNum sqrCircleRadius)
@@ -89,8 +83,8 @@ namespace FLib
             return sqrDistance <= sqrCircleRadius;
         }
 
-        public readonly bool Contains(in FVector2 point) => point >= Min && point <= Max;
-        public readonly bool Contains(in FVector2 point, in FVector2 expand) => point >= Min - expand && point <= Max + expand;
+        public readonly bool Contains(in FVector2 point) => point >= Min && point < Max;
+        public readonly bool Contains(in FVector2 point, in FVector2 expand) => point >= Min - expand && point < Max + expand;
         public readonly FVector2 GetClosestPoint(FVector2 p) => new(MathEx.Clamp(p.X, Min.X, Max.X), MathEx.Clamp(p.Y, Min.Y, Max.Y));
 
         public readonly bool TrimPoint(ref FVector2 point)
