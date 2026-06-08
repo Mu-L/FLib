@@ -22,24 +22,13 @@ namespace FLib
         public static string CurrentWorkDirectory => Environment.CurrentDirectory;
 
         /// <summary>
-        /// 创建目录
-        /// </summary>
-        public static void CreateDirectory(string path)
-        {
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path!);
-            }
-        }
-
-        /// <summary>
         /// 清除目录
         /// </summary>
         public static void ClearDirectory(string path)
         {
             if (!Directory.Exists(path))
             {
-                CreateDirectory(path);
+                Directory.CreateDirectory(path);
             }
             else
             {
@@ -47,6 +36,7 @@ namespace FLib
                 {
                     File.Delete(item);
                 }
+
                 foreach (var item in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
                 {
                     Directory.Delete(item, true);
@@ -71,6 +61,7 @@ namespace FLib
                     return false;
                 }
             }
+
             return false;
         }
 
@@ -81,8 +72,9 @@ namespace FLib
         {
             if (!Directory.Exists(dest))
             {
-                CreateDirectory(dest);
+                Directory.CreateDirectory(dest);
             }
+
             foreach (var item in Directory.GetFiles(src, searchPattern, SearchOption.TopDirectoryOnly))
             {
                 if (filter?.Invoke(item, false) != false)
@@ -98,6 +90,7 @@ namespace FLib
                     }
                 }
             }
+
             foreach (var item in Directory.GetDirectories(src, "*", SearchOption.TopDirectoryOnly))
             {
                 if (filter?.Invoke(item, true) != false)
@@ -138,6 +131,7 @@ namespace FLib
                     }
                 }
             }
+
             return StringFLibUtility.ReleaseStrBufAndResult(strBuf);
         }
 
@@ -167,6 +161,7 @@ namespace FLib
                     count--;
                 }
             }
+
             return StringFLibUtility.ReleaseStrBufAndResult(strBuf);
         }
 
@@ -183,6 +178,7 @@ namespace FLib
             {
                 path = path[1..];
             }
+
             var count = path.Length;
             var strBuf = StringFLibUtility.GetStrBuf();
             for (var i = 0; i < count; i++)
@@ -227,6 +223,7 @@ namespace FLib
                     endIndex = i;
                 }
             }
+
             return default;
         }
 
@@ -242,6 +239,7 @@ namespace FLib
                 order++;
                 size /= 1024f;
             }
+
             return size.ToString("0.##") + sizeNames[order];
         }
 
@@ -259,10 +257,12 @@ namespace FLib
                 var suffix = strbuf.Append('0', minSuffixLength).ToString();
                 path = tempDotIndex >= 0 ? path.Insert(tempDotIndex, splitChar + suffix) : path + splitChar + suffix;
             }
+
             if ((isFilePath && !File.Exists(path)) || (!isFilePath && !Directory.Exists(path)))
             {
                 return path;
             }
+
             path = oldPath;
 
             var path2 = path;
@@ -273,6 +273,7 @@ namespace FLib
                 extension = path[dotIndex..];
                 path2 = path2[..dotIndex];
             }
+
             strbuf.Clear();
             strbuf.Append(path2).Append(splitChar);
             var path2Count = path2.Length + 1;
@@ -285,6 +286,7 @@ namespace FLib
                     {
                         strbuf.Append('0', minSuffixLength - str.Length);
                     }
+
                     strbuf.Append(str);
                     var newPath = strbuf.Append(extension).ToString();
                     strbuf.Remove(path2Count, strbuf.Length - path2Count);
@@ -298,6 +300,7 @@ namespace FLib
             {
                 StringFLibUtility.ReleaseStrBuf(strbuf);
             }
+
             throw new Exception("not found new filepath");
         }
 
@@ -314,13 +317,16 @@ namespace FLib
                 {
                     dirIndex = path.LastIndexOf('\\');
                 }
+
                 if (dirIndex == -1)
                 {
                     return newName;
                 }
+
                 newName = path[..(dirIndex + 1)] + newName;
                 if (!isKeepExtension) return newName;
             }
+
             var exIndex = path.LastIndexOf('.');
             if (exIndex >= 0)
             {
@@ -328,12 +334,14 @@ namespace FLib
                 {
                     newName = path[..exIndex] + newName;
                 }
+
                 if (isKeepExtension) newName += path[exIndex..];
             }
             else if (isAppendNewName)
             {
                 newName = path + newName;
             }
+
             return newName;
         }
 
@@ -353,6 +361,7 @@ namespace FLib
                     break;
                 }
             }
+
             return path;
         }
 
@@ -400,6 +409,7 @@ namespace FLib
                     }
                 }
             }
+
             if (loopByteCount > 0)
             {
                 for (var i = 0; i < loopByteCount; i++)
@@ -407,6 +417,7 @@ namespace FLib
                     if (a.ReadByte() != b.ReadByte()) return false;
                 }
             }
+
             return true;
         }
 

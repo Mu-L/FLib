@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace FLib
@@ -12,11 +13,9 @@ namespace FLib
         public static readonly UTF8Encoding Encoding = new(false);
         public static string WordTenThousand = "w";
 
-        [ThreadStatic]
-        private static StringBuilder _strBuf1;
+        [ThreadStatic] private static StringBuilder _strBuf1;
 
-        [ThreadStatic]
-        private static StringBuilder _strBuf2;
+        [ThreadStatic] private static StringBuilder _strBuf2;
 
         /// <summary>
         /// 创建一个临时字符串缓冲对象
@@ -377,6 +376,211 @@ namespace FLib
             var result = text[..(count - resultCountOffset)];
             text = text[count..];
             return result;
+        }
+    }
+
+    /// <summary>  </summary>
+    public ref struct StringBufferCombiner
+    {
+        public StringBuilder StringBuilder;
+
+        public static StringBufferCombiner Create(int capacity = 360)
+            => new() { StringBuilder = StringFLibUtility.GetStrBuf(capacity) };
+
+        public static StringBufferCombiner Create(string text, int capacity = 360)
+            => new() { StringBuilder = StringFLibUtility.GetStrBuf(text.Length + capacity).Append(text) };
+
+        #region append
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(bool value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(byte value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(char value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(char value, int repeatCount)
+        {
+            StringBuilder.Append(value, repeatCount);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(char[] value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(char[] value, int startIndex, int charCount)
+        {
+            StringBuilder.Append(value, startIndex, charCount);
+            return this;
+        }
+
+        public unsafe StringBufferCombiner Append(char* value, int valueCount)
+        {
+            StringBuilder.Append(value, valueCount);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(decimal value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(double value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(short value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(int value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(long value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(object value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(ReadOnlyMemory<char> value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(ReadOnlySpan<char> value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(sbyte value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(float value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(string value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(string value, int startIndex, int count)
+        {
+            StringBuilder.Append(value, startIndex, count);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(StringBuilder value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(StringBuilder value, int startIndex, int count)
+        {
+            StringBuilder.Append(value, startIndex, count);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(ushort value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(uint value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner Append(ulong value)
+        {
+            StringBuilder.Append(value);
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner AppendLine()
+        {
+            StringBuilder.AppendLine();
+            return this;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StringBufferCombiner AppendLine(string value)
+        {
+            StringBuilder.AppendLine(value);
+            return this;
+        }
+
+        #endregion
+
+        public string Result()
+        {
+            var str = StringBuilder.ToString();
+            StringFLibUtility.ReleaseStrBuf(StringBuilder);
+            StringBuilder = null;
+            return str;
         }
     }
 }
