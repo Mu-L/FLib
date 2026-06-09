@@ -176,7 +176,7 @@ namespace FLib
                 PostBuildProcess(tableContexts);
                 ConfigPostBuildProcessData.AdditionConfigPostBuildProcesses = null;
                 var outPath = Path.GetFullPath(OutputPath);
-                FIO.CreateDirectory(Path.GetDirectoryName(outPath));
+                Directory.CreateDirectory(Path.GetDirectoryName(outPath)!);
                 File.WriteAllBytes(outPath, Compressor.Compress(GenerateConfigBytes(tableContexts)).ToArray());
                 return tableContexts.Count;
             }

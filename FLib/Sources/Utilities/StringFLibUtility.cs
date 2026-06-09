@@ -61,6 +61,10 @@ namespace FLib
             }
         }
 
+        /// <summary> 创建一个字符串缓冲器 </summary>
+        public static StringBufferCombiner Combine(string text, int capacity = 360)
+            => StringBufferCombiner.Create(text.Length + capacity).Append(text);
+
 
         /// <summary>
         ///
@@ -387,9 +391,6 @@ namespace FLib
         public static StringBufferCombiner Create(int capacity = 360)
             => new() { StringBuilder = StringFLibUtility.GetStrBuf(capacity) };
 
-        public static StringBufferCombiner Create(string text, int capacity = 360)
-            => new() { StringBuilder = StringFLibUtility.GetStrBuf(text.Length + capacity).Append(text) };
-
         #region append
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -580,6 +581,13 @@ namespace FLib
             var str = StringBuilder.ToString();
             StringFLibUtility.ReleaseStrBuf(StringBuilder);
             StringBuilder = null;
+            return str;
+        }
+
+        public static implicit operator string(StringBufferCombiner combiner)
+        {
+            var str = combiner.StringBuilder.ToString();
+            StringFLibUtility.ReleaseStrBuf(combiner.StringBuilder.Clear());
             return str;
         }
     }
