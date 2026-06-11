@@ -1,5 +1,6 @@
 // ==================== qcbf@qq.com | 2026-01-15 ====================
 
+using System.Runtime.CompilerServices;
 using FLib.WorldCores;
 using FLib.WorldCores.Components;
 using FLib.WorldCores.Entities;
@@ -66,9 +67,9 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         public override void Free(in WorldEntityId et, int hash, bool onEntityDestroyed)
         {
-            var idx = Groups.GetEntryIndex(hash);
-            if (idx < 0) return;
-            ref var r = ref Groups.GetEntryValue(idx);
+            ref var r = ref Groups.GetValueRefOrNullRef(hash);
+            if (Unsafe.IsNullRef(ref r))
+                return;
             if (--r.RefCount > 0) return;
             base.Free(in et, r.Index, onEntityDestroyed);
             Groups.Remove(hash);

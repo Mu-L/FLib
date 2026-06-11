@@ -373,7 +373,7 @@ namespace FLib
         }
 
         /// <summary>  </summary>
-        public unsafe ref TValue GetValueRefOrNullRef(in TKey key)
+        public ref TValue GetValueRefOrNullRef(in TKey key)
         {
             var index = FindEntry(key, key.GetHashCode(), out _);
             return ref index >= 0 ? ref mEntries[index].Value : ref Unsafe.NullRef<TValue>();
