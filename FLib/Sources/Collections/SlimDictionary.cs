@@ -278,6 +278,7 @@ namespace FLib
                 if (collisionCount++ == entries.Length)
                     throw new InvalidOperationException("looping forever");
             }
+
             return -1;
         }
 
@@ -285,31 +286,6 @@ namespace FLib
         {
             var hashCode = key.GetHashCode();
             return FindEntry(key, hashCode, out _) >= 0;
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        public int GetEntryIndex(TKey key)
-        {
-            var hashCode = key.GetHashCode();
-            return FindEntry(key, hashCode, out _);
-        }
-
-        /// <summary>
-        /// 效率最高的获取值
-        /// </summary>
-        public ref TValue GetEntryValue(int index)
-        {
-            return ref mEntries[index].Value;
-        }
-
-        /// <summary>
-        /// 效率最高的设置值
-        /// </summary>
-        public void SetEntryValue(int index, in TValue v)
-        {
-            mEntries[index].Value = v;
         }
 
         /// <summary>
@@ -390,10 +366,17 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public TValue GetValueOrDefault(TKey key)
+        public TValue GetValueOrDefault(in TKey key)
         {
-            var index = GetEntryIndex(key);
-            return index >= 0 ? GetEntryValue(index) : default;
+            var entry = FindEntry(key, key.GetHashCode(), out _);
+            return entry >= 0 ? mEntries[entry].Value : default;
+        }
+
+        /// <summary>  </summary>
+        public unsafe ref TValue GetValueRefOrNullRef(in TKey key)
+        {
+            var index = FindEntry(key, key.GetHashCode(), out _);
+            return ref index >= 0 ? ref mEntries[index].Value : ref Unsafe.NullRef<TValue>();
         }
 
         // Not safe for concurrent _reads_ (at least, if either of them add)
@@ -520,7 +503,7 @@ namespace FLib
             var oldIndex = FindEntry(oldKey, oldHashCode, out _);
             if (oldIndex >= 0)
             {
-                ref var v = ref GetEntryValue(oldIndex);
+                ref var v = ref mEntries[oldIndex].Value;
                 var newHashCode = newKey.GetHashCode();
                 var newIndex = FindEntry(newKey, newHashCode, out var newBucketIndex);
                 if (newIndex < 0)
@@ -530,7 +513,7 @@ namespace FLib
                 }
                 else if (isOverride)
                 {
-                    SetEntryValue(newIndex, v);
+                    mEntries[newIndex].Value = v;
                 }
                 else
                 {
@@ -556,6 +539,7 @@ namespace FLib
                     if (mEntries[i].Next >= -1)
                         keys[index++] = mEntries[i].Key;
                 }
+
                 return keys;
             }
         }
@@ -571,9 +555,11 @@ namespace FLib
                     if (mEntries[i].Next >= -1)
                         values[index++] = mEntries[i].Value;
                 }
+
                 return values;
             }
         }
+
         ICollection IDictionary.Keys => (ICollection)Keys;
         ICollection IDictionary.Values => (ICollection)Values;
         bool IDictionary.IsFixedSize => false;
@@ -640,7 +626,6 @@ namespace FLib
             mDictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public KeyValuePair<K, V>[] Items => mDictionary.ToArray();
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)] public KeyValuePair<K, V>[] Items => mDictionary.ToArray();
     }
 }
