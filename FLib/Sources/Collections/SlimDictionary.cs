@@ -379,6 +379,14 @@ namespace FLib
             return ref index >= 0 ? ref mEntries[index].Value : ref Unsafe.NullRef<TValue>();
         }
 
+        /// <summary>  </summary>
+        public ref TValue GetValueRefOrNullRef(TKey key, out bool isNullValue)
+        {
+            ref var value = ref GetValueRefOrNullRef(key);
+            isNullValue = value == null;
+            return ref value;
+        }
+
         // Not safe for concurrent _reads_ (at least, if either of them add)
         // For concurrent reads, prefer TryGetValue(key, out value)
         /// <summary>
