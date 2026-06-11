@@ -366,14 +366,14 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public TValue GetValueOrDefault(in TKey key)
+        public TValue GetValueOrDefault(TKey key)
         {
             var entry = FindEntry(key, key.GetHashCode(), out _);
             return entry >= 0 ? mEntries[entry].Value : default;
         }
 
         /// <summary>  </summary>
-        public ref TValue GetValueRefOrNullRef(in TKey key)
+        public ref TValue GetValueRefOrNullRef(TKey key)
         {
             var index = FindEntry(key, key.GetHashCode(), out _);
             return ref index >= 0 ? ref mEntries[index].Value : ref Unsafe.NullRef<TValue>();
