@@ -9,7 +9,6 @@ namespace FLib.WorldCores.Entities
 {
     public struct WorldEntityInfo
     {
-        public static WorldEntityInfo Empty = default;
         public WorldChunk Chunk;
         public readonly ushort Version;
         public ushort IndexInChunk;

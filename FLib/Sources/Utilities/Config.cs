@@ -24,12 +24,12 @@ namespace FLib
     /// </summary>
     public static class Config<T> where T : IBytesPackable, new()
     {
-        /// <summary> 未找到配置时返回的默认值。 </summary>
-        public static readonly T DefaultConfig = default;
         /// <summary> 所有配置元数据，按表内顺序存储。 </summary>
         public static Meta[] AllMetas;
+
         /// <summary> 配置 ID 到表内索引的映射。 </summary>
         public static IReadOnlyDictionary<uint, int> IdMetas;
+
         /// <summary> 当前配置数量。 </summary>
         public static int Count => (AllMetas?.Length).GetValueOrDefault();
 
@@ -40,8 +40,10 @@ namespace FLib
         {
             /// <summary> 原始序列化数据，可能为压缩数据。 </summary>
             public byte[] RawBytes;
+
             /// <summary> 反序列化后的配置值。 </summary>
             public T Value;
+
             /// <summary> 当前存储和加载选项。 </summary>
             public ConfigHelper.EOption Options;
         }
@@ -101,25 +103,37 @@ namespace FLib
             return IdMetas.ContainsKey(id);
         }
 
-        /// <summary>
-        /// 按字符串 ID 获取配置引用；未找到时返回默认值。
-        /// </summary>
+        /// <summary> 按字符串 ID 获取配置引用；返回null ref。 </summary>
+        public static ref readonly T Get(string id, out bool isNullValue, ELogLevel logLevel = ELogLevel.Fatal)
+        {
+            ref readonly var v = ref Get(id, logLevel);
+            isNullValue = Unsafe.IsNullRef(ref Unsafe.AsRef(v));
+            return ref v;
+        }
+
+        /// <summary> 按字符串 ID 获取配置引用；返回null ref。 </summary>
         public static ref readonly T Get(string id, ELogLevel logLevel = ELogLevel.Fatal)
         {
             var index = GetIndex(id, logLevel);
             if (index < 0)
-                return ref DefaultConfig;
+                return ref Unsafe.NullRef<T>();
             return ref Index(index);
         }
 
-        /// <summary>
-        /// 按数值 ID 获取配置引用；未找到时返回默认值。
-        /// </summary>
+        /// <summary> 按数值 ID 获取配置引用；返回null ref。 </summary>
+        public static ref readonly T Get(uint id, out bool isNullValue, ELogLevel logLevel = ELogLevel.Fatal)
+        {
+            ref readonly var v = ref Get(id, logLevel);
+            isNullValue = Unsafe.IsNullRef(ref Unsafe.AsRef(v));
+            return ref v;
+        }
+
+        /// <summary> 按数值 ID 获取配置引用；返回null ref。 </summary>
         public static ref readonly T Get(uint id, ELogLevel logLevel = ELogLevel.Fatal)
         {
             var index = GetIndex(id, logLevel);
             if (index < 0)
-                return ref DefaultConfig;
+                return ref Unsafe.NullRef<T>();
             return ref Index(index);
         }
 
@@ -154,7 +168,7 @@ namespace FLib
             if (AllMetas == null || configMetaIndex < 0 || configMetaIndex >= AllMetas.Length)
             {
                 Log.Get(logLevel)?.Write($"not found config index {typeof(T).Name}.{configMetaIndex}");
-                return ref DefaultConfig;
+                return ref Unsafe.NullRef<T>();
             }
 
             ref var v = ref AllMetas[configMetaIndex];
@@ -392,6 +406,7 @@ namespace FLib
     {
         /// <summary> 配置文件名。 </summary>
         public string ConfigFileName => Name;
+
         /// <summary> 配置加载选项。 </summary>
         public ConfigHelper.EOption Options;
 
@@ -419,8 +434,10 @@ namespace FLib
     {
         /// <summary> 额外注册的构建后处理。 </summary>
         public static List<ConfigPostBuildProcessData> AdditionConfigPostBuildProcesses;
+
         /// <summary> 目标配置类型。 </summary>
         public Type CfgType;
+
         /// <summary> 构建后处理实例。 </summary>
         public IConfigPostBuildProcessable Process;
     }
