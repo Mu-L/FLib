@@ -326,7 +326,7 @@ namespace FLib
                 deserializeConfigTableParams[0] = buffer[reader.Position..];
                 if (customDeserialize != null)
                 {
-                    customDeserialize.Invoke(null, deserializeConfigTableParams);
+                    reader.Position += (int)customDeserialize.Invoke(null, deserializeConfigTableParams);
                 }
                 else
                 {

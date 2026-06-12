@@ -244,7 +244,7 @@ namespace FLib
         /// <summary>
         /// 字符串转换为FNV1AHash，适合较短的字符串，性能更好，比如名称这些
         /// </summary>
-        public static int ShortStringToHash(in ReadOnlySpan<char> text)
+        public static int ShortStringToHash(ReadOnlySpan<char> text)
         {
             const uint seed = 0x811c9dc5;
             const uint fnvPrime = 16777619;
@@ -265,7 +265,7 @@ namespace FLib
         /// <summary>
         /// 字符串转换为Murmurhash，性能低点，但是冲突概率更小
         /// </summary>
-        public static int LongTextToHash(in ReadOnlySpan<char> data)
+        public static int LongTextToHash(ReadOnlySpan<char> data)
         {
             const uint c1 = 0xcc9e2d51;
             const uint c2 = 0x1b873593;

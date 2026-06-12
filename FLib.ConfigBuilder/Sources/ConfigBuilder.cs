@@ -136,7 +136,7 @@ namespace FLib
                 try
                 {
                     var index = AllConfigs.Count;
-                    var id = _indexIdTypeCode == TypeCode.String ? ConfigHelper.StringToUniqueId(objId.ToString()) : Convert.ToUInt32(objId);
+                    var id = _indexIdTypeCode >= TypeCode.SByte && _indexIdTypeCode <= TypeCode.UInt64 ? Convert.ToUInt32(objId) : ConfigHelper.StringToUniqueId(objId.ToString());
                     if (!AllConfigIdIndexes.TryAdd(id, index))
                         Log.Error?.Write($"存在相同Id配置: {ConfigType.Name}.{objId}\n{SourceFile}");
                     AllConfigs.Add((id, config));
