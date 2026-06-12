@@ -29,12 +29,7 @@ namespace FLib
         Default = Clear | UseProperty,
     }
 
-    public record ConfigGenerateParams(
-        string SourceDirPath,
-        string DestDirPath,
-        string Namespace,
-        EConfigGenerateOption Options = EConfigGenerateOption.Default,
-        string[] Usings = null)
+    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null)
     {
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
         public bool Op(EConfigGenerateOption op) => (Options & op) != EConfigGenerateOption.None;
@@ -42,6 +37,8 @@ namespace FLib
 
     public static class ConfigGenerator
     {
+        public static Action OnGenerateProcess;
+        public static Func<string, Json5AnyValue, StringBuilder, bool> OnGenerateSchemaHook;
         private static int _finishedTaskCount;
         public static int FinishedTaskCount => _finishedTaskCount;
         public static int TotalTasks { get; private set; }
@@ -68,6 +65,7 @@ namespace FLib
 
             TotalTasks = tasks.Count;
             await Task.WhenAll(tasks);
+            OnGenerateProcess?.Invoke();
         }
 
         /// <summary>

@@ -19,9 +19,7 @@ using System.Threading;
 
 namespace FLib
 {
-    /// <summary>
-    /// 配置表运行时访问入口。
-    /// </summary>
+    /// <summary> 配置表运行时访问入口。 </summary>
     public static class Config<T> where T : IBytesPackable, new()
     {
         /// <summary> 所有配置元数据，按表内顺序存储。 </summary>
@@ -33,9 +31,7 @@ namespace FLib
         /// <summary> 当前配置数量。 </summary>
         public static int Count => (AllMetas?.Length).GetValueOrDefault();
 
-        /// <summary>
-        /// 单条配置的缓存状态。
-        /// </summary>
+        /// <summary> 单条配置的缓存状态。 </summary>
         public struct Meta
         {
             /// <summary> 原始序列化数据，可能为压缩数据。 </summary>
@@ -48,9 +44,7 @@ namespace FLib
             public ConfigHelper.EOption Options;
         }
 
-        /// <summary>
-        /// 配置遍历入口。
-        /// </summary>
+        /// <summary> 配置遍历入口。 </summary>
         public readonly struct Enumerable : IEnumerable<T>
         {
             public Enumerator GetEnumerator() => Config<T>.GetEnumerator();
@@ -58,9 +52,7 @@ namespace FLib
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
-        /// <summary>
-        /// 配置遍历器。
-        /// </summary>
+        /// <summary> 配置遍历器。 </summary>
         public struct Enumerator : IEnumerator<T>
         {
             /// <summary> 当前表内索引。 </summary>
@@ -87,17 +79,13 @@ namespace FLib
             }
         }
 
-        /// <summary>
-        /// 判断字符串 ID 对应的配置是否存在。
-        /// </summary>
+        /// <summary> 判断字符串 ID 对应的配置是否存在。 </summary>
         public static bool Contains(string id)
         {
             return Contains(ConfigHelper.StringToUniqueId(id));
         }
 
-        /// <summary>
-        /// 判断数值 ID 对应的配置是否存在。
-        /// </summary>
+        /// <summary> 判断数值 ID 对应的配置是否存在。 </summary>
         public static bool Contains(uint id)
         {
             return IdMetas.ContainsKey(id);
@@ -137,9 +125,7 @@ namespace FLib
             return ref Index(index);
         }
 
-        /// <summary>
-        /// 按数值 ID 获取表内索引；未找到返回 -1。
-        /// </summary>
+        /// <summary> 按数值 ID 获取表内索引；未找到返回 -1。 </summary>
         public static int GetIndex(uint id, ELogLevel logLevel = ELogLevel.Fatal)
         {
             if (IdMetas.TryGetValue(id, out var index))
@@ -148,9 +134,7 @@ namespace FLib
             return -1;
         }
 
-        /// <summary>
-        /// 按字符串 ID 获取表内索引；未找到返回 -1。
-        /// </summary>
+        /// <summary> 按字符串 ID 获取表内索引；未找到返回 -1。 </summary>
         public static int GetIndex(string id, ELogLevel logLevel = ELogLevel.Fatal)
         {
             if (IdMetas.TryGetValue(ConfigHelper.StringToUniqueId(id), out var index))
@@ -160,9 +144,7 @@ namespace FLib
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
-        /// <summary>
-        /// 按表内索引获取配置引用；索引无效时返回默认值。
-        /// </summary>
+        /// <summary> 按表内索引获取配置引用；索引无效时返回默认值。 </summary>
         public static ref readonly T Index(int configMetaIndex, ELogLevel logLevel = ELogLevel.Fatal)
         {
             if (AllMetas == null || configMetaIndex < 0 || configMetaIndex >= AllMetas.Length)
@@ -177,9 +159,7 @@ namespace FLib
             return ref v.Value;
         }
 
-        /// <summary>
-        /// 将指定 ID 的配置反序列化到目标实例。
-        /// </summary>
+        /// <summary> 将指定 ID 的配置反序列化到目标实例。 </summary>
         public static void CopyTo(uint id, ref T to)
         {
             ref var meta = ref AllMetas[IdMetas[id]];
@@ -187,22 +167,16 @@ namespace FLib
             BytesPack.Unpack(ref to, meta.RawBytes);
         }
 
-        /// <summary>
-        /// 所有配置的可遍历视图。
-        /// </summary>
+        /// <summary> 所有配置的可遍历视图。 </summary>
         public static Enumerable All => default;
 
-        /// <summary>
-        /// 创建配置遍历器。
-        /// </summary>
+        /// <summary> 创建配置遍历器。 </summary>
         public static Enumerator GetEnumerator()
         {
             return new Enumerator { Index = -1 };
         }
 
-        /// <summary>
-        /// 设置或追加一条配置。
-        /// </summary>
+        /// <summary> 设置或追加一条配置。 </summary>
         public static void Set(uint id, in T v, bool isAdd = false)
         {
             var meta = new Meta { Value = v, Options = ConfigHelper.EOption.__DeserializedData };
@@ -225,9 +199,7 @@ namespace FLib
             }
         }
 
-        /// <summary>
-        /// 从字节流解析单条配置元数据。
-        /// </summary>
+        /// <summary> 从字节流解析单条配置元数据。 </summary>
         public static void DeserializeConfigParse(uint id, ref BytesReader reader, out Meta meta, bool isSkip = false, ConfigHelper.EOption addOptions = default)
         {
             meta = new Meta { Options = reader.Read<ConfigHelper.EOption>() | addOptions };
@@ -305,59 +277,41 @@ namespace FLib
         }
     }
 
-    /// <summary>
-    /// 配置表通用工具。
-    /// </summary>
+    /// <summary> 配置表通用工具。 </summary>
     public static class ConfigHelper
     {
         [Flags]
         public enum EOption : byte
         {
-            /// <summary>
-            /// 总是保留字节数据，而不是反序列之后释放 （该选项会增加内存占用）
-            /// </summary>
+            /// <summary> 总是保留字节数据，而不是反序列之后释放 （该选项会增加内存占用） </summary>
             AlwaysStoreRawBytes = 0x1,
 
-            /// <summary>
-            /// 总是反序列化数据，而不是等待使用时反序列化 （该选项会增加内存占用和性能峰值过高）
-            /// </summary>
+            /// <summary> 总是反序列化数据，而不是等待使用时反序列化 （该选项会增加内存占用和性能峰值过高） </summary>
             AlwaysDeserializeData = 0x2,
 
-            /// <summary>
-            /// 总是压缩，默认是根据数据大小自动压缩 (该选项会增加性能开销，减少内存占用)
-            /// </summary>
+            /// <summary> 总是压缩，默认是根据数据大小自动压缩 (该选项会增加性能开销，减少内存占用) </summary>
             AlwaysCompressRawData = 0x4,
 
-            /// <summary>
-            /// 按照id排序
-            /// </summary>
+            /// <summary> 按照id排序 </summary>
             OrderById = 0x8,
 
-            /// <summary>
-            /// 已经反序列过数据（主要运行时内部使用的标识）
-            /// </summary>
+            /// <summary> 已经反序列过数据（主要运行时内部使用的标识） </summary>
             [EditorBrowsable(EditorBrowsableState.Advanced)]
             // ReSharper disable once InconsistentNaming
             __DeserializedData = 0x80,
         }
 
-        /// <summary>
-        /// 将字符串 ID 转为配置表使用的数值 ID。
-        /// </summary>
+        /// <summary> 将字符串 ID 转为配置表使用的数值 ID。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint StringToUniqueId(string str)
         {
             return (uint)StringFLibUtility.ShortStringToHash(str);
         }
 
-        /// <summary>
-        /// 从文件加载全部配置表。
-        /// </summary>
+        /// <summary> 从文件加载全部配置表。 </summary>
         public static int DeserializeAll(string path, out int buildConfigCount) => DeserializeAll(File.ReadAllBytes(path), out buildConfigCount);
 
-        /// <summary>
-        /// 从内存数据加载全部配置表。
-        /// </summary>
+        /// <summary> 从内存数据加载全部配置表。 </summary>
         public static int DeserializeAll(Memory<byte> buffer, out int buildConfigCount)
         {
             buffer = Compressor.Uncompress(buffer.Span).ToArray();
@@ -398,9 +352,7 @@ namespace FLib
         }
     }
 
-    /// <summary>
-    /// 标记类型对应的配置表文件。
-    /// </summary>
+    /// <summary> 标记类型对应的配置表文件。 </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
     public class ConfigAttribute : CommentAttribute
     {
@@ -419,17 +371,13 @@ namespace FLib
         public ConfigAttribute(string configFileName, ConfigHelper.EOption options) : this(configFileName) => Options = options;
     }
 
-    /// <summary>
-    /// 当配置表build之后的回调
-    /// </summary>
+    /// <summary> 当配置表build之后的回调 </summary>
     public interface IConfigPostBuildProcessable
     {
         void OnConfigPostBuildProcess(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts);
     }
 
-    /// <summary>
-    /// 当配置表build之后的回调, 自己注册
-    /// </summary>
+    /// <summary> 当配置表build之后的回调, 自己注册 </summary>
     public class ConfigPostBuildProcessData
     {
         /// <summary> 额外注册的构建后处理。 </summary>
@@ -442,17 +390,13 @@ namespace FLib
         public IConfigPostBuildProcessable Process;
     }
 
-    /// <summary>
-    /// 配置文件自定义构建到表, 由自己写入到context
-    /// </summary>
+    /// <summary> 配置文件自定义构建到表, 由自己写入到context </summary>
     public interface IConfigFileCustomBuildToTable
     {
         void ConfigFileDeserializeToTable(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts);
     }
 
-    /// <summary>
-    /// 配置表构建上下文
-    /// </summary>
+    /// <summary> 配置表构建上下文 </summary>
     public interface IConfigBuildTableContext
     {
         Type ConfigType { get; set; }
