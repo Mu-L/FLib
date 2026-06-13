@@ -27,7 +27,7 @@ namespace FLib
 
         public readonly override string ToString()
         {
-            return $"{X}/{Y}";
+            return $"{X},{Y}";
         }
 
 
@@ -72,6 +72,7 @@ namespace FLib
                 else
                     break;
             }
+
             if (node.Token != EJson5Token.Close)
                 nodes.MoveNext(EJson5Token.Close);
         }

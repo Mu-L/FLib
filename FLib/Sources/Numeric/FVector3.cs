@@ -55,7 +55,7 @@ namespace FLib
 
         public readonly override string ToString()
         {
-            return $"{X:0.###}/{Y:0.###}/{Z:0.###}";
+            return $"{X:0.###},{Y:0.###},{Z:0.###}";
         }
 
         bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
