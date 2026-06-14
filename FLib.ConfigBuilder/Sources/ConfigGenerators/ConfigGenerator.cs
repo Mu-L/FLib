@@ -29,7 +29,7 @@ namespace FLib
         Default = Clear | UseProperty,
     }
 
-    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null)
+    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null, string ConstConfigFileName = null)
     {
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
         public bool Op(EConfigGenerateOption op) => (Options & op) != EConfigGenerateOption.None;
@@ -39,17 +39,13 @@ namespace FLib
     {
         public static Action OnGenerateProcess;
         public static Func<string, Json5AnyValue, StringBuilder, bool> OnGenerateSchemaHook;
-        private static int _finishedTaskCount;
-        public static int FinishedTaskCount => _finishedTaskCount;
-        public static int TotalTasks { get; private set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public static async Task Process(ConfigGenerateParams p)
+        public static void Process(ConfigGenerateParams p)
         {
             Log.Info?.Write($"generate config {p}", nameof(ConfigGenerator));
-            TotalTasks = _finishedTaskCount = 0;
             if (p.Op(EConfigGenerateOption.Clear))
             {
                 foreach (var item in Directory.GetFiles(p.DestDirPath, "*.Gen.cs", SearchOption.TopDirectoryOnly))
@@ -59,72 +55,79 @@ namespace FLib
                 }
             }
 
-            var tasks = new ConcurrentBag<Task>() { ProcessDefines(p) };
-            Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath =>
-                tasks.Add(ProcessConfig(jsonPath, p)));
-
-            TotalTasks = tasks.Count;
-            await Task.WhenAll(tasks);
+            ProcessDefines(p);
+            ProcessConstConfig(p);
+            Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
             OnGenerateProcess?.Invoke();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public static async Task ProcessConfig(string jsonPath, ConfigGenerateParams p)
+        /// <summary>  </summary>
+        public static void ProcessConstConfig(ConfigGenerateParams p)
         {
-            var jsonText = await File.ReadAllTextAsync(jsonPath);
-            var strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
-            var json = Json5.Deserialize<Json5AnyValue>(jsonText);
+            if (string.IsNullOrEmpty(p.ConstConfigFileName))
+                return;
+            var path = Path.Combine(p.SourceDirPath, p.ConstConfigFileName + ".json5");
+            if (!File.Exists(path))
+                return;
+
+            var json = ReadJson5(path, p, out var strbuf);
             if (json == null || json.Count == 0)
                 return;
+
             var indent = 1;
             var name = json["Name"].ToString();
-            var fileName = Path.GetFileNameWithoutExtension(jsonPath)[..^7];
-            Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
-
-            strbuf.AppendComment(indent, json, "Design")
-                .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
-                .Indent(indent).Append("public partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
+            Log.Info?.Write($"Process Const Config {name}", nameof(ConfigGenerator));
+            strbuf.Indent(indent).Append("public static partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
             ++indent;
-
-            foreach (var (key, fieldValue) in json["Fields"].Dict)
-            {
-                strbuf.AppendComment(indent, fieldValue);
-                strbuf.Indent(indent).Append("[BytesPackGenField] ")
-                    .Append("public ").Append(fieldValue["Type"].ToString()).Append(' ')
-                    .Append(key);
-                if (p.Op(EConfigGenerateOption.UseProperty))
-                    strbuf.Append(" { get; private set; }").AppendDefaultValue(fieldValue);
-                else
-                    strbuf.AppendDefaultValue(fieldValue)?.Append(';');
-
-                strbuf.AppendLine().AppendLine();
-            }
-
-            strbuf.Indent(indent).Append("public override string ToString() => ");
-            var logFields = json["Fields"].Dict.Keys.Take(4).Select(k => $"Json5.SerializeToLog({k})").ToArray();
-            if (logFields.Length > 0)
-                strbuf.Append("string.Join(\",\", new[] { ").Append(string.Join(", ", logFields)).AppendLine(" });").AppendLine();
-            else
-                strbuf.AppendLine("string.Empty;").AppendLine();
-
+            strbuf.AppendConfigSchemaFields(json["Fields"].Dict, indent, p, "static");
             --indent;
             strbuf.Indent(indent).AppendLine("}");
-            if (p.HasNamespace)
-                strbuf.Append('}');
-            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, $"{name}.Gen.cs"), strbuf.ToString());
-            Interlocked.Increment(ref _finishedTaskCount);
+            WriteGeneratedFile(strbuf, p, $"{name}.Gen.cs");
+        }
+
+        /// <summary>  </summary>
+        public static void ProcessConfig(string jsonPath, ConfigGenerateParams p)
+        {
+            try
+            {
+                var json = ReadJson5(jsonPath, p, out var strbuf);
+                if (json == null || json.Count == 0)
+                    return;
+                var indent = 1;
+                var name = json["Name"].ToString();
+                var fileName = Path.GetFileNameWithoutExtension(jsonPath)[..^7];
+                Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
+
+                strbuf.AppendComment(indent, json, "Design")
+                    .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
+                    .Indent(indent).Append("public partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
+                ++indent;
+
+                strbuf.AppendConfigSchemaFields(json["Fields"].Dict, indent, p);
+
+                strbuf.Indent(indent).Append("public override string ToString() => ");
+                var logFields = json["Fields"].Dict.Keys.Take(4).Select(k => $"Json5.SerializeToLog({k})").ToArray();
+                if (logFields.Length > 0)
+                    strbuf.Append("string.Join(\",\", new[] { ").Append(string.Join(", ", logFields)).AppendLine(" });").AppendLine();
+                else
+                    strbuf.AppendLine("string.Empty;").AppendLine();
+
+                --indent;
+                strbuf.Indent(indent).AppendLine("}");
+                WriteGeneratedFile(strbuf, p, $"{name}.Gen.cs");
+            }
+            catch (Exception e)
+            {
+                throw new Exception(jsonPath, e);
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public static async Task ProcessDefines(ConfigGenerateParams p)
+        public static void ProcessDefines(ConfigGenerateParams p)
         {
-            var jsonText = await File.ReadAllTextAsync(Path.Combine(p.SourceDirPath, "_defines.json5"));
-            var strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
-            var json = Json5.Deserialize<Json5AnyValue>(jsonText);
+            var json = ReadJson5(Path.Combine(p.SourceDirPath, "_defines.json5"), p, out var strbuf);
             var indent = 1;
 
             // 生成枚举
@@ -186,11 +189,23 @@ namespace FLib
                 }
             }
 
+            WriteGeneratedFile(strbuf, p, "_ConfigDefines.Gen.cs");
+        }
+
+        /// <summary>  </summary>
+        private static Json5AnyValue ReadJson5(string path, ConfigGenerateParams p, out StringBuilder strbuf)
+        {
+            var jsonText = File.ReadAllText(path);
+            strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
+            return Json5.Deserialize<Json5AnyValue>(jsonText);
+        }
+
+        /// <summary>  </summary>
+        private static void WriteGeneratedFile(StringBuilder strbuf, ConfigGenerateParams p, string fileName)
+        {
             if (p.HasNamespace)
                 strbuf.Append('}');
-
-            await File.WriteAllTextAsync(Path.Combine(p.DestDirPath, "_ConfigDefines.Gen.cs"), strbuf.ToString());
-            Interlocked.Increment(ref _finishedTaskCount);
+            File.WriteAllText(Path.Combine(p.DestDirPath, fileName), strbuf.ToString());
         }
 
         /// <summary>
@@ -238,6 +253,27 @@ namespace FLib
             strbuf.AppendLine();
             if (p.HasNamespace)
                 strbuf.Append("namespace ").Append(p.Namespace).AppendLine().AppendLine("{");
+            return strbuf;
+        }
+
+        /// <summary>  </summary>
+        private static StringBuilder AppendConfigSchemaFields(this StringBuilder strbuf, Dictionary<string, Json5AnyValue> fields, int indent, ConfigGenerateParams p, string modifier = null)
+        {
+            foreach (var (key, fieldValue) in fields)
+            {
+                strbuf.AppendComment(indent, fieldValue);
+                strbuf.Indent(indent).Append("[BytesPackGenField] ").Append("public ");
+                if (!string.IsNullOrEmpty(modifier))
+                    strbuf.Append(modifier).Append(' ');
+                strbuf.Append(fieldValue["Type"].ToString()).Append(' ').Append(key);
+                if (p.Op(EConfigGenerateOption.UseProperty))
+                    strbuf.Append(" { get; private set; }").AppendDefaultValue(fieldValue);
+                else
+                    strbuf.AppendDefaultValue(fieldValue)?.Append(';');
+
+                strbuf.AppendLine().AppendLine();
+            }
+
             return strbuf;
         }
     }
