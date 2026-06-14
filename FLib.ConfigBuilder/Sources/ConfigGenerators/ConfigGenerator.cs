@@ -69,20 +69,13 @@ namespace FLib
             var path = Path.Combine(p.SourceDirPath, p.ConstConfigFileName + ".json5");
             if (!File.Exists(path))
                 return;
-
-            var json = ReadJson5(path, p, out var strbuf);
-            if (json == null || json.Count == 0)
-                return;
-
-            var indent = 1;
-            var name = json["Name"].ToString();
-            Log.Info?.Write($"Process Const Config {name}", nameof(ConfigGenerator));
-            strbuf.Indent(indent).Append("public static partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
-            ++indent;
-            strbuf.AppendConfigSchemaFields(json["Fields"].Dict, indent, p, "static");
-            --indent;
-            strbuf.Indent(indent).AppendLine("}");
-            WriteGeneratedFile(strbuf, p, $"{name}.Gen.cs");
+            WriteConfigClassHead(path, p, Path.GetFileNameWithoutExtension(path), out var strbuf, out var indent, out var json, out var name);
+            strbuf.AppendConfigSchemaFields(json["Fields"].Dict, ++indent, p, "static");
+            
+            // 这里写入生成自定义序列化的代码
+            
+            strbuf.Indent(--indent).AppendLine("}");
+            strbuf.WriteGeneratedFile(p, $"{name}.Gen.cs");
         }
 
         /// <summary>  </summary>
@@ -90,31 +83,11 @@ namespace FLib
         {
             try
             {
-                var json = ReadJson5(jsonPath, p, out var strbuf);
-                if (json == null || json.Count == 0)
-                    return;
-                var indent = 1;
-                var name = json["Name"].ToString();
-                var fileName = Path.GetFileNameWithoutExtension(jsonPath)[..^7];
-                Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
-
-                strbuf.AppendComment(indent, json, "Design")
-                    .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
-                    .Indent(indent).Append("public partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
-                ++indent;
-
-                strbuf.AppendConfigSchemaFields(json["Fields"].Dict, indent, p);
-
-                strbuf.Indent(indent).Append("public override string ToString() => ");
-                var logFields = json["Fields"].Dict.Keys.Take(4).Select(k => $"Json5.SerializeToLog({k})").ToArray();
-                if (logFields.Length > 0)
-                    strbuf.Append("string.Join(\",\", new[] { ").Append(string.Join(", ", logFields)).AppendLine(" });").AppendLine();
-                else
-                    strbuf.AppendLine("string.Empty;").AppendLine();
-
-                --indent;
-                strbuf.Indent(indent).AppendLine("}");
-                WriteGeneratedFile(strbuf, p, $"{name}.Gen.cs");
+                WriteConfigClassHead(jsonPath, p, Path.GetFileNameWithoutExtension(jsonPath)[..^7], out var strbuf, out var indent, out var json, out var name);
+                strbuf.AppendConfigSchemaFields(json["Fields"].Dict, ++indent, p);
+                WriteConfigToString(strbuf, indent, json);
+                strbuf.Indent(--indent).AppendLine("}");
+                strbuf.WriteGeneratedFile(p, $"{name}.Gen.cs");
             }
             catch (Exception e)
             {
@@ -189,19 +162,47 @@ namespace FLib
                 }
             }
 
-            WriteGeneratedFile(strbuf, p, "_ConfigDefines.Gen.cs");
+            strbuf.WriteGeneratedFile(p, "_ConfigDefines.Gen.cs");
         }
 
         /// <summary>  </summary>
         private static Json5AnyValue ReadJson5(string path, ConfigGenerateParams p, out StringBuilder strbuf)
         {
             var jsonText = File.ReadAllText(path);
-            strbuf = new StringBuilder(jsonText.Length).AppendHead(p);
+            strbuf = new StringBuilder(jsonText.Length).AppendFileHead(p);
             return Json5.Deserialize<Json5AnyValue>(jsonText);
         }
 
+
         /// <summary>  </summary>
-        private static void WriteGeneratedFile(StringBuilder strbuf, ConfigGenerateParams p, string fileName)
+        private static void WriteConfigClassHead(string jsonPath, ConfigGenerateParams p, string fileName, out StringBuilder strbuf, out int indent, out Json5AnyValue json, out string name)
+        {
+            indent = 1;
+            name = null;
+            json = ReadJson5(jsonPath, p, out strbuf);
+            if (json == null || json.Count == 0)
+                return;
+            name = json["Name"].ToString();
+            Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
+
+            strbuf.AppendComment(indent, json, "Design")
+                .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
+                .Indent(indent).Append("public partial class ").Append(name).AppendLine().Indent(indent).AppendLine("{");
+        }
+
+        /// <summary>  </summary>
+        private static void WriteConfigToString(StringBuilder strbuf, int indent, Json5AnyValue json)
+        {
+            strbuf.Indent(indent).Append("public override string ToString() => ");
+            var logFields = json["Fields"].Dict.Keys.Take(4).Select(k => $"Json5.SerializeToLog({k})").ToArray();
+            if (logFields.Length > 0)
+                strbuf.Append("string.Join(\",\", new[] { ").Append(string.Join(", ", logFields)).AppendLine(" });").AppendLine();
+            else
+                strbuf.AppendLine("string.Empty;").AppendLine();
+        }
+
+        /// <summary>  </summary>
+        private static void WriteGeneratedFile(this StringBuilder strbuf, ConfigGenerateParams p, string fileName)
         {
             if (p.HasNamespace)
                 strbuf.Append('}');
@@ -239,7 +240,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        private static StringBuilder AppendHead(this StringBuilder strbuf, ConfigGenerateParams p)
+        private static StringBuilder AppendFileHead(this StringBuilder strbuf, ConfigGenerateParams p)
         {
             strbuf.AppendLine("// generate sources by FLib.ConfigBuilder").AppendLine()
                 .AppendLine("using System;")

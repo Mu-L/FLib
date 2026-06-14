@@ -407,7 +407,7 @@ namespace FLib
         ConfigHelper.EOption Options { get; set; }
         List<(uint Id, IBytesPackable Cfg)> AllConfigs { get; set; }
         Dictionary<uint, int> AllConfigIdIndexes { get; set; }
-        (uint Id, int Index)? AddConfig(object objId, IBytesPackable config);
+        (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, TypeCode overrideTypeCode = TypeCode.Empty);
         (uint Id, int Index)? AddConfigByDynamicId(IBytesPackable config);
     }
 }

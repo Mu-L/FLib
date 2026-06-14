@@ -86,8 +86,8 @@ namespace FLib
                 SourceFile = sourceFile;
                 ConfigType = type;
                 Options = options;
-                IndexIdField = ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(v => v.MetadataToken).First();
-                _indexIdTypeCode = Type.GetTypeCode(IndexIdField.FieldType);
+                IndexIdField = ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(v => v.MetadataToken).FirstOrDefault();
+                _indexIdTypeCode = Type.GetTypeCode(IndexIdField?.FieldType);
             }
 
             /// <summary>
@@ -127,7 +127,7 @@ namespace FLib
             /// <summary>
             /// 
             /// </summary>0
-            public (uint Id, int Index)? AddConfig(object objId, IBytesPackable config)
+            public (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, TypeCode overrideTypeCode = TypeCode.Empty)
             {
                 if (objId == null || config == null)
                     return null;
@@ -136,7 +136,9 @@ namespace FLib
                 try
                 {
                     var index = AllConfigs.Count;
-                    var id = _indexIdTypeCode >= TypeCode.SByte && _indexIdTypeCode <= TypeCode.UInt64 ? Convert.ToUInt32(objId) : ConfigHelper.StringToUniqueId(objId.ToString());
+                    if (overrideTypeCode == TypeCode.Empty)
+                        overrideTypeCode = _indexIdTypeCode;
+                    var id = overrideTypeCode >= TypeCode.SByte && overrideTypeCode <= TypeCode.UInt64 ? Convert.ToUInt32(objId) : ConfigHelper.StringToUniqueId(objId.ToString());
                     if (!AllConfigIdIndexes.TryAdd(id, index))
                         Log.Error?.Write($"存在相同Id配置: {ConfigType.Name}.{objId}\n{SourceFile}");
                     AllConfigs.Add((id, config));
