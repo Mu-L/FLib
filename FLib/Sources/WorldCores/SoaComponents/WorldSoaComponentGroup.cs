@@ -104,13 +104,13 @@ namespace FLib.WorldCores.SoaComponents
             try
             {
                 ref readonly var info = ref WorldComponentRegistry.GetInfo<T>();
-                (!onEntityDestroyed || info.Op(EComponentOption.AlwaysReceiveDestroy) ? info.DestroyWithComponentSelf : info.Destroy)
+                (!onEntityDestroyed || info.Flags(EComponentFlag.AlwaysReceiveDestroy) ? info.DestroyWithComponentSelf : info.Destroy)
                     .Invoke(ref Unsafe.As<T, byte>(ref Components[index]), World, et);
             }
             finally
             {
                 ComponentEntities[index] = default;
-                if (!WorldComponentGenericMap<T>.Info.Op(EComponentOption.DoNotResetMemory))
+                if (!WorldComponentGenericMap<T>.Info.Flags(EComponentFlag.DoNotResetMemory))
                     Components[index] = default;
                 --Count;
                 if (index < Count)

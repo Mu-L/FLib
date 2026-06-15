@@ -185,7 +185,7 @@ namespace FLib.WorldCores.Entities
         internal static void AssertNewComponent(WorldCore world, in WorldComponentInfo info, bool isShared)
         {
             world.Assert(!WorldStaticComponentMask.Get(info.Meta), msg: "already exist");
-            world.Assert(!info.Op(EComponentOption.RejectChunk));
+            world.Assert(!info.Flags(EComponentFlag.RejectChunk));
             if (isShared)
                 world.Assert(!info.HasLifecycle, msg: "nonsupport life invoker");
             else

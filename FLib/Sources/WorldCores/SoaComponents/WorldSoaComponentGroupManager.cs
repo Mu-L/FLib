@@ -60,7 +60,7 @@ namespace FLib.WorldCores.SoaComponents
         public IWorldSoaComponentGroupable CreateGroup(Type componentType)
         {
             ref readonly var info = ref WorldComponentRegistry.GetInfo(componentType);
-            World.Assert(!info.Op(EComponentOption.RejectSoa));
+            World.Assert(!info.Flags(EComponentFlag.RejectSoa));
             if (info.IsShared)
                 return (IWorldSoaComponentGroupable)TypeAssistant.New(typeof(WorldSharedComponentGroup<>).MakeGenericType(componentType), World);
             if (typeof(IWorldUpdate).IsAssignableFrom(componentType) || typeof(IWorldStart).IsAssignableFrom(componentType))

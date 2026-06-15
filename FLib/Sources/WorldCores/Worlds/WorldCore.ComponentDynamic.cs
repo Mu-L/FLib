@@ -74,7 +74,7 @@ namespace FLib.WorldCores
             else
             {
                 ref readonly var info = ref WorldComponentRegistry.GetInfo<T>();
-                if (info.IsAwakeComponent || (info.IsDestroyComponent && info.Op(EComponentOption.AlwaysReceiveDestroy)))
+                if (info.IsAwakeComponent || (info.IsDestroyComponent && info.Flags(EComponentFlag.AlwaysReceiveDestroy)))
                 {
                     group.Free(et, slot, false);
                     slot = group.Alloc(et, component);

@@ -10,7 +10,7 @@ using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Behaviors
 {
-    [WorldComponentOption(options: EComponentOption.RejectSoa)]
+    [WorldComponentOption(flags: EComponentFlag.RejectSoa)]
     public struct WorldBehaviorSystem : IWorldAwake, IWorldDestroy
     {
         public WorldEntity Self;

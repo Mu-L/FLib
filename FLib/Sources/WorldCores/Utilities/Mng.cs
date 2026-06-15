@@ -5,7 +5,7 @@ using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores
 {
-    [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
+    [WorldComponentOption(flags: EComponentFlag.AlwaysReceiveDestroy)]
     public struct Mng<T> : IWorldAwake, IWorldDestroy
     {
         /// <summary>

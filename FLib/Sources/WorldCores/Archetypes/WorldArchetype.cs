@@ -108,7 +108,7 @@ namespace FLib.WorldCores.Archetypes
             for (var i = 0; i < ComponentTypes.Length; i++)
             {
                 ref readonly var info = ref WorldComponentRegistry.GetInfo(ComponentTypes[i]);
-                (info.Op(EComponentOption.AlwaysReceiveDestroy) ? info.DestroyWithComponentSelf : info.Destroy).Invoke(ref *(byte*)chunk.Get(eti.IndexInChunk, info.Meta), World, et);
+                (info.Flags(EComponentFlag.AlwaysReceiveDestroy) ? info.DestroyWithComponentSelf : info.Destroy).Invoke(ref *(byte*)chunk.Get(eti.IndexInChunk, info.Meta), World, et);
             }
 
             RemoveEntity(chunk, eti.IndexInChunk);

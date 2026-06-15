@@ -16,35 +16,36 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly EComponentOption Options;
+        public readonly EComponentFlag Flags;
 
         /// <summary>
         /// 动态组件如果是struct会进行boxing. 建议改功能只用于静态组件, 动态组件如果有实现awake, 可以自己去手动添加.
         /// </summary>
         public readonly Type[]? RequiredComponents;
 
-        public WorldComponentOptionAttribute(EComponentOption options)
+        public WorldComponentOptionAttribute(EComponentFlag flags)
         {
             RequiredComponents = null;
             UpdateOrder = 0;
-            Options = options;
+            Flags = flags;
         }
 
-        public WorldComponentOptionAttribute(short updateOrder = 0, EComponentOption options = EComponentOption.None, Type[]? requiredComponents = null)
+        public WorldComponentOptionAttribute(short updateOrder = 0, EComponentFlag flags = EComponentFlag.None, Type[]? requiredComponents = null)
         {
             RequiredComponents = requiredComponents;
             UpdateOrder = updateOrder;
-            Options = options;
+            Flags = flags;
         }
     }
 
     [Flags]
-    public enum EComponentOption : byte
+    public enum EComponentFlag : byte
     {
         None,
         DoNotResetMemory = 0x1,
         RejectSoa = 0x2,
         RejectChunk = 0x4,
         AlwaysReceiveDestroy = 0x8,
+        BytesPackWrapper = 0x10,
     }
 }

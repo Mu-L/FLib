@@ -54,12 +54,12 @@ namespace FLib.WorldCores.Components
             }
 
             States = flags;
-            BytesPackWrapper = typeof(IBytesPackable).IsAssignableFrom(type)
+            BytesPackWrapper = (Options.Flags & EComponentFlag.BytesPackWrapper) != 0 && typeof(IBytesPackable).IsAssignableFrom(type)
                 ? (IBytesPackGenericWrapper?)TypeAssistant.New(typeof(BytesPackGenericWrapper<>).MakeGenericType(type))
                 : null;
         }
 
-        public bool Op(EComponentOption option) => Options != null && (Options.Options & option) == option;
+        public bool Flags(EComponentFlag flags) => Options != null && (Options.Flags & flags) == flags;
 
         public static implicit operator WorldComponentMeta(in WorldComponentInfo info) => info.Meta;
     }

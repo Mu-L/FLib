@@ -11,7 +11,7 @@ namespace FLib.WorldCores.Effects
     /// <summary>
     /// 效果系统
     /// </summary>
-    [WorldComponentOption(EComponentOption.AlwaysReceiveDestroy)]
+    [WorldComponentOption(EComponentFlag.AlwaysReceiveDestroy)]
     public struct WorldEffectSystem : IWorldAwake, IWorldDestroy
     {
         public WorldEntity Entity;
