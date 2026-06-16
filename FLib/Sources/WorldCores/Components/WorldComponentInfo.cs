@@ -54,7 +54,7 @@ namespace FLib.WorldCores.Components
             }
 
             States = flags;
-            BytesPackWrapper = (Options.Flags & EComponentFlag.BytesPackWrapper) != 0 && typeof(IBytesPackable).IsAssignableFrom(type)
+            BytesPackWrapper = (Options?.Flags & EComponentFlag.BytesPackWrapper) != 0 && typeof(IBytesPackable).IsAssignableFrom(type)
                 ? (IBytesPackGenericWrapper?)TypeAssistant.New(typeof(BytesPackGenericWrapper<>).MakeGenericType(type))
                 : null;
         }

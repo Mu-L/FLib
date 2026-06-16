@@ -97,15 +97,15 @@ namespace FLib.WorldCores.Components
 
             var id = new WorldIncrementId(++ComponentCount);
             WorldStaticComponentMask.EnsureCapacity(id);
-            var cType = new WorldComponentMeta(id, size, type);
-            ComponentTypeMap[type] = cType;
+            var meta = new WorldComponentMeta(id, size, type);
+            ComponentTypeMap[type] = meta;
             if (_componentInfos.Length <= id)
                 Array.Resize(ref _componentInfos, id + WorldGlobalSetting.CapacityExpandSize);
-            _componentInfos[id] = new WorldComponentInfo(cType, type);
+            _componentInfos[id] = new WorldComponentInfo(meta, type);
 
             if (locking)
                 _locker.Exit(false);
-            return cType;
+            return meta;
         }
 
         /// <summary>
