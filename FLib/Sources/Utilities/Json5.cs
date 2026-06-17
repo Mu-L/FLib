@@ -909,7 +909,7 @@ namespace FLib
             }
             catch (Exception e)
             {
-                throw new Exception($"{toType} | {node} | {options}", e);
+                throw new Exception($"{toType} | {node}", e);
             }
         }
 
