@@ -143,10 +143,10 @@ namespace FLib
                 var isFlags = item.Value["IsFlags"];
                 if (isFlags)
                     strbuf.Indent(indent).AppendLine("[Flags]");
-                strbuf.Indent(indent).AppendLine($"public enum {item.Key}");
+                strbuf.Indent(indent).Append($"public enum {item.Key}");
                 if (item.Value.TryGet("Base", out var jBase))
-                    strbuf.Append(' ').Append(jBase.ToString());
-                strbuf.Indent(indent).AppendLine("{");
+                    strbuf.Append(" : ").Append(jBase.ToString());
+                strbuf.AppendLine().Indent(indent).AppendLine("{");
                 ++indent;
                 if (item.Value.TryGet("Fields", out var fields))
                 {
