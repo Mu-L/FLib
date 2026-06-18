@@ -22,8 +22,6 @@ namespace FLib.Collections
 
         public ref Node Root => ref Nodes[0];
 
-        public QuadTree(FRect rect, int maxNodeDepthLimit = 0) => Set(rect, maxNodeDepthLimit);
-
         public QuadTree<T> Set(FRect rect, int maxNodeDepthLimit = 0)
         {
             _size = FNum.Max(rect.Width, rect.Height);
@@ -38,6 +36,7 @@ namespace FLib.Collections
             {
                 MaxDepthLimit = maxNodeDepthLimit;
             }
+
             if (Nodes.Count == 0)
                 Nodes.Add(new Node() { Tree = this, ParentIdx = -1 });
             Root.Rect = rect;
@@ -104,6 +103,7 @@ namespace FLib.Collections
                         break;
                     parentIdx = tempNode.ParentIdx;
                 }
+
                 if (parentIdx < 0)
                     throw new Exception($"add new node failure, {node.Depth},{node.Rect}");
             }
@@ -157,8 +157,10 @@ namespace FLib.Collections
                         ++(node.TotalObjCounts ??= new int[Tree.MaxObjectGroup])[group];
                         parent = node.ParentIdx;
                     }
+
                     return true;
                 }
+
                 return false;
             }
 
@@ -182,6 +184,7 @@ namespace FLib.Collections
                             return child.AddOrChildren(objIdx, group, rectOutOffset);
                         }
                     }
+
                     return false;
                 }
 
@@ -195,6 +198,7 @@ namespace FLib.Collections
                     for (var i = ObjIndexes.Length - 1; i >= 0; i--)
                         ObjIndexes[i] = new HashSet<int>();
                 }
+
                 if (!ObjIndexes[group].Add(objIdx))
                     throw new Exception($"already exist index {group} {Depth},{Rect}");
                 ++(TotalObjCounts ??= new int[Tree.MaxObjectGroup])[group];
@@ -203,6 +207,7 @@ namespace FLib.Collections
                     if (TotalObjCounts.Sum() >= Tree.SplitNodeObjectNumber)
                         SplitToChildren();
                 }
+
                 return true;
             }
 
@@ -220,8 +225,10 @@ namespace FLib.Collections
                         --node.TotalObjCounts[group];
                         parent = node.ParentIdx;
                     }
+
                     return true;
                 }
+
                 return false;
             }
 
@@ -257,6 +264,7 @@ namespace FLib.Collections
                                     break;
                                 mergeToParentId = node.ParentIdx;
                             }
+
                             try
                             {
                                 Tree.GetNode(mergeToParentId).MergeChildren();
@@ -266,9 +274,11 @@ namespace FLib.Collections
                                 throw new Exception($" {mergeToParentId} | {Tree.Nodes.Count} | {Tree.Nodes.NodeBuffer?.Length} | {e}");
                             }
                         }
+
                         return true;
                     }
                 }
+
                 return false;
             }
 
@@ -307,10 +317,12 @@ namespace FLib.Collections
                                     ++toNode.TotalObjCounts[group];
                                     tree.Objects[objIdx].NodeId = toNodeId;
                                 }
+
                                 fromNode.ObjIndexes[group].Clear();
                             }
                         }
                     }
+
                     tree.Nodes.RemoveAt(fromNodeId, false);
                 }
             }
@@ -337,9 +349,11 @@ namespace FLib.Collections
                             if (!AddOrChildren(objIdx, group) && !AddOrChildren(objIdx, group, Tree.NodeRectOutOffset))
                                 throw new Exception($"add failure rect:{Rect} pos:{obj}");
                         }
+
                         ObjIndexes[group].Clear();
                     }
                 }
+
                 return;
 
                 static int CreateChildNode(in FRect rect, QuadTree<T> tree, int selfId, int depth)
@@ -387,6 +401,7 @@ namespace FLib.Collections
                             Children.Push(childIndex);
                         return false;
                     }
+
                     return true;
                 }
 
@@ -406,7 +421,11 @@ namespace FLib.Collections
             }
 
             public bool MoveNext() => Children.TryPop(out _nodeIndex);
-            public void Reset() { }
+
+            public void Reset()
+            {
+            }
+
             public void Dispose() => GlobalObjectPool<Stack<int>>.Release(Children);
             public NodeEnumerator GetEnumerator() => this;
             IEnumerator IEnumerable.GetEnumerator() => this;
@@ -465,11 +484,18 @@ namespace FLib.Collections
                     if (_currentNodeIndex >= 0)
                         _currentNodeIndex = ParentNode.Children[_childIndex++ % 4];
                 }
+
                 return _currentNodeIndex >= 0;
             }
 
-            public void Reset() { }
-            public void Dispose() { }
+            public void Reset()
+            {
+            }
+
+            public void Dispose()
+            {
+            }
+
             public NodeReverseEnumerator GetEnumerator() => this;
             IEnumerator IEnumerable.GetEnumerator() => this;
             IEnumerator<NodeEnumerator> IEnumerable<NodeEnumerator>.GetEnumerator() => this;
@@ -485,7 +511,11 @@ namespace FLib.Collections
             public ObjectData Current => Tree.GetObj(Enumerator.Current);
             object IEnumerator.Current => Current;
             public bool MoveNext() => Tree != null && Enumerator.MoveNext();
-            public void Reset() { }
+
+            public void Reset()
+            {
+            }
+
             public void Dispose() => Enumerator.Dispose();
             public ObjectEnumerator GetEnumerator() => this;
             IEnumerator IEnumerable.GetEnumerator() => this;
