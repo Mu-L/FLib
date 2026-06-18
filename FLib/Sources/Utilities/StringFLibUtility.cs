@@ -576,6 +576,23 @@ namespace FLib
 
         #endregion
 
+        /// <summary> 转换为小写 </summary>
+        public StringBufferCombiner ToLowerInvariant()
+        {
+            for (var i = 0; i < StringBuilder.Length; i++)
+                StringBuilder[i] = char.ToLowerInvariant(StringBuilder[i]);
+            return this;
+        }
+
+        /// <summary> 转换为大写 </summary>
+        public StringBufferCombiner ToUpperInvariant()
+        {
+            for (var i = 0; i < StringBuilder.Length; i++)
+                StringBuilder[i] = char.ToUpperInvariant(StringBuilder[i]);
+            return this;
+        }
+
+        /// <summary> 获取结果并释放 </summary>
         public string Result()
         {
             var str = StringBuilder.ToString();
@@ -584,6 +601,7 @@ namespace FLib
             return str;
         }
 
+        /// <summary> 隐式转换为字符串并释放 </summary>
         public static implicit operator string(StringBufferCombiner combiner)
         {
             var str = combiner.StringBuilder.ToString();
