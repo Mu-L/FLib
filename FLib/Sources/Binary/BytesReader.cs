@@ -30,6 +30,11 @@ namespace FLib
         public readonly override string ToString() =>
             $"{Position}/{BytesBuffer.Length}|{StringFLibUtility.LimitLength(string.Join(',', BytesBuffer.ToArray().Select(v => v.ToString("x2"))), 4096)}";
 
+
+        /// <summary>  </summary>
+        public void Skip(int size)
+            => Position += size;
+
         public void Read<T>(ref T? value) where T : unmanaged => value = Read<T>();
         public void Read<T>(ref T value) where T : unmanaged => value = Read<T>();
 
@@ -84,10 +89,12 @@ namespace FLib
                 v |= (long)(BytesBuffer[Position] & 0x7f) << i;
                 if ((BytesBuffer[Position++] & 0x80) == 0) break;
             }
+
             return (v >> 1) ^ -(v & 1);
         }
 
         #region string
+
         /// <summary>
         /// 
         /// </summary>
@@ -165,9 +172,11 @@ namespace FLib
                 }
             }
         }
+
         #endregion
 
         #region array
+
         /// <summary>
         /// 
         /// </summary>
@@ -180,6 +189,7 @@ namespace FLib
                 {
                     array = isArrayPool ? ArrayPool<T>.Shared.Rent(len) : new T[len];
                 }
+
                 unsafe
                 {
                     var size = sizeof(T) * len;
@@ -190,6 +200,7 @@ namespace FLib
                             Unsafe.CopyBlock(ptr, bPtr + Position, (uint)size);
                         }
                     }
+
                     Position += size;
                 }
             }
@@ -197,6 +208,7 @@ namespace FLib
             {
                 array = Array.Empty<T>();
             }
+
             return len;
         }
 
@@ -212,6 +224,7 @@ namespace FLib
                 {
                     array = isArrayPool ? ArrayPool<T[]>.Shared.Rent(len) : new T[len][];
                 }
+
                 for (var i = 0; i < len; i++)
                 {
                     Read(ref array[i]);
@@ -221,6 +234,7 @@ namespace FLib
             {
                 array = Array.Empty<T[]>();
             }
+
             return len;
         }
 
@@ -245,11 +259,14 @@ namespace FLib
             {
                 result[i] = ReadArray<T>();
             }
+
             return result;
         }
+
         #endregion
 
         #region script
+
         /// <summary>
         /// 
         /// </summary>
@@ -276,6 +293,7 @@ namespace FLib
                 scripts[i] = (T)ReadScript();
             return scripts;
         }
+
         #endregion
 
         public static implicit operator BytesReader(byte[] b) => new() { BytesBuffer = b };

@@ -204,14 +204,9 @@ namespace FLib
         {
             meta = new Meta { Options = reader.Read<ConfigHelper.EOption>() | addOptions };
             if (isSkip)
-            {
-                var len = reader.ReadLength();
-                reader.Position += len;
-            }
+                reader.Skip(reader.ReadLength());
             else
-            {
                 meta.RawBytes = reader.ReadArray<byte>();
-            }
 
             try
             {
