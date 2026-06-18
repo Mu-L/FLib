@@ -22,7 +22,7 @@ namespace FLib.Collections
 
         public ref Node Root => ref Nodes[0];
 
-        public QuadTree<T> Set(FRect rect, int maxNodeDepthLimit = 0)
+        public QuadTree(FRect rect, int maxNodeDepthLimit = 0)
         {
             _size = FNum.Max(rect.Width, rect.Height);
             _sizeHalf = FNum.Max(rect.Width, rect.Height) * FNum.OneHalf;
@@ -38,9 +38,8 @@ namespace FLib.Collections
             }
 
             if (Nodes.Count == 0)
-                Nodes.Add(new Node() { Tree = this, ParentIdx = -1 });
+                Nodes.Add(new Node { Tree = this, ParentIdx = -1 });
             Root.Rect = rect;
-            return this;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
