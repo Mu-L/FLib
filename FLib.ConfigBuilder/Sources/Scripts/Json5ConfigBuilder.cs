@@ -17,20 +17,23 @@ namespace FLib
         public class Value : IJson5Deserializable
         {
             public IBytesPackable CfgData;
-            public string KeyValue;
+            public string KeyValue = string.Empty;
 
             public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)
             {
                 var ctx = (ConfigBuilder.TableContext)options.UserData;
-                var indexIdFieldName = ctx.IndexIdField.Name;
-                for (var i = nodes.Position + 1; i < nodes.Nodes.Count; i++)
+                if (ctx.IndexIdField != null)
                 {
-                    if (nodes.Nodes[i].Token != EJson5Token.Value) continue;
-                    var key = nodes.Nodes[i].ContentSpan;
-                    if (key.SequenceEqual(indexIdFieldName))
+                    var indexIdFieldName = ctx.IndexIdField.Name;
+                    for (var i = nodes.Position + 1; i < nodes.Nodes.Count; i++)
                     {
-                        KeyValue = nodes.Nodes[i + 1].ContentCopyString;
-                        break;
+                        if (nodes.Nodes[i].Token != EJson5Token.Value) continue;
+                        var key = nodes.Nodes[i].ContentSpan;
+                        if (key.SequenceEqual(indexIdFieldName))
+                        {
+                            KeyValue = nodes.Nodes[i + 1].ContentCopyString;
+                            break;
+                        }
                     }
                 }
 

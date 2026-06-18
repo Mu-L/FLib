@@ -348,7 +348,7 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public static ReadOnlySpan<char> SegmentTextRead(ReadOnlySpan<char> text, string breaks = "+-")
+        public static ReadOnlySpan<char> SegmentTextRead(ReadOnlySpan<char> text, string breaks = "_~")
         {
             return SegmentTextReadWithMoveNext(ref text, breaks);
         }
@@ -360,7 +360,7 @@ namespace FLib
 #if NET8_0_OR_GREATER
             scoped
 #endif
-            ref ReadOnlySpan<char> text, string breaks = "+-")
+            ref ReadOnlySpan<char> text, string breaks = "_~")
         {
             var count = 0;
             var resultCountOffset = 0;

@@ -29,7 +29,7 @@ namespace FLib
         Default = Clear | UseProperty,
     }
 
-    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null, string ConstConfigFileName = null)
+    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null)
     {
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
         public bool Op(EConfigGenerateOption op) => (Options & op) != EConfigGenerateOption.None;
@@ -48,7 +48,7 @@ namespace FLib
             Log.Info?.Write($"generate config {p}", nameof(ConfigGenerator));
             if (p.Op(EConfigGenerateOption.Clear))
             {
-                foreach (var item in Directory.GetFiles(p.DestDirPath, "*.Gen.cs", SearchOption.TopDirectoryOnly))
+                foreach (var item in Directory.GetFiles(p.DestDirPath, "*.CfgGen.cs", SearchOption.TopDirectoryOnly))
                 {
                     Log.Info?.Write($"remove config {item}", nameof(ConfigGenerator));
                     File.Delete(item);
@@ -56,56 +56,8 @@ namespace FLib
             }
 
             ProcessDefines(p);
-            ProcessConstConfig(p);
             Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
             OnGenerateProcess?.Invoke();
-        }
-
-        /// <summary>  </summary>
-        public static void ProcessConstConfig(ConfigGenerateParams p)
-        {
-            if (string.IsNullOrEmpty(p.ConstConfigFileName))
-                return;
-            var jsonPath = Path.Combine(p.SourceDirPath, p.ConstConfigFileName + ".json5");
-            if (!File.Exists(jsonPath))
-                return;
-            var json = ReadJson5(jsonPath, p, out var strbuf, new[] { "System.IO", "System.Linq", "System.Runtime.CompilerServices" });
-            strbuf.WriteConfigClassHead(Path.GetFileNameWithoutExtension(jsonPath), json, out var indent, out var name);
-            strbuf.Append(" : IConfigFileCustomBuildToTable").AppendLine().Indent(indent).AppendLine("{");
-            strbuf.AppendConfigSchemaFields(json["Fields"].Dict, ++indent, p, "static");
-            strbuf.Indent(indent).AppendLine("#region 序列化").AppendLine();
-            strbuf.Indent(indent).AppendLine("public void ConfigFileDeserializeToTable(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts)");
-            strbuf.Indent(indent).AppendLine("{");
-            strbuf.Indent(indent + 1).AppendLine("var jsonFields = Json5.Deserialize<Json5AnyValue>(File.ReadAllText(context.SourceFilePath))[\"Fields\"];");
-            strbuf.Indent(indent + 1).Append("var fields = typeof(").Append(name).AppendLine(").GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static).ToDictionary(field => field.Name);");
-            strbuf.Indent(indent + 1).AppendLine("foreach (var (jKey, jValue) in jsonFields.Dict)");
-            strbuf.Indent(indent + 1).AppendLine("{");
-            strbuf.Indent(indent + 2).AppendLine("if (!fields.TryGetValue(jKey, out var field))");
-            strbuf.Indent(indent + 2).AppendLine("{");
-            strbuf.Indent(indent + 3).Append("Log.Error?.Write($\"not found field {nameof(").Append(name).Append(")}.{jKey}\", nameof(").Append(name).AppendLine("), nameof(ConfigFileDeserializeToTable));");
-            strbuf.Indent(indent + 3).AppendLine("continue;");
-            strbuf.Indent(indent + 2).AppendLine("}");
-            strbuf.AppendLine();
-            strbuf.Indent(indent + 2).AppendLine("var value = jValue[\"Value\"].Raw;");
-            strbuf.Indent(indent + 2).AppendLine("if (!field.FieldType.IsAssignableFrom(value.GetType()))");
-            strbuf.Indent(indent + 3).AppendLine("value = Json5.Deserialize(value.ToString(), field.FieldType);");
-            strbuf.Indent(indent + 2).AppendLine("field.SetValue(null, value);");
-            strbuf.Indent(indent + 1).AppendLine("}");
-            strbuf.AppendLine();
-            strbuf.Indent(indent + 1).Append("context.AddConfig(0, new ").Append(name).AppendLine("(), TypeCode.Byte);");
-            strbuf.Indent(indent).AppendLine("}").AppendLine();
-            strbuf.Indent(indent).AppendLine("public static int CustomDeserialize(in Memory<byte> buffer)");
-            strbuf.Indent(indent).AppendLine("{");
-            strbuf.Indent(indent + 1).AppendLine("BytesReader reader = buffer;");
-            strbuf.Indent(indent + 1).AppendLine("if (reader.ReadLength() != 1) throw new Exception(\"invalid count\");");
-            strbuf.Indent(indent + 1).AppendLine("var id = (uint)reader.ReadVInt();");
-            strbuf.Indent(indent + 1).AppendLine("reader.Position += Unsafe.SizeOf<ConfigHelper.EOption>();");
-            strbuf.Indent(indent + 1).Append("BytesPack.Unpack<").Append(name).Append(">(reader.ReadArray<byte>(), $\"{nameof(").Append(name).AppendLine(")}->{id}\");");
-            strbuf.Indent(indent + 1).AppendLine("return reader.Position;");
-            strbuf.Indent(indent).AppendLine("}").AppendLine();
-            strbuf.Indent(indent).AppendLine("#endregion").AppendLine();
-            strbuf.Indent(--indent).AppendLine("}");
-            strbuf.WriteGeneratedFile(p, $"{name}.Gen.cs");
         }
 
         /// <summary>  </summary>
@@ -116,10 +68,26 @@ namespace FLib
                 var json = ReadJson5(jsonPath, p, out var strbuf);
                 strbuf.WriteConfigClassHead(Path.GetFileNameWithoutExtension(jsonPath)[..^7], json, out var indent, out var name);
                 strbuf.AppendLine().Indent(indent).AppendLine("{");
-                strbuf.AppendConfigSchemaFields(json["Fields"].Dict, ++indent, p);
-                WriteConfigToString(strbuf, indent, json);
+                var isStaticFields = json.Has("IsStaticFields");
+                var indent1 = ++indent;
+                foreach (var (key, fieldValue) in json["Fields"].Dict)
+                {
+                    strbuf.AppendComment(indent1, fieldValue);
+                    strbuf.Indent(indent1).Append("[BytesPackGenField] ").Append("public ");
+                    if (isStaticFields)
+                        strbuf.Append("static ");
+                    strbuf.Append(fieldValue["Type"].ToString()).Append(' ').Append(key);
+                    if (p.Op(EConfigGenerateOption.UseProperty))
+                        strbuf.Append(" { get; private set; }").AppendDefaultValue(fieldValue);
+                    else
+                        strbuf.AppendDefaultValue(fieldValue)?.Append(';');
+
+                    strbuf.AppendLine().AppendLine();
+                }
+
+                strbuf.WriteConfigToString(indent, json);
                 strbuf.Indent(--indent).AppendLine("}");
-                strbuf.WriteGeneratedFile(p, $"{name}.Gen.cs");
+                strbuf.WriteGeneratedFile(p, $"{name}.CfgGen.cs");
             }
             catch (Exception e)
             {
@@ -197,7 +165,7 @@ namespace FLib
                 }
             }
 
-            strbuf.WriteGeneratedFile(p, "_ConfigDefines.Gen.cs");
+            strbuf.WriteGeneratedFile(p, "_ConfigDefines.CfgGen.cs");
         }
 
         /// <summary>  </summary>
@@ -295,27 +263,6 @@ namespace FLib
             strbuf.AppendLine();
             if (p.HasNamespace)
                 strbuf.Append("namespace ").Append(p.Namespace).AppendLine().AppendLine("{");
-            return strbuf;
-        }
-
-        /// <summary>  </summary>
-        private static StringBuilder AppendConfigSchemaFields(this StringBuilder strbuf, Dictionary<string, Json5AnyValue> fields, int indent, ConfigGenerateParams p, string modifier = null)
-        {
-            foreach (var (key, fieldValue) in fields)
-            {
-                strbuf.AppendComment(indent, fieldValue);
-                strbuf.Indent(indent).Append("[BytesPackGenField] ").Append("public ");
-                if (!string.IsNullOrEmpty(modifier))
-                    strbuf.Append(modifier).Append(' ');
-                strbuf.Append(fieldValue["Type"].ToString()).Append(' ').Append(key);
-                if (p.Op(EConfigGenerateOption.UseProperty))
-                    strbuf.Append(" { get; private set; }").AppendDefaultValue(fieldValue);
-                else
-                    strbuf.AppendDefaultValue(fieldValue)?.Append(';');
-
-                strbuf.AppendLine().AppendLine();
-            }
-
             return strbuf;
         }
     }
