@@ -7,7 +7,7 @@ namespace FLib.Tests;
 
 public class TestWorldCore2
 {
-    [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
+    [WorldComponentOption(flags: EComponentFlag.AlwaysReceiveDestroy)]
     public struct Comp1 : IWorldDestroy
     {
         public int Value;
@@ -18,7 +18,7 @@ public class TestWorldCore2
         }
     }
 
-    [WorldComponentOption(options: EComponentOption.AlwaysReceiveDestroy)]
+    [WorldComponentOption(flags: EComponentFlag.AlwaysReceiveDestroy)]
     public struct Comp2 : IWorldDestroy
     {
         public int Value;

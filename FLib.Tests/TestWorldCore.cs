@@ -49,7 +49,7 @@ public struct Buff
     public string Name;
 }
 
-[WorldCores.WorldComponentOption(options: EComponentOption.DoNotResetMemory | EComponentOption.AlwaysReceiveDestroy)]
+[WorldComponentOption(flags: EComponentFlag.DoNotResetMemory | EComponentFlag.AlwaysReceiveDestroy)]
 public struct Managed : IWorldAwake, IWorldDestroy, IWorldUpdate, IWorldStart
 {
     public List<string> Values;

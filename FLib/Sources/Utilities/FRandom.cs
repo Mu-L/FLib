@@ -154,20 +154,22 @@ namespace FLib
         /// <param name="max">不包含</param>
         /// <param name="weights">权重组</param>
         /// <param name="weightsSum">权重总和</param>
-        public int NextSegmentValue(int min, int max, Span<int> weights, int weightsSum = 100)
+        public int NextSegmentValue(int min, int max, Span<int> weights, int weightsSum = 1000)
         {
             if (max <= min) return min;
             var total = max - min;
-            if (total == 0)
+            if (total <= 1)
                 return min;
-            if (weights.Length > total)
+            if (total < weights.Length)
             {
-                if (total == 1)
-                    return Next(0, weights[0] + weights[1]) < weights[0] ? min : max;
-                for (var i = weights.Length - 1; i >= total; i--)
-                    weightsSum -= weights[i];
-                weights = weights[..total];
+                if (total == 2)
+                    return Next(0, weights[0] + weights[1]) < weights[0] ? min : max - 1;
+                var skipCount = weights.Length - total;
+                for (var i = 0; i < skipCount; i++)
+                    weights[i + 1] += weights[i];
+                weights = weights[skipCount..];
             }
+
             var segmentValue = (FNum)total / weights.Length;
             return (int)(segmentValue * NextWeightIndex(weights, weightsSum) + NextNumber(0, segmentValue) + min);
         }
@@ -176,26 +178,8 @@ namespace FLib
         /// weight random
         /// </summary>
         /// <returns>weight index</returns>
-        public int NextWeightIndex(in Span<int> weights, int weightsSum = 100)
+        public int NextWeightIndex(in Span<int> weights, int weightsSum = 1000)
         {
-            // var randomWeight = Random.Range(0, weightSum);
-            // var begin = 0;
-            // var end = pieces.Count - 1;
-            // while (begin <= end)
-            // {
-            //     var m = begin + ((end - begin) >> 1);
-            //     var weight = pieces[m].Weight;
-            //     if (randomWeight < weight)
-            //         end = m - 1;
-            //     else if (randomWeight > weight)
-            //         begin = m + 1;
-            //     else
-            //         return m;
-            // }
-
-            // return begin < pieces.Count ? begin : pieces.Count - 1;
-            
-            
             if (weights.Length < 1) return 0;
 #if DEBUG
             var expectSum = weights[0];
