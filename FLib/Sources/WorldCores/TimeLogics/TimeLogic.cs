@@ -25,12 +25,13 @@ namespace FLib.WorldCores.TimeLogics
         public string Name;
         public byte FrameRate = 30;
         private FNum _currentFrame;
-        private FNum _frameDelta;
+        private FNum _frameDeltaCache;
         public ScriptPackInstance[] Tracks;
 
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
-        public FNum Duration => EndFrame * (FNum.One / FrameRate);
+        public FNum Duration => EndFrame * FrameDelta;
+        public FNum FrameDelta => FNum.One / FrameRate;
         public ExternalReferenceStorer ExternalReferences;
         public TimeLogicTrack this[int index] => (TimeLogicTrack)Tracks[index].Instance;
 
@@ -53,7 +54,7 @@ namespace FLib.WorldCores.TimeLogics
         /// </summary>
         public virtual TimeLogic Initialize()
         {
-            _frameDelta = FNum.One / FrameRate;
+            _frameDeltaCache = FrameDelta;
             Tracks ??= Array.Empty<ScriptPackInstance>();
             foreach (var item in Tracks)
                 ((TimeLogicTrack)item.Instance).Initialize(this);
@@ -65,7 +66,7 @@ namespace FLib.WorldCores.TimeLogics
         /// </summary>
         public TimeLogic SetFrameRate(byte frameRate)
         {
-            _frameDelta = FNum.One / frameRate;
+            _frameDeltaCache = FrameDelta;
             FrameRate = frameRate;
             return this;
         }
@@ -98,7 +99,7 @@ namespace FLib.WorldCores.TimeLogics
         public void UpdateNextFrame(FNum frameDelta)
         {
             var lastFrame = (int)_currentFrame;
-            _currentFrame += frameDelta / _frameDelta;
+            _currentFrame += frameDelta / _frameDeltaCache;
             if (lastFrame == (int)_currentFrame)
                 return;
             if (CurrentFrame > EndFrame)
