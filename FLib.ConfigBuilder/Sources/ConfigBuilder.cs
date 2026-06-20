@@ -205,7 +205,7 @@ namespace FLib
                     if (filePath.EndsWith(".meta", StringComparison.Ordinal))
                         continue;
                     var name = Path.GetFileNameWithoutExtension(filePath);
-                    if (name.StartsWith('~') || name.StartsWith('_') || name.EndsWith('~') || name.EndsWith(".schema", StringComparison.Ordinal))
+                    if (name.StartsWith('~') || name.StartsWith('_') || name.EndsWith('~') || name.EndsWith(".schema", StringComparison.Ordinal) || name.EndsWith(".ai", StringComparison.Ordinal))
                         continue;
                     if (!allConfigBuilders.TryGetValue(Path.GetExtension(filePath), out var builder))
                         continue;
