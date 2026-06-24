@@ -191,7 +191,7 @@ namespace FLib
                 AllMetas[index] = meta;
                 var newMetas = IdMetas.ToList();
                 newMetas.Add(new KeyValuePair<uint, int>(id, index));
-                IdMetas = new ReadOnlyDictionary<uint, int>(newMetas.ToDictionary(k => k.Key, v => v.Value));
+                IdMetas = new Dictionary<uint, int>(newMetas);
             }
             else
             {
@@ -256,12 +256,7 @@ namespace FLib
                 AllMetas[i] = meta;
             }
 
-            IdMetas =
-#if NET6_0_OR_GREATER
-                System.Collections.Immutable.ImmutableDictionary.ToImmutableDictionary(idMetas);
-#else
-                new ReadOnlyDictionary<uint, int>(idMetas);
-#endif
+            IdMetas = new ReadOnlyDictionary<uint, int>(idMetas);
             return reader.Position;
         }
     }

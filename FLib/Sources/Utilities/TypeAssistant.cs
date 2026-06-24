@@ -29,7 +29,7 @@ namespace FLib
     {
         internal static int IdGen;
         [NonSerialized] public static Assembly[] AllAssemblies = { typeof(TypeAssistant).Assembly };
-        public static ReadOnlyDictionary<string, Type> CustomTypeMap;
+        public static IReadOnlyDictionary<string, Type> CustomTypeMap;
         [ThreadStatic] private static Dictionary<string, Type> _typeFinderBuffer;
 
 
@@ -196,7 +196,7 @@ namespace FLib
             var dict = CustomTypeMap.ToDictionary(k => k.Key, v => v.Value);
             foreach (var s in names)
                 dict.Remove(s);
-            CustomTypeMap = new ReadOnlyDictionary<string, Type>(dict);
+            CustomTypeMap = new Dictionary<string, Type>(dict);
         }
 
         public static void RegisterCustomFinderType<T>(string name = null)
@@ -212,7 +212,7 @@ namespace FLib
                     types.TryAdd(type.Key, type.Value);
             }
 
-            CustomTypeMap = new ReadOnlyDictionary<string, Type>(types);
+            CustomTypeMap = new Dictionary<string, Type>(types);
         }
 
 
