@@ -219,6 +219,7 @@ namespace FLib
             {
                 var k = (int)reader.ReadVInt();
                 var size = (int)reader.ReadVInt();
+                Debug.Assert(size >= 0);
                 var oldPos = reader.Position;
                 try
                 {
