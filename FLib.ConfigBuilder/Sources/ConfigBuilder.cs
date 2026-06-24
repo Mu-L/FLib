@@ -179,7 +179,8 @@ namespace FLib
                 ConfigPostBuildProcessData.AdditionConfigPostBuildProcesses = null;
                 var outPath = Path.GetFullPath(OutputPath);
                 Directory.CreateDirectory(Path.GetDirectoryName(outPath)!);
-                File.WriteAllBytes(outPath, Compressor.Compress(GenerateConfigBytes(tableContexts)).ToArray());
+                var bytes = GenerateConfigBytes(tableContexts);
+                File.WriteAllBytes(outPath, bytes.Span.ToArray());
                 return tableContexts.Count;
             }
             catch (Exception ex)
@@ -326,12 +327,12 @@ namespace FLib
                     {
                         if (ctx.AllConfigs.Count > 2048)
                         {
-                            ctx.AllConfigs.AsParallel().ForAll(cfgLine => processConfigPostBuild(cfgLine.Id, cfgLine.Cfg, ctx, allContexts));
+                            ctx.AllConfigs.AsParallel().ForAll(cfgLine => ProcessConfigPostBuild(cfgLine.Id, cfgLine.Cfg, ctx, allContexts));
                         }
                         else
                         {
                             foreach (var (id, cfg) in ctx.AllConfigs)
-                                processConfigPostBuild(id, cfg, ctx, allContexts);
+                                ProcessConfigPostBuild(id, cfg, ctx, allContexts);
                         }
                     }
                     catch (Exception ex)
@@ -342,7 +343,7 @@ namespace FLib
             });
             return;
 
-            static void processConfigPostBuild(uint id, IBytesPackable cfg, IConfigBuildTableContext ctx, IReadOnlyDictionary<Type, IConfigBuildTableContext> allContexts)
+            static void ProcessConfigPostBuild(uint id, IBytesPackable cfg, IConfigBuildTableContext ctx, IReadOnlyDictionary<Type, IConfigBuildTableContext> allContexts)
             {
                 try
                 {

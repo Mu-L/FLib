@@ -211,13 +211,7 @@ namespace FLib
             try
             {
                 if (!isSkip && (meta.Options & ConfigHelper.EOption.AlwaysDeserializeData) != 0)
-                {
-                    meta.Value = new T();
-                    BytesPack.Unpack(ref meta.Value, meta.RawBytes, $"{typeof(T).Name}->{id}");
-                    meta.Options = ConfigHelper.EOption.__DeserializedData;
-                    if ((meta.Options & ConfigHelper.EOption.AlwaysStoreRawBytes) == 0)
-                        meta.RawBytes = null;
-                }
+                    TryDecompressRawBytes(ref meta, true);
             }
             catch (Exception ex)
             {
@@ -309,7 +303,6 @@ namespace FLib
         /// <summary> 从内存数据加载全部配置表。 </summary>
         public static int DeserializeAll(Memory<byte> buffer, out int buildConfigCount)
         {
-            buffer = Compressor.Uncompress(buffer.Span).ToArray();
             BytesReader reader = buffer;
             buildConfigCount = reader.ReadLength();
             var deserializeConfigTableParams = new object[1];
@@ -321,6 +314,7 @@ namespace FLib
                 deserializeConfigTableParams[0] = buffer[reader.Position..];
                 if (customDeserialize != null)
                 {
+                    // ReSharper disable once PossibleNullReferenceException
                     reader.Position += (int)customDeserialize.Invoke(null, deserializeConfigTableParams);
                 }
                 else
