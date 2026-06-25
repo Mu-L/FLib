@@ -69,7 +69,7 @@ namespace FLib
                 return false;
             }
 
-            if (!node.ContentSpan.SequenceEqual(ScriptTypeJsonKey))
+            if (!node.ContentSpan.Equals(ScriptTypeJsonKey, StringComparison.OrdinalIgnoreCase))
                 throw new NotSupportedException(node.ContentCopyString);
             var typeName = reader.Read(ref nodes).ContentCopyString;
             if (ns != null)
