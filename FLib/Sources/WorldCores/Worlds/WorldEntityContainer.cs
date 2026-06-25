@@ -50,6 +50,10 @@ namespace FLib.WorldCores
                 EnsureCapacity(MathEx.GetNextCapacityLength(Count));
                 id = checked((ushort)Count++);
             }
+            else
+            {
+                ++Count;
+            }
 
             EntityInfos[id] = entityInfo;
             if (Events[id] != null)

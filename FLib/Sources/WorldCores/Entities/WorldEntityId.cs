@@ -12,10 +12,14 @@ namespace FLib.WorldCores.Entities
     /// </summary>
     public readonly struct WorldEntityId : IEquatable<WorldEntityId>, IJson5Serializable
     {
+        /// <summary> start from zeron </summary>
         public readonly ushort Id;
+
+        /// <summary> start from one, nonzero </summary>
         public readonly ushort Version;
+
         public bool IsEmpty => Version == 0;
-    public override string ToString() => ((uint)this).ToString();
+        public override string ToString() => ((uint)this).ToString();
 
         public WorldEntityId(ushort id, ushort version)
         {
@@ -28,6 +32,7 @@ namespace FLib.WorldCores.Entities
             jsonText.Append(ToString());
             return true;
         }
+
         public WorldEntity AsEntity(WorldHandle world) => new(world, this);
         public bool Equals(WorldEntityId other) => this == other;
         public override bool Equals(object obj) => obj is WorldEntityId other && Equals(other);

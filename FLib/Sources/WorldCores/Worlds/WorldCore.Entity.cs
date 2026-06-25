@@ -93,7 +93,7 @@ namespace FLib.WorldCores
         /// <returns>如果实体存在返回 true，否则返回 false</returns>
         public bool HasEntity(WorldEntityId et)
         {
-            return !et.IsEmpty && Entities.Count > et.Id && Entities[et.Id].Version == et.Version;
+            return !et.IsEmpty && Entities.EntityInfos.Length > et.Id && Entities[et.Id].Version == et.Version;
         }
 
         /// <summary>
