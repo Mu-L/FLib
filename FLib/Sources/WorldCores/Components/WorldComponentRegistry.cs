@@ -35,8 +35,10 @@ namespace FLib.WorldCores.Components
         /// </summary>
         public static WorldComponentMeta GetMeta<T>()
         {
-            // 考虑直接通过静态构造函数初始化, 避免这次的运行时if开销是否需要?
-            return WorldComponentGenericMap<T>.IsEmpty ? WorldComponentGenericMap<T>.Init(Register(typeof(T), SizeOf<T>())) : WorldComponentGenericMap<T>.Meta;
+            // 考虑直接通过静态构造函数初始化, 避免这次的运行时判断开销是否需要?
+            return WorldComponentGenericMap<T>.IsEmpty
+                ? WorldComponentGenericMap<T>.Init(Register(typeof(T), SizeOf<T>()))
+                : WorldComponentGenericMap<T>.Meta;
         }
 
         /// <summary>
@@ -95,13 +97,16 @@ namespace FLib.WorldCores.Components
             var locking = false;
             _locker.Enter(ref locking);
 
-            var id = new WorldIncrementId(++ComponentCount);
-            WorldStaticComponentMask.EnsureCapacity(id);
-            var meta = new WorldComponentMeta(id, size, type);
-            ComponentTypeMap[type] = meta;
-            if (_componentInfos.Length <= id)
-                Array.Resize(ref _componentInfos, id + WorldGlobalSetting.CapacityExpandSize);
-            _componentInfos[id] = new WorldComponentInfo(meta, type);
+            if (!ComponentTypeMap.TryGetValue(type, out var meta))
+            {
+                var id = new WorldIncrementId(++ComponentCount);
+                WorldStaticComponentMask.EnsureCapacity(id);
+                meta = new WorldComponentMeta(id, size, type);
+                ComponentTypeMap[type] = meta;
+                if (_componentInfos.Length <= id)
+                    Array.Resize(ref _componentInfos, id + WorldGlobalSetting.CapacityExpandSize);
+                _componentInfos[id] = new WorldComponentInfo(meta, type);
+            }
 
             if (locking)
                 _locker.Exit(false);
