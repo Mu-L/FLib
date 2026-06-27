@@ -82,13 +82,7 @@ namespace FLib.WorldCores.Queries
             while (_archetypeEnumerator.MoveNext())
             {
                 _sharedChunkEnumerator = _archetypeEnumerator.Current!.SharedChunks.GetEnumerator();
-                while (_sharedChunkEnumerator.MoveNext())
-                {
-                    _chunks = _sharedChunkEnumerator.Current.Value;
-                    _chunkIndex = -1;
-                    if (_chunks.Count > 0)
-                        return true;
-                }
+                return MoveNextSharedChunk();
             }
 
             return false;
@@ -104,7 +98,7 @@ namespace FLib.WorldCores.Queries
             while (_sharedChunkEnumerator.MoveNext())
             {
                 _chunks = _sharedChunkEnumerator.Current.Value;
-                _chunkIndex = -1;
+                _chunkIndex = _chunks.Count;
                 if (_chunks.Count > 0)
                     return true;
             }
@@ -122,7 +116,7 @@ namespace FLib.WorldCores.Queries
         )]
         private bool MoveNextChunk()
         {
-            while (++_chunkIndex < _chunks.Count)
+            while (--_chunkIndex >= 0)
             {
                 var chunk = _chunks[_chunkIndex];
                 for (var i = 0; i < _sharedComponents.Length; i++)

@@ -114,9 +114,8 @@ public class TestWorldCore
         Assert.Equal("p1", world.GetStaMng<Player>(player1).Val.Name);
         Assert.Null(world.GetStaMng<Player>(player2).Val.Name);
 
-        var v = world.Query<Team>().Select(v => v.Item2.Val.Value).ToArray();
-        Assert.Equal([5, 10, 100], world.Query<Team>().Select(v => v.Item2.Val.Value));
-        Assert.Equal([5, 10], world.Query<Team>(world.CreateQueryBuilder().WithAll<Team>().WithNone<Enemy>()).Select(v => v.Item2.Val.Value));
+        Assert.Equal([5, 10, 100], world.Query<Team>().Select(vv => vv.Item2.Val.Value));
+        Assert.Equal([5, 10], world.Query<Team>(world.CreateQueryBuilder().WithAll<Team>().WithNone<Enemy>()).Select(vv => vv.Item2.Val.Value));
 
         // entity
         Assert.Equal(["FLib.Tests.Player", "5", "FLib.Tests.Actor"], ((List<object>)world.GetAll(player1)).Select(v1 => v1.ToString()));
@@ -153,7 +152,7 @@ public class TestWorldCore
         Assert.Equal(1, world.Soa.GetGroup<Buff>().Count);
 
         // get all
-        Assert.Equal([typeof(Mng<Player>), typeof(Team), typeof(Actor), typeof(Buff)], ((List<object>)world.GetAll(player1)).Select(v => v.GetType()));
+        Assert.Equal([typeof(Mng<Player>), typeof(Team), typeof(Actor), typeof(Buff)], ((List<object>)world.GetAll(player1)).Select(vv => vv.GetType()));
 
         // dispose
         world.RemoveEntity(player1);
@@ -217,5 +216,25 @@ public class TestWorldCore
             world.Soa.GetGroup<Managed>()[0].Values);
 
         Assert.Null(world.Soa.GetGroup<Player>()[0].Name);
+    }
+
+    [Fact]
+    public void ManyEntities()
+    {
+        var w = new WorldCore();
+        var count = 3000;
+        for (var i = 0; i < count; i++)
+            w.CreateEntityBuilder().With<Team>().BuildAsEntity();
+        Assert.Equal(count, w.Entities.Count);
+        foreach (var etId in w.CreateQueryBuilder().WithNone<Actor>().Query())
+        {
+            if (count <= 661)
+                Log.Info?.Write("", nameof(TestWorldCore), nameof(ManyEntities));
+            w.RemoveEntity(etId);
+            Assert.Equal(--count, w.Entities.Count);
+        }
+
+        Assert.Equal(0, count);
+        Assert.Equal(0, w.Entities.Count);
     }
 }
