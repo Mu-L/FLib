@@ -11,9 +11,11 @@ namespace FLib.WorldCores.Queries
     {
         private readonly WorldQuerySharedComponent[] _sharedComponents;
         private WorldArchetypeQueryEnumerator _archetypeEnumerator;
-        private HashSet<WorldChunk>.Enumerator _chunkEnumerator;
+        private Dictionary<int, List<WorldChunk>>.Enumerator _sharedChunkEnumerator;
+        private List<WorldChunk> _chunks;
+        private int _chunkIndex;
         private bool _initialized;
-        public WorldChunk Current => _chunkEnumerator.Current;
+        public WorldChunk Current { get; private set; }
         object IEnumerator.Current => Current;
 
         /// <summary>
@@ -23,7 +25,10 @@ namespace FLib.WorldCores.Queries
         {
             _sharedComponents = filter.SharedComponents;
             _archetypeEnumerator = new WorldArchetypeQueryEnumerator(filter.Archetypes);
-            _chunkEnumerator = default;
+            _sharedChunkEnumerator = default;
+            _chunks = null;
+            _chunkIndex = -1;
+            Current = null;
             _initialized = false;
         }
 
@@ -38,34 +43,73 @@ namespace FLib.WorldCores.Queries
             if (!_initialized)
             {
                 _initialized = true;
-                if (!_archetypeEnumerator.MoveNext())
+                if (!MoveNextArchetype())
                     return false;
-                _chunkEnumerator = _archetypeEnumerator.Current!.AllChunks.GetEnumerator();
             }
 
-            if (MoveNextChunk()) return true;
-
-            while (_archetypeEnumerator.MoveNext())
+            while (true)
             {
-                _chunkEnumerator = _archetypeEnumerator.Current!.AllChunks.GetEnumerator();
                 if (MoveNextChunk())
                     return true;
+                if (MoveNextSharedChunk())
+                    continue;
+                if (!MoveNextArchetype())
+                    return false;
             }
-
-            return false;
         }
+
 
         /// <summary>
         /// 
         /// </summary>
         public void Dispose()
         {
-            _chunkEnumerator.Dispose();
+            _sharedChunkEnumerator.Dispose();
             _archetypeEnumerator.Dispose();
         }
 
         public void Reset()
         {
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining
+#if NET6_0_OR_GREATER
+                    | MethodImplOptions.AggressiveOptimization
+#endif
+        )]
+        private bool MoveNextArchetype()
+        {
+            while (_archetypeEnumerator.MoveNext())
+            {
+                _sharedChunkEnumerator = _archetypeEnumerator.Current!.SharedChunks.GetEnumerator();
+                while (_sharedChunkEnumerator.MoveNext())
+                {
+                    _chunks = _sharedChunkEnumerator.Current.Value;
+                    _chunkIndex = -1;
+                    if (_chunks.Count > 0)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining
+#if NET6_0_OR_GREATER
+                    | MethodImplOptions.AggressiveOptimization
+#endif
+        )]
+        private bool MoveNextSharedChunk()
+        {
+            while (_sharedChunkEnumerator.MoveNext())
+            {
+                _chunks = _sharedChunkEnumerator.Current.Value;
+                _chunkIndex = -1;
+                if (_chunks.Count > 0)
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -78,9 +122,9 @@ namespace FLib.WorldCores.Queries
         )]
         private bool MoveNextChunk()
         {
-            while (_chunkEnumerator.MoveNext())
+            while (++_chunkIndex < _chunks.Count)
             {
-                var chunk = _chunkEnumerator.Current!;
+                var chunk = _chunks[_chunkIndex];
                 for (var i = 0; i < _sharedComponents.Length; i++)
                 {
                     var sharedComponent = _sharedComponents[i];
@@ -88,6 +132,7 @@ namespace FLib.WorldCores.Queries
                         goto ContinueWhile;
                 }
 
+                Current = chunk;
                 return true;
                 ContinueWhile: ;
             }

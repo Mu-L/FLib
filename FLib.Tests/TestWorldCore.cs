@@ -116,7 +116,7 @@ public class TestWorldCore
 
         var v = world.Query<Team>().Select(v => v.Item2.Val.Value).ToArray();
         Assert.Equal([5, 10, 100], world.Query<Team>().Select(v => v.Item2.Val.Value));
-        Assert.Equal([5, 10], world.Query<Team>(world.BuildQuery().WithAll<Team>().WithNone<Enemy>()).Select(v => v.Item2.Val.Value));
+        Assert.Equal([5, 10], world.Query<Team>(world.CreateQueryBuilder().WithAll<Team>().WithNone<Enemy>()).Select(v => v.Item2.Val.Value));
 
         // entity
         Assert.Equal(["FLib.Tests.Player", "5", "FLib.Tests.Actor"], ((List<object>)world.GetAll(player1)).Select(v1 => v1.ToString()));
@@ -136,7 +136,7 @@ public class TestWorldCore
         // dynamic
         Assert.False(world.HasDyn<Buff>(player1));
         world.SetDyn(player1, new Buff { Name = "abc" });
-        Assert.Equal([player2, player1], world.BuildQuery().WithNone<Enemy>().Query());
+        Assert.Equal([player2, player1], world.CreateQueryBuilder().WithNone<Enemy>().Query());
 
         Assert.True(world.Has<Buff>(player1));
         Assert.Equal("abc", world.GetDyn<Buff>(player1).Name);
@@ -183,9 +183,9 @@ public class TestWorldCore
 
         Assert.Equal([typeof(Team), typeof(Actor), typeof(Mng<Player>), typeof(Shared)], ((List<object>)world.GetAll(et1)).Select(v => v.GetType()));
 
-        Assert.Equal([et1], world.BuildQuery().WithShared(new Shared(1)).Query());
-        Assert.Equal([et2], world.BuildQuery().WithShared(new Shared(10)).Query());
-        Assert.Equal([et1, et2], world.BuildQuery().WithAll<Team>().Query());
+        Assert.Equal([et1], world.CreateQueryBuilder().WithShared(new Shared(1)).Query());
+        Assert.Equal([et2], world.CreateQueryBuilder().WithShared(new Shared(10)).Query());
+        Assert.Equal([et1, et2], world.CreateQueryBuilder().WithAll<Team>().Query());
     }
 
 

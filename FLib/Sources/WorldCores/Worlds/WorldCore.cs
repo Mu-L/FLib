@@ -136,7 +136,7 @@ namespace FLib.WorldCores
         /// 创建一个新的查询过滤器生成器。
         /// </summary>
         /// <returns>查询过滤器生成器实例</returns>
-        public WorldQueryFilterBuilder BuildQuery() => new(this);
+        public WorldQueryFilterBuilder CreateQueryBuilder() => new(this);
 
         /// <summary>
         /// 使用指定的过滤器执行查询，返回匹配实体的枚举器。

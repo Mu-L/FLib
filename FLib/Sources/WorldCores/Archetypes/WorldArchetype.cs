@@ -50,15 +50,8 @@ namespace FLib.WorldCores.Archetypes
         /// </summary>
         public readonly WorldIncrementId MaxComponentId;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public readonly HashSet<WorldChunk> AllChunks = new();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public readonly Dictionary<int, WorldChunk> SharedChunks = new();
+        /// <summary>  </summary>
+        public readonly Dictionary<int, List<WorldChunk>> SharedChunks = new();
 
         public override string ToString() => $"{Index}, {string.Join(',', ComponentTypes.Select(v => v.Type.ToString()))}";
 
@@ -150,9 +143,12 @@ namespace FLib.WorldCores.Archetypes
         /// </summary>
         public void Dispose()
         {
-            foreach (var chunk in AllChunks)
-                GlobalObjectPool<WorldChunk>.Release(chunk);
-            AllChunks.Clear();
+            foreach (var sharedChunk in SharedChunks)
+            {
+                foreach (var chunk in sharedChunk.Value)
+                    GlobalObjectPool<WorldChunk>.Release(chunk);
+            }
+
             SharedChunks.Clear();
         }
 
@@ -172,11 +168,10 @@ namespace FLib.WorldCores.Archetypes
         {
             if (chunk.Count == 1)
             {
-                if (chunk.Previous != null)
-                    SharedChunks[chunk.AllSharedComponentsHash] = chunk.Previous;
-                else
-                    SharedChunks.Remove(chunk.AllSharedComponentsHash);
-                AllChunks.Remove(chunk);
+                var list = SharedChunks[chunk.AllSharedComponentsHash];
+                var theLastChunk = list[chunk.Index] = list[^1];
+                theLastChunk.Index = chunk.Index;
+                list.RemoveAt(list.Count - 1);
                 GlobalObjectPool<WorldChunk>.Release(chunk);
             }
             else
@@ -219,24 +214,36 @@ namespace FLib.WorldCores.Archetypes
                 sharedHash = hashCode.ToHashCode();
             }
 
-            if (!SharedChunks.TryGetValue(sharedHash, out var chunk) || chunk.Count >= EntitiesPerChunk)
+            WorldChunk chunk;
+            if (!SharedChunks.TryGetValue(sharedHash, out var chunkList))
+                SharedChunks.Add(sharedHash, chunkList = new List<WorldChunk>());
+            if (chunkList.Count == 0)
+            {
+                chunk = AppendNewChunk(sharedComponents.ToArray());
+            }
+            else
+            {
+                chunk = chunkList[^1];
+                if (chunk.Count >= EntitiesPerChunk)
+                    chunk = AppendNewChunk(sharedComponents.ToArray());
+            }
+
+            return chunk;
+
+            WorldChunk AppendNewChunk(WorldQuerySharedComponent[] sharedComponents)
             {
                 var newChunk = GlobalObjectPool<WorldChunk>.Create();
-                newChunk.Previous = chunk;
                 newChunk.SparseComponentMeta = ArrayPool<int>.Shared.Rent(SparseComponentOffset.Length);
                 SparseComponentOffset.CopyTo(newChunk.SparseComponentMeta, 0);
                 Array.Clear(newChunk.SparseComponentMeta, SparseComponentOffset.Length, newChunk.SparseComponentMeta.Length - SparseComponentOffset.Length);
                 newChunk.AllSharedComponentsHash = sharedHash;
-                newChunk.AllSharedComponents = sharedComponents.ToArray();
+                newChunk.AllSharedComponents = sharedComponents;
+                newChunk.Index = (short)chunkList.Count;
                 foreach (var sharedComponent in sharedComponents)
                     newChunk.SparseComponentMeta[sharedComponent.ComponentId] = sharedComponent.Hash;
-
-                chunk = SharedChunks[sharedHash] = newChunk;
-                var result = AllChunks.Add(newChunk);
-                World.Assert(result);
+                chunkList.Add(newChunk);
+                return newChunk;
             }
-
-            return chunk;
         }
     }
 }

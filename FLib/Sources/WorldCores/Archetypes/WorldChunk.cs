@@ -34,14 +34,12 @@ namespace FLib.WorldCores.Archetypes
         public int[] SparseComponentMeta;
 
         /// <summary>
-        /// 重新布置前的旧数据块引用。
-        /// </summary>
-        public WorldChunk Previous;
-
-        /// <summary>
         /// 前一个输出所有项模组件的较验掌。
         /// </summary>
         public int AllSharedComponentsHash;
+
+        /// <summary> archetype所在的index </summary>
+        internal short Index;
 
         /// <summary>
         /// 
@@ -60,7 +58,6 @@ namespace FLib.WorldCores.Archetypes
             SparseComponentMeta = null;
             AllSharedComponents = null;
             AllSharedComponentsHash = Count = 0;
-            Previous = null;
         }
 
         public override string ToString() => $"{Count}, {((IntPtr)Buffer).ToString("X")}";
@@ -252,9 +249,9 @@ namespace FLib.WorldCores.Archetypes
         /// <summary>
         /// 
         /// </summary>
-        public bool Has(WorldIncrementId componentId, int meta)
+        public bool Has(WorldIncrementId componentId, int v)
         {
-            return componentId.Raw <= SparseComponentMeta.Length && SparseComponentMeta[componentId] == meta;
+            return componentId.Raw <= SparseComponentMeta.Length && SparseComponentMeta[componentId] == v;
         }
     }
 }
