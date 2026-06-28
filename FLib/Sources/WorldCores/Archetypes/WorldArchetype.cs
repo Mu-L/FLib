@@ -1,4 +1,4 @@
-﻿// ==================== qcbf@qq.com |2025-12-28 ====================
+// ==================== qcbf@qq.com |2025-12-28 ====================
 
 using System;
 using System.Buffers;
@@ -61,21 +61,35 @@ namespace FLib.WorldCores.Archetypes
             Index = index;
             MaxComponentId = builder.MaxComponentId;
             ComponentMask = new ulong[BitArrayOperator.GetBitsLength(MaxComponentId.Raw)];
-            EntitiesPerChunk = (int)(WorldGlobalSetting.ChunkAllocator.ChunkSize / (builder.ComponentsSize + sizeof(WorldEntityId)));
             SparseComponentOffset = new int[MaxComponentId.Raw];
-            var offset = EntitiesPerChunk * sizeof(WorldEntityId);
+
             using var tempComponents = new PooledList<WorldComponentMeta>();
             for (ushort i = 0; i < builder.ComponentTypes.Count; i++)
             {
                 ref readonly var meta = ref builder.ComponentTypes[i];
                 BitArrayOperator.SetBit(ComponentMask, meta.Id, true);
                 if (!WorldComponentRegistry.GetInfo(meta).IsShared)
+                    tempComponents.Add(meta);
+            }
+
+            var chunkSize = (int)WorldGlobalSetting.ChunkAllocator.ChunkSize;
+            var entitySize = sizeof(WorldEntityId);
+            EntitiesPerChunk = Math.Max(1, chunkSize / (builder.ComponentsSize + entitySize));
+            int totalEnd;
+            do
+            {
+                var offset = EntitiesPerChunk * entitySize;
+                for (var i = 0; i < tempComponents.Count; i++)
                 {
+                    ref readonly var meta = ref tempComponents[i];
+                    var alignment = Math.Min(Math.Max(1, meta.Size & ~(meta.Size - 1)), (int)WorldGlobalSetting.ChunkAllocator.Alignment);
+                    offset = MathEx.AlignUp(offset, alignment);
                     SparseComponentOffset[meta.Id] = offset;
                     offset += meta.Size * EntitiesPerChunk;
-                    tempComponents.Add(meta);
                 }
-            }
+
+                totalEnd = offset;
+            } while (totalEnd > chunkSize && --EntitiesPerChunk >= 1);
 
             ComponentTypes = tempComponents.ToArray();
 #if DEBUG

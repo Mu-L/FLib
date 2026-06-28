@@ -39,12 +39,14 @@ namespace FLib
             return ++v;
         }
 
-        /// <summary>
-        /// 得到N字节对齐的新大小
-        /// </summary>
+
+        /// <summary> 取 value 按 alignment 向上对齐后的值. </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int AlignUp(int size, int alignment)
-            => (size + (alignment - 1)) & ~(alignment - 1);
+        public static int AlignUp(int value, int alignment)
+        {
+            var mask = alignment - 1;
+            return (value + mask) & ~mask;
+        }
 
         /// <summary>
         /// 
