@@ -74,7 +74,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         private bool DoImpl(Type behaviorType)
         {
-            AssertNotCopied();
+            WorldCoreException.AssertNotCopied(Self, this);
             var evt = new WorldDoBehaviorEvent(ref this);
             WorldBehavior bhv;
             if (Primary?.GetType() == behaviorType)
@@ -268,7 +268,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public bool TryGet<T>(out T? bhv) where T : WorldBehavior
         {
-            AssertNotCopied();
+            WorldCoreException.AssertNotCopied(Self, this);
             bhv = Primary as T ?? Secondary as T;
             return bhv != null;
         }
@@ -278,7 +278,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public T? Get<T>() where T : WorldBehavior
         {
-            AssertNotCopied();
+            WorldCoreException.AssertNotCopied(Self, this);
             return Primary as T ?? Secondary as T;
         }
 
@@ -287,7 +287,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public readonly bool IsRunning(uint mask)
         {
-            AssertNotCopied();
+            WorldCoreException.AssertNotCopied(Self, this);
             return (Mask & mask) != 0;
         }
 
@@ -296,7 +296,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public readonly bool IsRunning<T>() where T : WorldBehavior
         {
-            AssertNotCopied();
+            WorldCoreException.AssertNotCopied(Self, this);
             return Primary is T || Secondary is T;
         }
 
@@ -305,7 +305,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         public readonly bool IsRunning(Type behaviorType)
         {
-            AssertNotCopied();
+            WorldCoreException.AssertNotCopied(Self, this);
             return Primary?.GetType() == behaviorType || Secondary?.GetType() == behaviorType;
         }
 
@@ -336,7 +336,7 @@ namespace FLib.WorldCores.Behaviors
         /// </summary>
         internal void Stop(ref int id, bool isDoDefault = true)
         {
-            AssertNotCopied();
+            WorldCoreException.AssertNotCopied(Self, this);
             var bhv = WorldBehaviorPool.Behaviors[id];
             var bhvType = bhv.GetType();
             var isPrimary = id == PrimaryId;
@@ -384,16 +384,6 @@ namespace FLib.WorldCores.Behaviors
             to = bhv.Id;
             bhv.OnSwap(conflictType);
             Self.DispatchEvent(new WorldSwapBehaviorEvent(conflictType, bhv));
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Conditional("DEBUG")]
-        private readonly unsafe void AssertNotCopied()
-        {
-            if (Unsafe.AsPointer(ref Unsafe.AsRef(in this)) != Unsafe.AsPointer(ref World.GetStaRef<WorldBehaviorSystem>(Self.Id)))
-                World.ThrowException("WorldBehaviorSystem was copied. Use ref WorldBehaviorSystem.", Self);
         }
     }
 }

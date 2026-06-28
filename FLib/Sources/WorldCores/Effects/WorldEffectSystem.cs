@@ -59,6 +59,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public bool HasEffect(uint id)
         {
+            WorldCoreException.AssertNotCopied(Entity, this);
             return Container.Effects.ContainsKey(id);
         }
 
@@ -67,6 +68,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public bool HasFlags(uint flags)
         {
+            WorldCoreException.AssertNotCopied(Entity, this);
             return (FlagMask & flags) != 0;
         }
 
@@ -75,6 +77,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public WorldEffectBase? Get(uint id)
         {
+            WorldCoreException.AssertNotCopied(Entity, this);
             var effects = Container.Effects;
             ref var item = ref effects.GetValueRefOrNullRef(id);
             return Unsafe.IsNullRef(ref item) ? null : item.Single;
@@ -85,6 +88,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public WorldEffectBase? Add(in WorldEntityId addedBy, uint id, ushort addCount = 1)
         {
+            WorldCoreException.AssertNotCopied(Entity, this);
             World.Assert(!IsDisposed);
             var container = Container;
             var effects = container.Effects;
@@ -151,6 +155,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public bool Remove(uint id, ushort removeCount = ushort.MaxValue)
         {
+            WorldCoreException.AssertNotCopied(Entity, this);
             var container = Container;
             ref var item = ref container.Effects.GetValueRefOrNullRef(id);
             return Unsafe.IsNullRef(ref item) && Remove(item.Single!, removeCount);
@@ -161,6 +166,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         public bool Remove(WorldEffectBase effect, ushort removeCount = ushort.MaxValue)
         {
+            WorldCoreException.AssertNotCopied(Entity, this);
             if (effect.IsRemoving)
             {
                 Log.Warn?.Write($"frequent remove effect {effect}");
