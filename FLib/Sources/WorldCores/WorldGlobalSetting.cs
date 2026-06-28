@@ -50,7 +50,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 对齐大小
         /// </summary>
-        public static int ComponentAlign = 16;
+        public static int ComponentAlign = 4;
 
         /// <summary>
         /// 组件每次扩容的大小

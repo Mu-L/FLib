@@ -44,9 +44,7 @@ namespace FLib
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int AlignUp(int size, int alignment)
-        {
-            return (size + (alignment - 1)) & ~(alignment - 1);
-        }
+            => (size + (alignment - 1)) & ~(alignment - 1);
 
         /// <summary>
         /// 
