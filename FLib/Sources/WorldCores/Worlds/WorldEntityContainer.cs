@@ -7,24 +7,24 @@ using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores
 {
+    /// <summary>  </summary>
     public struct WorldEntityContainer
     {
         public readonly WorldCore World;
         public WorldEntityInfo[] EntityInfos;
         public EntityEvent?[] Events;
-        public int Count;
-        public Stack<ushort> Frees;
+        public StableIndexAllocator IndexAllocator;
 
+        public int Count => IndexAllocator.Count;
         public readonly ref WorldEntityInfo this[ushort index] => ref EntityInfos[index];
         public readonly ref WorldEntityInfo this[int index] => ref EntityInfos[index];
 
         public WorldEntityContainer(WorldCore world, int entityCapacity)
         {
             World = world;
-            Count = 0;
             EntityInfos = new WorldEntityInfo[entityCapacity];
             Events = new EntityEvent[entityCapacity];
-            Frees = new Stack<ushort>(entityCapacity >> 1);
+            IndexAllocator = new StableIndexAllocator() { Frees = new Stack<int>(entityCapacity >> 1) };
         }
 
         /// <summary>
@@ -45,16 +45,9 @@ namespace FLib.WorldCores
         /// </summary>
         public ushort Add(in WorldEntityInfo entityInfo)
         {
-            if (!Frees.TryPop(out var id))
-            {
+            var id = (ushort)IndexAllocator.Alloc();
+            if (EntityInfos.Length <= id)
                 EnsureCapacity(MathEx.GetNextCapacityLength(Count));
-                id = checked((ushort)Count++);
-            }
-            else
-            {
-                ++Count;
-            }
-
             EntityInfos[id] = entityInfo;
             if (Events[id] != null)
                 Events[id]!.Entity = new WorldEntity(World, new WorldEntityId(id, entityInfo.Version));
@@ -66,9 +59,8 @@ namespace FLib.WorldCores
         /// </summary>
         public void Remove(ushort id)
         {
+            IndexAllocator.Free(id);
             EntityInfos[id] = default;
-            if (id < --Count)
-                Frees.Push(id);
         }
 
         /// <summary>

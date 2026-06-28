@@ -10,7 +10,7 @@ using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Behaviors
 {
-    [WorldComponentOption(flags: EComponentFlag.RejectSoa)]
+    [WorldComponentOption(flags: EComponentFlag.RejectSoa | EComponentFlag.AlwaysReceiveDestroy)]
     public struct WorldBehaviorSystem : IWorldAwake, IWorldDestroy
     {
         public WorldEntity Self;
@@ -35,7 +35,7 @@ namespace FLib.WorldCores.Behaviors
 
         void IWorldDestroy.OnComponentDestroy(WorldCore world, WorldEntityId entityId)
         {
-            StopAll(true, false);
+            StopAll(false);
         }
 
         /// <summary>
@@ -178,16 +178,16 @@ namespace FLib.WorldCores.Behaviors
         /// 停止系统中运行的所有行为。
         /// 如果 <paramref name="force"/> 为 true，会循环尝试直至彻底清空或抛出错误。
         /// </summary>
-        public void StopAll(bool force = false, bool isDoDefault = true)
+        public void StopAll(bool isDoDefault = true)
         {
             StopSecondary();
             StopPrimary(isDoDefault);
-            if (force && HasPrimary)
+            if (!isDoDefault && HasPrimary)
             {
                 for (var i = 0; i < 100000 && HasPrimary; i++)
                 {
                     StopSecondary();
-                    StopPrimary(isDoDefault);
+                    StopPrimary(false);
                 }
 
                 if (HasPrimary)

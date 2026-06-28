@@ -21,16 +21,13 @@ namespace FLib.WorldCores.SoaComponents
         public static void Update<T>(WorldCore world, object arg) where T : IWorldUpdate
         {
             var group = (WorldUpdateSoaComponentGroup<T>)arg;
-            var updatedCount = 0;
-            for (var i = 0; i < group.ComponentEntities.Length && updatedCount < group.Count; i++)
+            for (var i = 0; i < group.IndexAllocator.EndCount; i++)
             {
                 var et = group.ComponentEntities[i];
                 if (et.IsEmpty)
                     continue;
-
                 ref var comp = ref group.Components[i];
                 comp.OnComponentUpdate(world, et);
-                updatedCount++;
             }
         }
 
