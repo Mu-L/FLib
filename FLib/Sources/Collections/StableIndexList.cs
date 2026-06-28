@@ -94,7 +94,7 @@ namespace FLib
         }
 
         int IList<T>.IndexOf(T item) => IndexOf(item);
-        public int IndexOf(in T item) => Array.IndexOf(Values, item);
+        public int IndexOf(in T item) => Array.IndexOf(Values, item, 0, IndexAllocator.EndCount);
         public bool Contains(in T item) => IndexOf(item) >= 0;
         public void CopyTo(T[] array, int arrayIndex) => throw new NotSupportedException();
 
@@ -105,31 +105,25 @@ namespace FLib
         {
             private readonly T[] _values;
             private readonly HashSet<int> _frees;
-            private readonly int _count;
             private int _index;
-            private int _found;
-            public T Current { get; private set; }
+            private readonly int _count;
+            public T Current => _values[_index];
             object IEnumerator.Current => Current!;
 
             public Enumerator(in StableIndexList<T> source)
             {
                 _values = source.Values;
                 _frees = source.IndexAllocator.Frees != null ? new HashSet<int>(source.IndexAllocator.Frees) : null;
-                _count = source.Count;
+                _count = source.IndexAllocator.EndCount;
                 _index = -1;
-                _found = 0;
-                Current = default;
             }
 
             public bool MoveNext()
             {
-                while (++_index < _values.Length && _found < _count)
+                while (++_index < _count)
                 {
-                    if (_frees?.Contains(_index) == true)
-                        continue;
-                    ++_found;
-                    Current = _values[_index];
-                    return true;
+                    if (_frees?.Contains(_index) != true)
+                        return true;
                 }
 
                 return false;
@@ -138,85 +132,83 @@ namespace FLib
             public void Reset()
             {
                 _index = -1;
-                _found = 0;
-                Current = default;
             }
 
             public void Dispose()
             {
             }
         }
+    }
 
-        /// <summary> 稳定的索引分配器 </summary>
-        public struct StableIndexAllocator : IEnumerable<int>
+    /// <summary> 稳定的索引分配器 </summary>
+    public struct StableIndexAllocator : IEnumerable<int>
+    {
+#if DEBUG
+        public HashSet<int> Uses;
+#endif
+        public Stack<int> Frees;
+        public int EndCount;
+        public int Count;
+
+        /// <summary> 分配索引 </summary>
+        public int Alloc()
         {
-#if DEBUG
-            public HashSet<int> Uses;
-#endif
-            public Stack<int> Frees;
-            public int EndIndex;
-            public int Count;
-
-            /// <summary> 分配索引 </summary>
-            public int Alloc()
+            if (Frees?.TryPop(out var index) == true)
             {
-                if (Frees?.TryPop(out var index) == true)
-                {
-                    ++Count;
-                }
-                else
-                {
-                    ++Count;
-                    index = EndIndex++;
-                }
-#if DEBUG
-                if (!(Uses ??= new HashSet<int>()).Add(index))
-                    throw new Exception($"alloc {index} error");
-#endif
-                return index;
+                ++Count;
             }
-
-            /// <summary> 释放索引 </summary>
-            public void Free(int index, bool cleanIndex = true)
+            else
             {
-                System.Diagnostics.Debug.Assert(Count > 0 && index <= EndIndex);
-                --Count;
-                if (index == EndIndex - 1)
+                ++Count;
+                index = EndCount++;
+            }
+#if DEBUG
+            if (!(Uses ??= new HashSet<int>()).Add(index))
+                throw new Exception($"alloc {index} error");
+#endif
+            return index;
+        }
+
+        /// <summary> 释放索引 </summary>
+        public void Free(int index, bool cleanIndex = true)
+        {
+            System.Diagnostics.Debug.Assert(Count > 0 && index < EndCount);
+            --Count;
+            if (index == EndCount - 1)
+            {
+                --EndCount;
+                if (cleanIndex && Frees != null)
                 {
-                    --EndIndex;
-                    if (cleanIndex && Frees != null)
+                    while (EndCount > 0 && Frees.Count > 0 && Frees.Peek() == EndCount - 1)
                     {
-                        while (EndIndex > 0 && Frees.Count > 0 && Frees.Peek() == EndIndex - 1)
-                        {
-                            Frees.Pop();
-                            --EndIndex;
-                        }
+                        Frees.Pop();
+                        --EndCount;
                     }
                 }
-                else
-                {
-                    (Frees ??= new Stack<int>()).Push(index);
-                }
-#if DEBUG
-                if (!(Uses ??= new HashSet<int>()).Remove(index))
-                    throw new Exception($"free {index} error");
-#endif
             }
-
-            /// <summary> 清空索引分配器 </summary>
-            public void Clear()
+            else
             {
-                Count = EndIndex = 0;
-                Frees?.Clear();
-#if DEBUG
-                Uses?.Clear();
-#endif
+                (Frees ??= new Stack<int>()).Push(index);
             }
-
-            public static implicit operator Stack<int>(in StableIndexAllocator allocator) => allocator.Frees;
-            public static implicit operator int(in StableIndexAllocator allocator) => allocator.Count;
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            public IEnumerator<int> GetEnumerator() => Frees.GetEnumerator();
+#if DEBUG
+            if (!(Uses ??= new HashSet<int>()).Remove(index))
+                throw new Exception($"free {index} error");
+#endif
         }
+
+        /// <summary> 清空索引分配器 </summary>
+        public void Clear()
+        {
+            Count = EndCount = 0;
+            Frees?.Clear();
+#if DEBUG
+            Uses?.Clear();
+#endif
+        }
+
+        public static implicit operator Stack<int>(in StableIndexAllocator allocator) => allocator.Frees;
+        public static implicit operator int(in StableIndexAllocator allocator) => allocator.Count;
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public IEnumerator<int> GetEnumerator() => Frees.GetEnumerator();
     }
 }

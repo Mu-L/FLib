@@ -13,13 +13,13 @@ namespace FLib.WorldCores.SoaComponents
 {
     public class WorldSoaComponentGroup<T> : IWorldSoaComponentGroupable, IEnumerable<T>
     {
-        public Stack<int> Frees = new();
-        public int Count;
+        public StableIndexAllocator IndexAllocator;
         internal T[] Components = Array.Empty<T>();
         internal WorldEntityId[] ComponentEntities = Array.Empty<WorldEntityId>();
 
 
         public WorldCore World { get; set; }
+        public int Count => IndexAllocator.Count;
         Array IWorldSoaComponentGroupable.Components => Components;
 
         public virtual ref T this[int index]
@@ -83,14 +83,9 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         internal int AllocWithoutAwake(in WorldEntityId et, in T component)
         {
-            if (!Frees.TryPop(out var index))
-            {
-                if (Count >= Components.Length)
-                    EnsureCapacity(MathEx.GetNextCapacityLength(Count));
-                index = Count;
-            }
-
-            ++Count;
+            var index = IndexAllocator.Alloc();
+            if (index >= Components.Length)
+                EnsureCapacity(MathEx.GetNextCapacityLength(index));
             Components[index] = component;
             ComponentEntities[index] = et;
             return index;
@@ -112,9 +107,7 @@ namespace FLib.WorldCores.SoaComponents
                 ComponentEntities[index] = default;
                 if (!WorldComponentGenericMap<T>.Info.Flags(EComponentFlag.DoNotResetMemory))
                     Components[index] = default;
-                --Count;
-                if (index < Count)
-                    Frees.Push(index);
+                IndexAllocator.Free(index);
             }
         }
 
