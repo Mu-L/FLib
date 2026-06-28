@@ -101,7 +101,7 @@ namespace FLib.WorldCores.Components
             {
                 var id = new WorldIncrementId(++ComponentCount);
                 WorldStaticComponentMask.EnsureCapacity(id);
-                meta = new WorldComponentMeta(id, (ushort)MathEx.AlignUp(size, WorldGlobalSetting.ComponentAlign), type);
+                meta = new WorldComponentMeta(id, size, type);
                 ComponentTypeMap[type] = meta;
                 if (_componentInfos.Length <= id)
                     Array.Resize(ref _componentInfos, id + WorldGlobalSetting.CapacityExpandSize);

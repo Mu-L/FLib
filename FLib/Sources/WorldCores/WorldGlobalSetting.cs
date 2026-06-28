@@ -48,11 +48,6 @@ namespace FLib.WorldCores
         public static Action<WorldEntity> OnRemoveEntityEvent;
 
         /// <summary>
-        /// 对齐大小
-        /// </summary>
-        public static int ComponentAlign = 4;
-
-        /// <summary>
         /// 组件每次扩容的大小
         /// </summary>
         public static int CapacityExpandSize = 32;
