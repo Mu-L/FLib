@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace FLib
 {
+    /// <summary> 稳定索引列表 </summary>
     public struct StableIndexList<T> : IList<T>
     {
         public T[] Values;
@@ -30,10 +31,9 @@ namespace FLib
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
-
         public void EnsureCapacity(int capacity)
         {
-            if (Values.Length >= capacity) return;
+            if (Values != null && Values.Length >= capacity) return;
             Array.Resize(ref Values, capacity);
         }
 
@@ -77,7 +77,7 @@ namespace FLib
         public void Clear(bool clean)
         {
             IndexAllocator.Clear();
-            if (clean)
+            if (clean && Values != null)
                 Array.Fill(Values, default);
         }
 
@@ -94,7 +94,7 @@ namespace FLib
         }
 
         int IList<T>.IndexOf(T item) => IndexOf(item);
-        public int IndexOf(in T item) => Array.IndexOf(Values, item, 0, IndexAllocator.EndCount);
+        public int IndexOf(in T item) => Count == 0 ? -1 : Array.IndexOf(Values, item, 0, IndexAllocator.EndCount);
         public bool Contains(in T item) => IndexOf(item) >= 0;
         public void CopyTo(T[] array, int arrayIndex) => throw new NotSupportedException();
 
@@ -134,7 +134,7 @@ namespace FLib
                 _index = -1;
             }
 
-            public void Dispose()
+            void IDisposable.Dispose()
             {
             }
         }
@@ -172,7 +172,7 @@ namespace FLib
         /// <summary> 释放索引 </summary>
         public void Free(int index, bool cleanIndex = true)
         {
-            System.Diagnostics.Debug.Assert(Count > 0 && index < EndCount);
+            System.Diagnostics.Debug.Assert(Count > 0 && index < EndCount && index >= 0);
             --Count;
             if (index == EndCount - 1)
             {
