@@ -11,7 +11,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 略微感觉做法有点糙, 但又没想出是否要单独写个分页对象储存池,感觉好像又没太大必要, 暂时先这样实现
         /// </summary>
-        [ThreadStatic] private static FixedIndexList<T> _objects;
+        [ThreadStatic] private static StableIndexList<T> _objects;
 
         private int _index;
 

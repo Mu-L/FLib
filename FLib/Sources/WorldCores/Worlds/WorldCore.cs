@@ -22,7 +22,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 所有世界核心实例的全局列表。
         /// </summary>
-        public static FixedIndexList<WorldCore> AllWorlds;
+        public static StableIndexList<WorldCore> AllWorlds;
 
         private static ushort _worldVersionIncrement;
         private static SpinLock _locker;
@@ -45,7 +45,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 动态组件的稀疏表示列表。
         /// </summary>
-        public FixedIndexList<PooledList<int>> DynamicComponentSparse;
+        public StableIndexList<PooledList<int>> DynamicComponentSparse;
 
         /// <summary>
         /// 实体容器，管理世界中的所有实体。
@@ -92,7 +92,7 @@ namespace FLib.WorldCores
             ArchetypeGroup = new WorldArchetypeGroup(this);
             Soa = new WorldSoaComponentGroupManager(this);
             Entities = new WorldEntityContainer(this, entityCapacity);
-            DynamicComponentSparse = new FixedIndexList<PooledList<int>>(entityCapacity >> 1);
+            DynamicComponentSparse = new StableIndexList<PooledList<int>>(entityCapacity >> 1);
 
             var isLocking = false;
             _locker.Enter(ref isLocking);

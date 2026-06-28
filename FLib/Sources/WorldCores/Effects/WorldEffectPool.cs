@@ -13,7 +13,7 @@ namespace FLib.WorldCores.Effects
 {
     public static class WorldEffectPool
     {
-        [ThreadStatic] public static FixedIndexList<WorldEffectContainer> Containers;
+        [ThreadStatic] public static StableIndexList<WorldEffectContainer> Containers;
 
         /// <summary>
         /// 

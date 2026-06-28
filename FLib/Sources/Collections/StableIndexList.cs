@@ -6,15 +6,11 @@ using System.Collections.Generic;
 
 namespace FLib
 {
-    public struct FixedIndexList<T> : IList<T>
+    public struct StableIndexList<T> : IList<T>
     {
         public T[] Values;
-        public Stack<int> Frees;
-#if DEBUG
-        public HashSet<int> Uses;
-#endif
-
-        public int Count { get; private set; }
+        public StableIndexAllocator IndexAllocator;
+        public int Count => IndexAllocator.Count;
         bool ICollection<T>.IsReadOnly => false;
 
         public T this[int index]
@@ -23,11 +19,11 @@ namespace FLib
             set => Values[index] = value;
         }
 
-        public FixedIndexList(int capacity) : this()
+        public StableIndexList(int capacity) : this()
         {
             capacity = Math.Max(4, capacity);
             Values = new T[capacity];
-            Frees = new Stack<int>(capacity >> 1);
+            IndexAllocator.Frees = new Stack<int>(Math.Max(8, capacity >> 1));
         }
 
         public Enumerator GetEnumerator() => new(this);
@@ -39,9 +35,6 @@ namespace FLib
         {
             if (Values.Length >= capacity) return;
             Array.Resize(ref Values, capacity);
-#if NET6_0_OR_GREATER
-            Frees.EnsureCapacity(capacity);
-#endif
         }
 
         public readonly ref T GetRef(int index) => ref Values[index];
@@ -52,17 +45,9 @@ namespace FLib
         /// </summary>
         public int Add()
         {
-            if (Frees == null || !Frees.TryPop(out var index))
-            {
-                if (Values == null || Values.Length <= Count)
-                    Array.Resize(ref Values, MathEx.GetNextCapacityLength(Count));
-                index = Count;
-            }
-
-            ++Count;
-#if DEBUG
-            (Uses ??= new HashSet<int>()).Add(index);
-#endif
+            var index = IndexAllocator.Alloc();
+            if (Values == null || Values.Length <= index)
+                Array.Resize(ref Values, MathEx.GetNextCapacityLength(Count));
             return index;
         }
 
@@ -82,13 +67,7 @@ namespace FLib
 
         public void RemoveAt(int index, bool clean)
         {
-#if DEBUG
-            if (!(Uses ??= new HashSet<int>()).Remove(index))
-                throw new Exception($"not found {index}");
-#endif
-            --Count;
-            if (index < Count)
-                (Frees ??= new Stack<int>()).Push(index);
+            IndexAllocator.Free(index);
             if (clean)
                 Values[index] = default;
         }
@@ -97,8 +76,7 @@ namespace FLib
 
         public void Clear(bool clean)
         {
-            Frees?.Clear();
-            Count = 0;
+            IndexAllocator.Clear();
             if (clean)
                 Array.Fill(Values, default);
         }
@@ -133,10 +111,10 @@ namespace FLib
             public T Current { get; private set; }
             object IEnumerator.Current => Current!;
 
-            public Enumerator(in FixedIndexList<T> source)
+            public Enumerator(in StableIndexList<T> source)
             {
                 _values = source.Values;
-                _frees = source.Frees != null ? new HashSet<int>(source.Frees) : null;
+                _frees = source.IndexAllocator.Frees != null ? new HashSet<int>(source.IndexAllocator.Frees) : null;
                 _count = source.Count;
                 _index = -1;
                 _found = 0;
@@ -167,6 +145,78 @@ namespace FLib
             public void Dispose()
             {
             }
+        }
+
+        /// <summary> 稳定的索引分配器 </summary>
+        public struct StableIndexAllocator : IEnumerable<int>
+        {
+#if DEBUG
+            public HashSet<int> Uses;
+#endif
+            public Stack<int> Frees;
+            public int EndIndex;
+            public int Count;
+
+            /// <summary> 分配索引 </summary>
+            public int Alloc()
+            {
+                if (Frees?.TryPop(out var index) == true)
+                {
+                    ++Count;
+                }
+                else
+                {
+                    ++Count;
+                    index = EndIndex++;
+                }
+#if DEBUG
+                if (!(Uses ??= new HashSet<int>()).Add(index))
+                    throw new Exception($"alloc {index} error");
+#endif
+                return index;
+            }
+
+            /// <summary> 释放索引 </summary>
+            public void Free(int index, bool cleanIndex = true)
+            {
+                System.Diagnostics.Debug.Assert(Count > 0 && index <= EndIndex);
+                --Count;
+                if (index == EndIndex - 1)
+                {
+                    --EndIndex;
+                    if (cleanIndex && Frees != null)
+                    {
+                        while (EndIndex > 0 && Frees.Count > 0 && Frees.Peek() == EndIndex - 1)
+                        {
+                            Frees.Pop();
+                            --EndIndex;
+                        }
+                    }
+                }
+                else
+                {
+                    (Frees ??= new Stack<int>()).Push(index);
+                }
+#if DEBUG
+                if (!(Uses ??= new HashSet<int>()).Remove(index))
+                    throw new Exception($"free {index} error");
+#endif
+            }
+
+            /// <summary> 清空索引分配器 </summary>
+            public void Clear()
+            {
+                Count = EndIndex = 0;
+                Frees?.Clear();
+#if DEBUG
+                Uses?.Clear();
+#endif
+            }
+
+            public static implicit operator Stack<int>(in StableIndexAllocator allocator) => allocator.Frees;
+            public static implicit operator int(in StableIndexAllocator allocator) => allocator.Count;
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            public IEnumerator<int> GetEnumerator() => Frees.GetEnumerator();
         }
     }
 }
