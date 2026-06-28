@@ -78,6 +78,14 @@ namespace FLib.WorldCores.Archetypes
             }
 
             ComponentTypes = tempComponents.ToArray();
+#if DEBUG
+            for (var i = 0; i < SparseComponentOffset.Length; i++)
+            {
+                if (SparseComponentOffset[i] != 0
+                    && SparseComponentOffset[i] + WorldComponentRegistry.GetInfo(new WorldIncrementId(i + 1)).Meta.Size * EntitiesPerChunk > WorldGlobalSetting.ChunkAllocator.ChunkSize)
+                    throw new OverflowException($"memory overflow {i}");
+            }
+#endif
         }
 
         /// <summary>
@@ -219,28 +227,36 @@ namespace FLib.WorldCores.Archetypes
                 SharedChunks.Add(sharedHash, chunkList = new List<WorldChunk>());
             if (chunkList.Count == 0)
             {
-                chunk = AppendNewChunk(sharedComponents.ToArray());
+                chunk = AppendNewChunk(sharedComponents);
             }
             else
             {
                 chunk = chunkList[^1];
                 if (chunk.Count >= EntitiesPerChunk)
-                    chunk = AppendNewChunk(sharedComponents.ToArray());
+                    chunk = AppendNewChunk(sharedComponents);
             }
 
             return chunk;
 
-            WorldChunk AppendNewChunk(WorldQuerySharedComponent[] sharedComponents)
+            WorldChunk AppendNewChunk(in ReadOnlySpan<WorldQuerySharedComponent> sharedComponents)
             {
                 var newChunk = GlobalObjectPool<WorldChunk>.Create();
                 newChunk.SparseComponentMeta = ArrayPool<int>.Shared.Rent(SparseComponentOffset.Length);
                 SparseComponentOffset.CopyTo(newChunk.SparseComponentMeta, 0);
                 Array.Clear(newChunk.SparseComponentMeta, SparseComponentOffset.Length, newChunk.SparseComponentMeta.Length - SparseComponentOffset.Length);
                 newChunk.AllSharedComponentsHash = sharedHash;
-                newChunk.AllSharedComponents = sharedComponents;
                 newChunk.Index = (short)chunkList.Count;
-                foreach (var sharedComponent in sharedComponents)
-                    newChunk.SparseComponentMeta[sharedComponent.ComponentId] = sharedComponent.Hash;
+                if (sharedComponents.IsEmpty)
+                {
+                    newChunk.AllSharedComponents = Array.Empty<WorldQuerySharedComponent>();
+                }
+                else
+                {
+                    newChunk.AllSharedComponents = sharedComponents.ToArray();
+                    foreach (var sharedComponent in sharedComponents)
+                        newChunk.SparseComponentMeta[sharedComponent.ComponentId] = sharedComponent.Hash;
+                }
+
                 chunkList.Add(newChunk);
                 return newChunk;
             }
