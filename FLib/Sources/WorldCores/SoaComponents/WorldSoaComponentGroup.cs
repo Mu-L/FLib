@@ -40,7 +40,7 @@ namespace FLib.WorldCores.SoaComponents
             if (Components.Length >= capacity) return false;
             Array.Resize(ref Components, capacity);
 #if NET6_0_OR_GREATER
-            Frees.EnsureCapacity(capacity >> 2);
+            IndexAllocator.Frees.EnsureCapacity(capacity >> 2);
 #endif
             Array.Resize(ref ComponentEntities, Components.Length);
             return true;

@@ -48,7 +48,7 @@ public class TestWorldEffect
         fxSys.Add(default, 1);
         et.RemoveSelf();
         
-        Assert.Null(WorldEffectPool.Containers.Frees);
+        Assert.Null(WorldEffectPool.Containers.IndexAllocator.Frees);
         Assert.Empty(WorldEffectPool.Containers);
     }
 }

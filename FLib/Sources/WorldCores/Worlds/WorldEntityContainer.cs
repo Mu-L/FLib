@@ -36,7 +36,7 @@ namespace FLib.WorldCores
             Array.Resize(ref EntityInfos, capacity);
             Array.Resize(ref Events, capacity);
 #if NET6_0_OR_GREATER
-            Frees.EnsureCapacity(capacity >> 1);
+            IndexAllocator.Frees.EnsureCapacity(capacity >> 1);
 #endif
         }
 
