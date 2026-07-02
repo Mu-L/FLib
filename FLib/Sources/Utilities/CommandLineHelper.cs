@@ -22,7 +22,7 @@ namespace FLib
                 for (var i = 0; i < args.Length; i++)
                 {
                     var item = args[i];
-                    if (item.StartsWith("--"))
+                    if (item.StartsWith("-"))
                     {
                         var fieldName = item[2..];
                         var fieldValueStr = args.ElementAtOrDefault(++i) ?? string.Empty;
@@ -36,6 +36,7 @@ namespace FLib
                         {
                             obj = Json5.Deserialize(fieldValueStr, field.FieldType);
                         }
+
                         field.SetValue(commandHandler, obj);
                     }
                     else if (item == "help")
@@ -47,6 +48,7 @@ namespace FLib
                         methodName = item.ToLowerInvariant();
                     }
                 }
+
                 if (methodName == null)
                 {
                     defaultMethod?.Invoke();
@@ -76,7 +78,7 @@ namespace FLib
                 var comment = item.GetCustomAttribute<CommentAttribute>(false);
                 if (comment != null)
                 {
-                    strbuf.Append('\t').Append("--").Append(item.Name).Append('\t').Append(comment.Name)
+                    strbuf.Append('\t').Append("-").Append(item.Name).Append('\t').Append(comment.Name)
                         .Append('[').Append("Default: ").Append(item.GetValue(commandHandler)).Append(']');
                     strbuf.AppendLine();
                 }
@@ -88,12 +90,55 @@ namespace FLib
                 var comment = item.GetCustomAttribute<CommentAttribute>(false);
                 if (comment != null)
                 {
-                    strbuf.Append('\t').Append("--").Append(item.Name).Append('\t').Append(comment.Name);
+                    strbuf.Append('\t').Append("-").Append(item.Name).Append('\t').Append(comment.Name);
                     strbuf.AppendLine();
                 }
             }
 
             return strbuf;
+        }
+
+        /// <summary>  </summary>
+        public static IDictionary<string, string> ToDictionary(IEnumerable<string> args, IDictionary<string, string> result = null)
+        {
+            result ??= new Dictionary<string, string>();
+
+            using var e = args.GetEnumerator();
+            if (!e.MoveNext())
+                return result;
+
+            var current = e.Current;
+            while (true)
+            {
+                if (!current!.StartsWith('-'))
+                {
+                    if (!e.MoveNext()) break;
+                    current = e.Current;
+                    continue;
+                }
+
+                var key = current.TrimStart('-');
+                if (!e.MoveNext())
+                {
+                    result[key] = string.Empty;
+                    break;
+                }
+
+                var next = e.Current!;
+                if (next.StartsWith('-'))
+                {
+                    result[key] = string.Empty;
+                    current = next;
+                }
+                else
+                {
+                    result[key] = next;
+                    if (!e.MoveNext()) break;
+                    current = e.Current;
+                }
+            }
+
+            return result;
         }
     }
 }

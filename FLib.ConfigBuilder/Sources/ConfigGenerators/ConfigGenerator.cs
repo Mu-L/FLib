@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,7 @@ namespace FLib
 
     public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null)
     {
+        internal Dictionary<string, string> Args = new();
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
         public bool Op(EConfigGenerateOption op) => (Options & op) != EConfigGenerateOption.None;
     }
@@ -43,7 +45,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void Process(ConfigGenerateParams p)
+        public static void Generate(ConfigGenerateParams p)
         {
             Log.Info?.Write($"generate config {p}", nameof(ConfigGenerator));
             if (p.Op(EConfigGenerateOption.Clear))
@@ -56,7 +58,7 @@ namespace FLib
             }
 
             ProcessDefines(p);
-            Directory.GetFiles(p.SourceDirPath, "*.schema.json5", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
+            Directory.GetFiles(p.SourceDirPath, "*.schema.ts", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
             OnGenerateProcess?.Invoke();
         }
 
@@ -100,68 +102,59 @@ namespace FLib
         /// </summary>
         public static void ProcessDefines(ConfigGenerateParams p)
         {
-            var json = ReadJson5(Path.Combine(p.SourceDirPath, "_defines.json5"), p, out var strbuf);
+            var json = ReadJson5("./tools/Declares.ts", p, out var strbuf);
             var indent = 1;
 
-            // 生成枚举
-            foreach (var item in json["Enums"].Dict)
+            foreach (var item in json["Members"].Dict)
             {
-                Log.Info?.Write($"Generate Define Enum {item.Key}", nameof(ConfigGenerator));
-                strbuf.AppendComment(indent, item.Value);
-                var isFlags = item.Value["IsFlags"];
-                if (isFlags)
-                    strbuf.Indent(indent).AppendLine("[Flags]");
-                strbuf.Indent(indent).Append($"public enum {item.Key}");
-                if (item.Value.TryGet("Base", out var jBase))
-                    strbuf.Append(" : ").Append(jBase.ToString());
-                strbuf.AppendLine().Indent(indent).AppendLine("{");
-                ++indent;
-                if (item.Value.TryGet("Fields", out var fields))
+                CommandLineHelper.ToDictionary(item.Value["Args"].Array.Select(v => (string)v), p.Args);
+                if (p.Args.ContainsKey("ignore"))
+                    return;
+                Json5AnyValue fields;
+                switch ((string)item.Value["Type"])
                 {
-                    var index = 0;
-                    foreach (var field in fields.Dict)
-                    {
-                        strbuf.AppendComment(indent, field.Value);
-                        strbuf.Indent(indent).Append(field.Key);
-                        if (field.Value.TryGet("Value", out var value))
+                    case "interface":
+                        strbuf.AppendComment(indent, item.Value);
+                        strbuf.Indent(indent).AppendLine("[BytesPackGen]");
+                        strbuf.Indent(indent).Append("public partial ").Append(p.Args.ContainsKey("class") ? "class" : "struct").Append(' ').Append(item.Key).Append(" {").AppendLine();
+                        ++indent;
+                        if (item.Value.TryGet("Fields", out fields))
                         {
-                            strbuf.Append(" = ").Append(value.ToString());
+                            foreach (var field in fields.Dict)
+                            {
+                                strbuf.AppendComment(indent, field.Value);
+                                strbuf.Indent(indent).Append("[BytesPackGenField] ")
+                                    .Append("public ").Append(field.Value["Type"].ToString()).Append(' ').Append(field.Key).Append(';').AppendLine();
+                            }
                         }
-                        else if (isFlags)
+
+                        --indent;
+                        strbuf.Indent(indent).Append('}').AppendLine().AppendLine();
+
+                        break;
+                    case "enum":
+                        strbuf.AppendComment(indent, item.Value);
+                        if (p.Args.ContainsKey("isFlags"))
+                            strbuf.Indent(indent).AppendLine("[Flags]");
+                        strbuf.Indent(indent).Append($"public enum {item.Key}");
+                        if (item.Value.TryGet("Base", out var jBase))
+                            strbuf.Append(" : ").Append(jBase.ToString());
+                        strbuf.AppendLine().Indent(indent).AppendLine("{");
+                        ++indent;
+                        if (item.Value.TryGet("Fields", out fields))
                         {
-                            strbuf.Append(" = ").Append("1 << ").Append(index++);
+                            foreach (var field in fields.Dict)
+                            {
+                                strbuf.AppendComment(indent, field.Value);
+                                strbuf.Indent(indent).Append(field.Key)
+                                    .Append(" = ").Append((string)field.Value);
+                                strbuf.AppendLine(",").AppendLine();
+                            }
                         }
 
-                        strbuf.AppendLine(",").AppendLine();
-                    }
-                }
-
-                --indent;
-                strbuf.Indent(indent).AppendLine("}").AppendLine();
-            }
-
-            // 生成类型
-            if (json["Types"].TryGet("GenCodeTypes", out var types))
-            {
-                foreach (var item in types.AsDict!)
-                {
-                    Log.Info?.Write($"Generate Define Type {item.Key}", nameof(ConfigGenerator));
-                    strbuf.AppendComment(indent, item.Value);
-                    strbuf.Indent(indent).AppendLine("[BytesPackGen]");
-                    strbuf.Indent(indent).Append("public partial ").Append(item.Value["Type"].ToString()).Append(' ').Append(item.Key).Append(" {").AppendLine();
-                    ++indent;
-                    if (item.Value.TryGet("Fields", out var fields))
-                    {
-                        foreach (var field in fields.Dict)
-                        {
-                            strbuf.AppendComment(indent, field.Value);
-                            strbuf.Indent(indent).Append("[BytesPackGenField] ")
-                                .Append("public ").Append(field.Value.ToString()).Append(' ').Append(field.Key).Append(';').AppendLine();
-                        }
-                    }
-
-                    --indent;
-                    strbuf.Indent(indent).Append('}').AppendLine().AppendLine();
+                        --indent;
+                        strbuf.Indent(indent).AppendLine("}").AppendLine();
+                        break;
                 }
             }
 
@@ -169,13 +162,23 @@ namespace FLib
         }
 
         /// <summary>  </summary>
-        private static Json5AnyValue ReadJson5(string path, ConfigGenerateParams p, out StringBuilder strbuf, string[] extraUsings = null)
+        private static Json5AnyValue ReadJson5(string fileName, ConfigGenerateParams p, out StringBuilder strbuf, string[] extraUsings = null)
         {
-            var jsonText = File.ReadAllText(path);
+            using var proc = Process.Start(new ProcessStartInfo("node")
+            {
+                WorkingDirectory = Path.GetFullPath(p.SourceDirPath),
+                ArgumentList = { "./tools/Compile.ts", fileName },
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            })!;
+            var err = proc.StandardError.ReadToEnd();
+            if (!string.IsNullOrEmpty(err))
+                throw new Exception(err);
+            var jsonText = proc.StandardOutput.ReadToEnd();
             strbuf = new StringBuilder(jsonText.Length).AppendFileHead(p, extraUsings);
             return Json5.Deserialize<Json5AnyValue>(jsonText);
         }
-
 
         /// <summary>  </summary>
         private static void WriteConfigClassHead(this StringBuilder strbuf, string fileName, Json5AnyValue json, out int indent, out string name)
