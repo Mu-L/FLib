@@ -10,15 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-#if UNITY_2022_3_OR_NEWER
-namespace System.Runtime.CompilerServices
-{
-    static class IsExternalInit
-    {
-    }
-}
-#endif
-
 namespace FLib
 {
     [Flags]
@@ -30,8 +21,13 @@ namespace FLib
         Default = Clear | UseProperty,
     }
 
-    public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null)
+    public class ConfigGenerateParams
     {
+        public string SourceDirPath;
+        public string DestDirPath;
+        public string Namespace;
+        public EConfigGenerateOption Options;
+        public string[] Usings;
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
         public bool Op(EConfigGenerateOption op) => (Options & op) != EConfigGenerateOption.None;
     }
@@ -46,6 +42,9 @@ namespace FLib
         /// </summary>
         public static void Generate(ConfigGenerateParams p)
         {
+            p.SourceDirPath = Path.GetFullPath(p.SourceDirPath);
+            p.DestDirPath = Path.GetFullPath(p.DestDirPath);
+
             var sw = Stopwatch.StartNew();
             if (p.Op(EConfigGenerateOption.Clear))
             {
@@ -57,7 +56,7 @@ namespace FLib
             var configFiles = Directory.GetFiles(p.SourceDirPath, "*.schema.ts", SearchOption.AllDirectories);
             configFiles.AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
             // foreach (var jsonPath in configFiles)
-                // ProcessConfig(jsonPath, p);
+            // ProcessConfig(jsonPath, p);
             Log.Info?.Write($"generate config[{configFiles.Length + 1}] {sw.ElapsedMilliseconds}ms {p}", nameof(ConfigGenerator));
             OnGenerateProcess?.Invoke();
         }
@@ -104,7 +103,7 @@ namespace FLib
         /// </summary>
         public static void ProcessDefines(ConfigGenerateParams p)
         {
-            var json = ReadJson("./src/Declares.ts", p, out var strbuf);
+            var json = ReadJson(Path.GetFullPath("./src/Declares.ts", p.SourceDirPath), p, out var strbuf);
             var indent = 1;
             var args = new Dictionary<string, string>();
             foreach (var item in json["Members"].Dict)
@@ -167,18 +166,7 @@ namespace FLib
         /// <summary>  </summary>
         private static Json5AnyValue ReadJson(string fileName, ConfigGenerateParams p, out StringBuilder strbuf, string[] extraUsings = null)
         {
-            using var proc = Process.Start(new ProcessStartInfo("node")
-            {
-                WorkingDirectory = Path.GetFullPath(p.SourceDirPath),
-                ArgumentList = { "./tools/Compile.ts", fileName },
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-            })!;
-            var err = proc.StandardError.ReadToEnd();
-            if (!string.IsNullOrEmpty(err))
-                throw new Exception($"{proc.StartInfo.Arguments}\n{proc.StartInfo.WorkingDirectory}\n{err}");
-            var jsonText = proc.StandardOutput.ReadToEnd();
+            var jsonText = ConfigTypescriptHelper.Compile(fileName);
             strbuf = new StringBuilder(jsonText.Length).AppendFileHead(p, extraUsings);
             return Json5.Deserialize<Json5AnyValue>(jsonText);
         }
