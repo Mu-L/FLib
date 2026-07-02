@@ -45,9 +45,7 @@ namespace FLib
         public void Build(in ConfigBuilder.TableContext ctx)
         {
             foreach (var item in Json5.Deserialize<Value[]>(File.ReadAllText(ctx.SourceFilePath), new Json5DeserializeOptionData { UserData = ctx }))
-            {
                 ctx.AddConfig(item.KeyValue, item.CfgData);
-            }
         }
     }
 }

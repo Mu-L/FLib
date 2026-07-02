@@ -67,7 +67,7 @@ namespace FLib
         {
             try
             {
-                var json = ReadJson5(jsonPath, p, out var strbuf);
+                var json = ReadJson(jsonPath, p, out var strbuf);
                 var args = CommandLineHelper.ToDictionary(json.TryGet("Args")?.Array.Select(v => (string)v));
                 strbuf.WriteConfigClassHead(Path.GetFileNameWithoutExtension(jsonPath)[..^7], json, out var indent, out var name);
                 strbuf.AppendLine().Indent(indent).AppendLine("{");
@@ -104,7 +104,7 @@ namespace FLib
         /// </summary>
         public static void ProcessDefines(ConfigGenerateParams p)
         {
-            var json = ReadJson5("./src/Declares.ts", p, out var strbuf);
+            var json = ReadJson("./src/Declares.ts", p, out var strbuf);
             var indent = 1;
             var args = new Dictionary<string, string>();
             foreach (var item in json["Members"].Dict)
@@ -165,7 +165,7 @@ namespace FLib
         }
 
         /// <summary>  </summary>
-        private static Json5AnyValue ReadJson5(string fileName, ConfigGenerateParams p, out StringBuilder strbuf, string[] extraUsings = null)
+        private static Json5AnyValue ReadJson(string fileName, ConfigGenerateParams p, out StringBuilder strbuf, string[] extraUsings = null)
         {
             using var proc = Process.Start(new ProcessStartInfo("node")
             {
