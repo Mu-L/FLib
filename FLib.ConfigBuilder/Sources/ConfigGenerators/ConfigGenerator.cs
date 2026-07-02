@@ -57,7 +57,7 @@ namespace FLib
             var configFiles = Directory.GetFiles(p.SourceDirPath, "*.schema.ts", SearchOption.AllDirectories);
             configFiles.AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
             // foreach (var jsonPath in configFiles)
-            // ProcessConfig(jsonPath, p);
+                // ProcessConfig(jsonPath, p);
             Log.Info?.Write($"generate config[{configFiles.Length + 1}] {sw.ElapsedMilliseconds}ms {p}", nameof(ConfigGenerator));
             OnGenerateProcess?.Invoke();
         }
@@ -111,7 +111,7 @@ namespace FLib
             {
                 CommandLineHelper.ToDictionary(item.Value.TryGet("Args")?.Array.Select(v => (string)v), args);
                 if (args.ContainsKey("ignore"))
-                    return;
+                    continue;
                 Json5AnyValue fields;
                 switch ((string)item.Value["Type"])
                 {
@@ -136,11 +136,11 @@ namespace FLib
                         break;
                     case "enum":
                         strbuf.AppendComment(indent, item.Value);
-                        if (args.ContainsKey("isFlags"))
+                        if (args.ContainsKey("flags"))
                             strbuf.Indent(indent).AppendLine("[Flags]");
                         strbuf.Indent(indent).Append($"public enum {item.Key}");
-                        if (item.Value.TryGet("Base", out var jBase))
-                            strbuf.Append(" : ").Append(jBase.ToString());
+                        if (args.TryGetValue("base", out var baseType))
+                            strbuf.Append(" : ").Append(baseType);
                         strbuf.AppendLine().Indent(indent).AppendLine("{");
                         ++indent;
                         if (item.Value.TryGet("Fields", out fields))
@@ -148,8 +148,9 @@ namespace FLib
                             foreach (var field in fields.Dict)
                             {
                                 strbuf.AppendComment(indent, field.Value);
-                                strbuf.Indent(indent).Append(field.Key)
-                                    .Append(" = ").Append((string)field.Value);
+                                strbuf.Indent(indent).Append(field.Key);
+                                if (field.Value.TryGet("Value", out var value))
+                                    strbuf.Append(" = ").Append(value.ToString());
                                 strbuf.AppendLine(",").AppendLine();
                             }
                         }
