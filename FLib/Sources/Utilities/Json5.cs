@@ -1186,8 +1186,8 @@ namespace FLib
         public Dictionary<string, Json5AnyValue> Dict => (Dictionary<string, Json5AnyValue>)Raw;
         public Json5AnyValue this[int index] => Get(index);
         public Json5AnyValue this[string key] => Get(key);
-        public Json5AnyValue Get(int index) => AsArray![index];
-        public Json5AnyValue Get(string key) => AsDict![key];
+        public Json5AnyValue Get(int index) => Array[index];
+        public Json5AnyValue Get(string key) => Dict[key];
         public Json5AnyValue? TryGet(int index) => AsArray?.ElementAtOrDefault(index);
         public Json5AnyValue? TryGet(string key) => AsDict?.GetValueOrDefault(key);
 

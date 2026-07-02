@@ -101,8 +101,10 @@ namespace FLib
         /// <summary>  </summary>
         public static IDictionary<string, string> ToDictionary(IEnumerable<string> args, IDictionary<string, string> result = null)
         {
-            result ??= new Dictionary<string, string>();
+            (result ??= new Dictionary<string, string>()).Clear();
 
+            if (args == null)
+                return result;
             using var e = args.GetEnumerator();
             if (!e.MoveNext())
                 return result;

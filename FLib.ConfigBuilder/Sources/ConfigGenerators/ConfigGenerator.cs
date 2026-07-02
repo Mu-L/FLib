@@ -102,12 +102,12 @@ namespace FLib
         /// </summary>
         public static void ProcessDefines(ConfigGenerateParams p)
         {
-            var json = ReadJson5("./tools/Declares.ts", p, out var strbuf);
+            var json = ReadJson5("./src/Declares.ts", p, out var strbuf);
             var indent = 1;
 
             foreach (var item in json["Members"].Dict)
             {
-                CommandLineHelper.ToDictionary(item.Value["Args"].Array.Select(v => (string)v), p.Args);
+                CommandLineHelper.ToDictionary(item.Value.TryGet("Args")?.Array.Select(v => (string)v), p.Args);
                 if (p.Args.ContainsKey("ignore"))
                     return;
                 Json5AnyValue fields;
@@ -174,7 +174,7 @@ namespace FLib
             })!;
             var err = proc.StandardError.ReadToEnd();
             if (!string.IsNullOrEmpty(err))
-                throw new Exception(err);
+                throw new Exception($"{proc.StartInfo.Arguments}\n{proc.StartInfo.WorkingDirectory}\n{err}");
             var jsonText = proc.StandardOutput.ReadToEnd();
             strbuf = new StringBuilder(jsonText.Length).AppendFileHead(p, extraUsings);
             return Json5.Deserialize<Json5AnyValue>(jsonText);
