@@ -101,7 +101,7 @@ namespace FLib
         /// <summary>  </summary>
         public static IDictionary<string, string> ToDictionary(IEnumerable<string> args, IDictionary<string, string> result = null)
         {
-            (result ??= new Dictionary<string, string>()).Clear();
+            (result ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)).Clear();
 
             if (args == null)
                 return result;

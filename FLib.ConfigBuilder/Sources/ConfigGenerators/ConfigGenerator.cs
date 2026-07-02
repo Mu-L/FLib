@@ -32,7 +32,6 @@ namespace FLib
 
     public record ConfigGenerateParams(string SourceDirPath, string DestDirPath, string Namespace, EConfigGenerateOption Options = EConfigGenerateOption.Default, string[] Usings = null)
     {
-        internal Dictionary<string, string> Args = new();
         public bool HasNamespace => !string.IsNullOrEmpty(Namespace);
         public bool Op(EConfigGenerateOption op) => (Options & op) != EConfigGenerateOption.None;
     }
@@ -47,18 +46,19 @@ namespace FLib
         /// </summary>
         public static void Generate(ConfigGenerateParams p)
         {
-            Log.Info?.Write($"generate config {p}", nameof(ConfigGenerator));
+            var sw = Stopwatch.StartNew();
             if (p.Op(EConfigGenerateOption.Clear))
             {
                 foreach (var item in Directory.GetFiles(p.DestDirPath, "*.CfgGen.cs", SearchOption.TopDirectoryOnly))
-                {
-                    Log.Info?.Write($"remove config {item}", nameof(ConfigGenerator));
                     File.Delete(item);
-                }
             }
 
             ProcessDefines(p);
-            Directory.GetFiles(p.SourceDirPath, "*.schema.ts", SearchOption.AllDirectories).AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
+            var configFiles = Directory.GetFiles(p.SourceDirPath, "*.schema.ts", SearchOption.AllDirectories);
+            configFiles.AsParallel().ForAll(jsonPath => ProcessConfig(jsonPath, p));
+            // foreach (var jsonPath in configFiles)
+            // ProcessConfig(jsonPath, p);
+            Log.Info?.Write($"generate config[{configFiles.Length + 1}] {sw.ElapsedMilliseconds}ms {p}", nameof(ConfigGenerator));
             OnGenerateProcess?.Invoke();
         }
 
@@ -68,21 +68,23 @@ namespace FLib
             try
             {
                 var json = ReadJson5(jsonPath, p, out var strbuf);
+                var args = CommandLineHelper.ToDictionary(json.TryGet("Args")?.Array.Select(v => (string)v));
                 strbuf.WriteConfigClassHead(Path.GetFileNameWithoutExtension(jsonPath)[..^7], json, out var indent, out var name);
                 strbuf.AppendLine().Indent(indent).AppendLine("{");
-                var isStaticFields = json.Has("IsStaticFields");
+                var isStaticFields = args.ContainsKey("static");
                 var indent1 = ++indent;
-                foreach (var (key, fieldValue) in json["Fields"].Dict)
+                foreach (var (key, fieldValue) in json["Members"].Dict)
                 {
+                    CommandLineHelper.ToDictionary(fieldValue.TryGet("Args")?.Array.Select(v => (string)v), args);
                     strbuf.AppendComment(indent1, fieldValue);
                     strbuf.Indent(indent1).Append("[BytesPackGenField] ").Append("public ");
                     if (isStaticFields)
                         strbuf.Append("static ");
                     strbuf.Append(fieldValue["Type"].ToString()).Append(' ').Append(key);
                     if (p.Op(EConfigGenerateOption.UseProperty))
-                        strbuf.Append(" { get; private set; }").AppendDefaultValue(fieldValue);
+                        strbuf.Append(" { get; private set; }").AppendDefaultValue(args);
                     else
-                        strbuf.AppendDefaultValue(fieldValue)?.Append(';');
+                        strbuf.AppendDefaultValue(args)?.Append(';');
 
                     strbuf.AppendLine().AppendLine();
                 }
@@ -104,11 +106,11 @@ namespace FLib
         {
             var json = ReadJson5("./src/Declares.ts", p, out var strbuf);
             var indent = 1;
-
+            var args = new Dictionary<string, string>();
             foreach (var item in json["Members"].Dict)
             {
-                CommandLineHelper.ToDictionary(item.Value.TryGet("Args")?.Array.Select(v => (string)v), p.Args);
-                if (p.Args.ContainsKey("ignore"))
+                CommandLineHelper.ToDictionary(item.Value.TryGet("Args")?.Array.Select(v => (string)v), args);
+                if (args.ContainsKey("ignore"))
                     return;
                 Json5AnyValue fields;
                 switch ((string)item.Value["Type"])
@@ -116,7 +118,7 @@ namespace FLib
                     case "interface":
                         strbuf.AppendComment(indent, item.Value);
                         strbuf.Indent(indent).AppendLine("[BytesPackGen]");
-                        strbuf.Indent(indent).Append("public partial ").Append(p.Args.ContainsKey("class") ? "class" : "struct").Append(' ').Append(item.Key).Append(" {").AppendLine();
+                        strbuf.Indent(indent).Append("public partial ").Append(args.ContainsKey("class") ? "class" : "struct").Append(' ').Append(item.Key).Append(" {").AppendLine();
                         ++indent;
                         if (item.Value.TryGet("Fields", out fields))
                         {
@@ -134,7 +136,7 @@ namespace FLib
                         break;
                     case "enum":
                         strbuf.AppendComment(indent, item.Value);
-                        if (p.Args.ContainsKey("isFlags"))
+                        if (args.ContainsKey("isFlags"))
                             strbuf.Indent(indent).AppendLine("[Flags]");
                         strbuf.Indent(indent).Append($"public enum {item.Key}");
                         if (item.Value.TryGet("Base", out var jBase))
@@ -188,9 +190,8 @@ namespace FLib
             if (json == null || json.Count == 0)
                 return;
             name = json["Name"].ToString();
-            Log.Info?.Write($"Generate Config {name} {fileName}", nameof(ConfigGenerator));
 
-            strbuf.AppendComment(indent, json, "Design")
+            strbuf.AppendComment(indent, json)
                 .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
                 .Indent(indent).Append("public partial class ").Append(name);
         }
@@ -199,7 +200,7 @@ namespace FLib
         private static void WriteConfigToString(this StringBuilder strbuf, int indent, Json5AnyValue json)
         {
             strbuf.Indent(indent).Append("public override string ToString() => ");
-            var logFields = json["Fields"].Dict.Keys.Take(4).Select(k => $"Json5.SerializeToLog({k})").ToArray();
+            var logFields = json["Members"].Dict.Keys.Take(4).Select(k => $"Json5.SerializeToLog({k})").ToArray();
             if (logFields.Length > 0)
                 strbuf.Append("string.Join(\",\", new[] { ").Append(string.Join(", ", logFields)).AppendLine(" });").AppendLine();
             else
@@ -217,11 +218,11 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        private static StringBuilder AppendDefaultValue(this StringBuilder strbuf, Json5AnyValue field)
+        private static StringBuilder AppendDefaultValue(this StringBuilder strbuf, IDictionary<string, string> args)
         {
-            if (!field.TryGet("DefaultValue", out var value))
+            if (!args.TryGetValue("defaultValue", out var value))
                 return strbuf;
-            strbuf.Append(" = ").Append(value.ToString()).Append(';');
+            strbuf.Append(" = ").Append(value).Append(';');
             return null;
         }
 
