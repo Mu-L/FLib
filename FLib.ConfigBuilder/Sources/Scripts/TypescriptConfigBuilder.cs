@@ -14,7 +14,6 @@ namespace FLib
         public void Build(in ConfigBuilder.TableContext ctx)
         {
             var json = ConfigTypescriptHelper.Compile(ctx.SourceFilePath);
-            Log.Info?.Write(json, nameof(TypescriptConfigBuilder), nameof(Build));
             foreach (var item in Json5.Deserialize<Json5ConfigBuilder.Value[]>(json, new Json5DeserializeOptionData { UserData = ctx }))
                 ctx.AddConfig(item.KeyValue, item.CfgData);
         }
