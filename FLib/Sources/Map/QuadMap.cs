@@ -240,8 +240,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public FVector2Int FindNearNextStepPos(int layer, in FVector2Int from, in FVector2Int to, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null,
-            HashSet<FVector2Int> blackPositions = null)
+        public FVector2Int FindNearNextStepPos(int layer, in FVector2Int from, in FVector2Int to, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, HashSet<FVector2Int> blackPositions = null)
         {
             var segment = (FNum)45;
             var half = segment * FNum.OneHalf;
@@ -265,44 +264,26 @@ namespace FLib
             return FVector2Int.None;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool TryBoundPos(int layer, bool value, ref FVector2 pos)
+        /// <summary>  </summary>
+        public void ClampToWalkable(int layer, ref FVector2 pos, out FVector2Int mapPos, bool value = false)
         {
-            var worldRect = WorldRect;
-            var result = false;
-            if (pos.X < worldRect.Min.X)
-            {
-                pos.X = worldRect.Min.X;
-                result = true;
-            }
-            else if (pos.X >= worldRect.Max.X)
-            {
-                pos.X = worldRect.Max.X - FNum.Thousandth;
-                result = true;
-            }
+            var rect = WorldRect;
+            if (pos.X < rect.Min.X)
+                pos.X = rect.Min.X;
+            else if (pos.X >= rect.Max.X)
+                pos.X = rect.Max.X - FNum.Thousandth;
 
-            if (pos.Y < worldRect.Min.Y)
-            {
-                pos.Y = worldRect.Min.Y;
-                result = true;
-            }
-            else if (pos.Y >= worldRect.Max.Y)
-            {
-                pos.Y = worldRect.Max.Y - FNum.Thousandth;
-                result = true;
-            }
+            if (pos.Y < rect.Min.Y)
+                pos.Y = rect.Min.Y;
+            else if (pos.Y >= rect.Max.Y)
+                pos.Y = rect.Max.Y - FNum.Thousandth;
 
-            var mapPos = WorldToMapPos(pos);
+            mapPos = WorldToMapPos(pos);
             if (!CheckTile(layer, mapPos, value))
             {
-                var foundMapPos = FindNearPos(0, mapPos, FVector2Int.One);
-                if (foundMapPos != FVector2Int.None)
-                    pos = MapToWorldPos(foundMapPos);
+                mapPos = FindNearPos(0, mapPos, FVector2Int.One);
+                pos = MapToWorldPos(mapPos);
             }
-
-            return result;
         }
 
         /// <summary>
