@@ -10,6 +10,8 @@ using FLib.WorldCores.Queries;
 using FLib.WorldCores.Entities;
 using FLib.WorldCores.Components;
 using FLib.WorldCores;
+using FLib.WorldCores.Behaviors;
+using FLib.WorldCores.Effects;
 
 namespace FLib.WorldCores.Archetypes
 {
@@ -210,10 +212,30 @@ namespace FLib.WorldCores.Archetypes
         /// </summary>
         private void CopyEntity(WorldChunk fromChunk, ushort fromIndex, WorldChunk toChunk, ushort toIndex)
         {
+            var effectMeta = WorldComponentGenericMap<WorldEffectSystem>.Meta; // 毕竟是内部系统组件, 特殊处理提升性能
+            var behaviorMeta = WorldComponentGenericMap<WorldBehaviorSystem>.Meta;
             for (var i = 0; i < ComponentTypes.Length; i++)
             {
                 var meta = ComponentTypes[i];
-                Unsafe.CopyBlock(toChunk.Get(toIndex, meta), fromChunk.Get(fromIndex, meta), meta.Size);
+                var dest = toChunk.Get(toIndex, meta);
+                Unsafe.CopyBlock(dest, fromChunk.Get(fromIndex, meta), meta.Size);
+                if (meta.Id == effectMeta.Id)
+                {
+                    var effects = (WorldEffectSystem*)dest;
+                    foreach (var effectKv in effects->Container.Effects)
+                    {
+                        foreach (var effect in effectKv.Value)
+                            effect.SystemPtr = effects;
+                    }
+                }
+                else if (meta.Id == behaviorMeta.Id)
+                {
+                    var bhsSys = (WorldBehaviorSystem*)dest;
+                    if (bhsSys->Primary != null)
+                        bhsSys->Primary.BehaviorSystemPtr = bhsSys;
+                    if (bhsSys->Secondary != null)
+                        bhsSys->Secondary.BehaviorSystemPtr = bhsSys;
+                }
             }
 
             var fromEntity = *fromChunk.GetEntity(fromIndex);

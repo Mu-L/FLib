@@ -176,7 +176,6 @@ namespace FLib.WorldCores.Behaviors
 
         /// <summary>
         /// 停止系统中运行的所有行为。
-        /// 如果 <paramref name="force"/> 为 true，会循环尝试直至彻底清空或抛出错误。
         /// </summary>
         public void StopAll(bool isDoDefault = true)
         {
