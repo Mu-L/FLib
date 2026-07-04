@@ -70,11 +70,12 @@ namespace FLib.Gen
             var special = type.SpecialType;
             var nullable = TypeHelper.IsNullable(type);
             var numeric = special >= SpecialType.System_Boolean && special <= SpecialType.System_Double;
+            var isEnum = type.TypeKind == TypeKind.Enum;
 
-            if (!nullable && !numeric) return false;
+            if (!nullable && !numeric && !isEnum) return false;
 
             var isStr = special == SpecialType.System_String;
-            if (!ignoreDefault && (numeric || isStr)) return false;
+            if (!ignoreDefault && (numeric || isStr || isEnum)) return false;
 
             sb.Append("if (");
             if (isStr)
