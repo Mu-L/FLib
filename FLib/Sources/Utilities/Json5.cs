@@ -929,6 +929,8 @@ namespace FLib
             {
                 if (long.TryParse(node.ContentSpan, out var l))
                     return l;
+                if (ulong.TryParse(node.ContentSpan, out var ul))
+                    return ul;
                 if (double.TryParse(node.ContentSpan, out var d))
                     return d;
             }
