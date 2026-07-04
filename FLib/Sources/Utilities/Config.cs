@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -355,10 +356,17 @@ namespace FLib
         public ConfigAttribute(string configFileName, ConfigHelper.EOption options) : this(configFileName) => Options = options;
     }
 
+
     /// <summary> 当配置表build之后的回调 </summary>
     public interface IConfigPostBuildProcessable
     {
-        void OnConfigPostBuildProcess(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts);
+        void OnConfigPostBuildProcess(char sign, IConfigTable table, IReadOnlyDictionary<string, ConcurrentBag<IConfigFile>> allFiles, IReadOnlyDictionary<Type, IConfigTable> allTables);
+    }
+
+    /// <summary> 配置文件自定义构建到表, 由自己写入到context </summary>
+    public interface IConfigFileCustomBuildToTable
+    {
+        void ConfigFileDeserializeToTable(char sign, IConfigFile file, IConfigTable table, IReadOnlyDictionary<string, ConcurrentBag<IConfigFile>> allFiles, IReadOnlyDictionary<Type, IConfigTable> allTables);
     }
 
     /// <summary> 当配置表build之后的回调, 自己注册 </summary>
@@ -374,24 +382,38 @@ namespace FLib
         public IConfigPostBuildProcessable Process;
     }
 
-    /// <summary> 配置文件自定义构建到表, 由自己写入到context </summary>
-    public interface IConfigFileCustomBuildToTable
+    public interface IConfigTable
     {
-        void ConfigFileDeserializeToTable(char sign, IConfigBuildTableContext context, IReadOnlyDictionary<Type, IConfigBuildTableContext> allTableContexts);
+        /// <summary> 配置表实际类型 </summary>
+        public Type ConfigType { get; }
+
+        /// <summary> 配置文件名 </summary>
+        public string Name { get; }
+
+        /// <summary> 配置表id字段 </summary>
+        public FieldInfo IndexIdField { get; }
+
+        /// <summary> 配置表选项 </summary>
+        public ConfigHelper.EOption Options { get; }
+
+        /// <summary> 所有配置数据 </summary>
+        public List<IBytesPackable> AllConfigs { get; }
+
+        /// <summary> 所有配置数据索引 </summary>
+        public Dictionary<uint, List<int>> AllConfigIdIndexes { get; }
+
+        (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, TypeCode overrideTypeCode = TypeCode.Empty);
     }
 
-    /// <summary> 配置表构建上下文 </summary>
-    public interface IConfigBuildTableContext
+    public interface IConfigFile
     {
-        Type ConfigType { get; set; }
-        FieldInfo IndexIdField { get; }
-        string SourceFilePath { get; }
-        string ConfigName { get; }
-        List<string> ConfigNameArgs { get; }
-        ConfigHelper.EOption Options { get; set; }
-        List<(uint Id, IBytesPackable Cfg)> AllConfigs { get; set; }
-        Dictionary<uint, int> AllConfigIdIndexes { get; set; }
-        (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, TypeCode overrideTypeCode = TypeCode.Empty);
-        (uint Id, int Index)? AddConfigByDynamicId(IBytesPackable config);
+        /// <summary> 文件路径 </summary>
+        public string Path { get; }
+
+        /// <summary> 文件标志 </summary>
+        public char FileSign { get; }
+
+        /// <summary> 有`.`分割的文件名 </summary>
+        public List<string> Args { get; }
     }
 }
