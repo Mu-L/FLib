@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,6 +14,9 @@ namespace FLib.Gen
     [Generator]
     public class BytesPackGen : ISourceGenerator
     {
+        private const string WriteMethodName = "Z_BytesPackWrite";
+        private const string ReadMethodName = "Z_BytesPackRead";
+
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -46,10 +48,11 @@ namespace FLib.Gen
             Compilation compilation, List<TypeDeclarationSyntax> candidates)
         {
             var targets = new Dictionary<INamedTypeSymbol, MemberInfo[]>(SymbolEqualityComparer.Default);
+            var semanticModels = new Dictionary<SyntaxTree, SemanticModel>();
 
             foreach (var candidate in candidates)
             {
-                var model = compilation.GetSemanticModel(candidate.SyntaxTree);
+                var model = GetSemanticModel(compilation, candidate.SyntaxTree, semanticModels);
                 if (model.GetDeclaredSymbol(candidate) is not INamedTypeSymbol symbol)
                     continue;
                 if (targets.ContainsKey(symbol))
@@ -57,7 +60,7 @@ namespace FLib.Gen
                 if (!TypeHelper.HasBytesPack(symbol))
                     continue;
 
-                targets.Add(symbol, CollectMembers(compilation, symbol));
+                targets.Add(symbol, CollectMembers(compilation, symbol, semanticModels));
             }
 
             return targets;
@@ -67,12 +70,16 @@ namespace FLib.Gen
         /// 收集类型中标记了 [BytesPackGenField] 的字段/属性，解析其 key 值。
         /// key 可以显式指定，否则自动递增。
         /// </summary>
-        private static MemberInfo[] CollectMembers(Compilation compilation, INamedTypeSymbol symbol)
+        private static MemberInfo[] CollectMembers(
+            Compilation compilation,
+            INamedTypeSymbol symbol,
+            Dictionary<SyntaxTree, SemanticModel> semanticModels)
         {
-            var result = new List<MemberInfo>();
+            var allMembers = symbol.GetMembers();
+            var result = new List<MemberInfo>(allMembers.Length);
             var keyOffset = 0;
 
-            foreach (var member in symbol.GetMembers())
+            foreach (var member in allMembers)
             {
                 if (member is not (IFieldSymbol or IPropertySymbol)) continue;
                 var attr = TypeHelper.GetFieldAttr(member);
@@ -81,14 +88,18 @@ namespace FLib.Gen
                 keyOffset = TypeHelper.GetKeyFromAttr(attr, keyOffset + 1);
                 var options = TypeHelper.GetOptionsFromAttr(attr);
                 var type = (member as IFieldSymbol)?.Type ?? ((IPropertySymbol)member).Type;
-                var defaultValue = GetExplicitDefaultValue(compilation, member, type);
+                var defaultValue = GetExplicitDefaultValue(compilation, member, type, semanticModels);
                 result.Add(new MemberInfo(member.Name, type, keyOffset, options, defaultValue));
             }
 
             return result.ToArray();
         }
 
-        private static string? GetExplicitDefaultValue(Compilation compilation, ISymbol member, ITypeSymbol type)
+        private static string? GetExplicitDefaultValue(
+            Compilation compilation,
+            ISymbol member,
+            ITypeSymbol type,
+            Dictionary<SyntaxTree, SemanticModel> semanticModels)
         {
             foreach (var syntaxRef in member.DeclaringSyntaxReferences)
             {
@@ -101,7 +112,7 @@ namespace FLib.Gen
                 };
                 if (value == null) continue;
 
-                var model = compilation.GetSemanticModel(value.SyntaxTree);
+                var model = GetSemanticModel(compilation, value.SyntaxTree, semanticModels);
                 var constant = model.GetConstantValue(value);
                 if (constant.HasValue && TryFormatConstantValue(constant.Value, type, out var literal))
                     return literal;
@@ -110,6 +121,20 @@ namespace FLib.Gen
             }
 
             return null;
+        }
+
+        private static SemanticModel GetSemanticModel(
+            Compilation compilation,
+            SyntaxTree syntaxTree,
+            Dictionary<SyntaxTree, SemanticModel> cache)
+        {
+            if (!cache.TryGetValue(syntaxTree, out var model))
+            {
+                model = compilation.GetSemanticModel(syntaxTree);
+                cache.Add(syntaxTree, model);
+            }
+
+            return model;
         }
 
         private static bool TryFormatConstantValue(object? value, ITypeSymbol type, out string literal)
@@ -248,6 +273,49 @@ namespace FLib.Gen
             return name;
         }
 
+        private static void ApplyKeyOffset(MemberInfo[] members, int keyOffset)
+        {
+            if (keyOffset == 0)
+                return;
+
+            for (var i = 0; i < members.Length; i++)
+            {
+                members[i] = new MemberInfo(
+                    members[i].Name,
+                    members[i].Type,
+                    members[i].Key + keyOffset,
+                    members[i].Options,
+                    members[i].DefaultValue);
+            }
+        }
+
+        /// <summary>
+        /// 判断是否需要生成 base 调用。
+        /// 同一轮 source generator 看不到自己给父类生成的方法，所以“父类没有显式方法”时仍要生成 base 调用。
+        /// 只有父类源码里已经声明了同名 abstract 方法时，才跳过调用。
+        /// </summary>
+        private static bool ShouldCallBasePackMethod(INamedTypeSymbol? baseType, string methodName)
+        {
+            if (baseType == null)
+                return false;
+
+            var foundConcreteMethod = false;
+            var foundAbstractMethod = false;
+
+            foreach (var member in baseType.GetMembers(methodName))
+            {
+                if (member is not IMethodSymbol method)
+                    continue;
+
+                if (method.IsAbstract)
+                    foundAbstractMethod = true;
+                else
+                    foundConcreteMethod = true;
+            }
+
+            return foundConcreteMethod || !foundAbstractMethod;
+        }
+
         /// <summary>
         /// 生成一个类型的完整源码：namespace、嵌套父类、类型定义、Write/Read 方法。
         /// </summary>
@@ -282,13 +350,8 @@ namespace FLib.Gen
             if (symbol.TypeKind == TypeKind.Class)
                 mod = hasParent ? " override" : " virtual";
 
-            for (var i = 0; i < members.Length; i++)
-                members[i] = new MemberInfo(
-                    members[i].Name,
-                    members[i].Type,
-                    members[i].Key + parentKey,
-                    members[i].Options,
-                    members[i].DefaultValue);
+            // 原地偏移避免额外数组分配；targets 中的 MemberInfo[] 每个类型只会生成一次。
+            ApplyKeyOffset(members, parentKey);
 
             EmitWrite(sb, symbol, members, mod, hasParent);
             EmitRead(sb, symbol, members, mod, hasParent);
@@ -304,7 +367,7 @@ namespace FLib.Gen
         {
             sb.Append("public").Append(mod).Append(" void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer) {\n");
 
-            if (hasParent && symbol.BaseType?.GetMembers("Z_BytesPackWrite").SingleOrDefault()?.IsAbstract != true)
+            if (hasParent && ShouldCallBasePackMethod(symbol.BaseType, WriteMethodName))
                 sb.Append("base.Z_BytesPackWrite(ref key, ref writer);\n");
 
             var uid = 0;
@@ -329,8 +392,7 @@ namespace FLib.Gen
         {
             sb.Append("public").Append(mod).Append(" void Z_BytesPackRead(int key, ref BytesReader reader) {\n");
 
-            var canCallBase = hasParent &&
-                              symbol.BaseType?.GetMembers("Z_BytesPackRead").SingleOrDefault()?.IsAbstract != true;
+            var canCallBase = hasParent && ShouldCallBasePackMethod(symbol.BaseType, ReadMethodName);
 
             if (members.Length > 0)
             {
