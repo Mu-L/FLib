@@ -72,11 +72,12 @@ namespace FLib.Gen
             var nullable = TypeHelper.IsNullable(type);
             var numeric = special >= SpecialType.System_Boolean && special <= SpecialType.System_Double;
             var isEnum = type.TypeKind == TypeKind.Enum;
+            var isFNum = TypeHelper.IsFNum(type);
 
-            if (!nullable && !numeric && !isEnum) return false;
+            if (!nullable && !numeric && !isEnum && !isFNum) return false;
 
             var isStr = special == SpecialType.System_String;
-            if (!ignoreDefault && (numeric || isStr || isEnum)) return false;
+            if (!ignoreDefault && (numeric || isStr || isEnum || isFNum)) return false;
 
             sb.Append("if (");
             if (isStr)
@@ -104,11 +105,14 @@ namespace FLib.Gen
             if (isList)
             {
                 Emit(args[0], item, sb, ref uid);
+                AppendLineBreakIfNeeded(sb);
             }
             else
             {
                 Emit(args[0], item + ".Key", sb, ref uid);
+                AppendLineBreakIfNeeded(sb);
                 Emit(args[1], item + ".Value", sb, ref uid);
+                AppendLineBreakIfNeeded(sb);
             }
             sb.Append("}\n");
         }
@@ -129,7 +133,15 @@ namespace FLib.Gen
             sb.Append("writer.PushLength(").Append(field).Append(".Length);\n");
             sb.Append("for (var ").Append(iVar).Append(" = 0; ").Append(iVar).Append(" < ").Append(field).Append(".Length; ").Append(iVar).Append("++) {");
             Emit(arr.ElementType, field + "[" + iVar + "]", sb, ref uid);
+            AppendLineBreakIfNeeded(sb);
             sb.Append("}\n");
+        }
+
+        private static void AppendLineBreakIfNeeded(StringBuilder sb)
+        {
+            if (sb.Length == 0 || sb[sb.Length - 1] == '\n')
+                return;
+            sb.Append('\n');
         }
 
         /// <summary>追加 [BytesPackGenAdditionalCode(WriteCode = "...")] 中的自定义代码</summary>

@@ -113,6 +113,13 @@ namespace FLib.Gen
                 if (value == null) continue;
 
                 var model = GetSemanticModel(compilation, value.SyntaxTree, semanticModels);
+                if (type.TypeKind == TypeKind.Enum &&
+                    !TypeHelper.IsFlagsEnum(type) &&
+                    TryFormatSimpleEnumMemberDefault(model, value, type, out var enumLiteral))
+                {
+                    return enumLiteral;
+                }
+
                 var constant = model.GetConstantValue(value);
                 if (constant.HasValue && TryFormatConstantValue(constant.Value, type, out var literal))
                     return literal;
@@ -135,6 +142,25 @@ namespace FLib.Gen
             }
 
             return model;
+        }
+
+        private static bool TryFormatSimpleEnumMemberDefault(
+            SemanticModel model,
+            ExpressionSyntax value,
+            ITypeSymbol type,
+            out string literal)
+        {
+            literal = "";
+            if (model.GetSymbolInfo(value).Symbol is not IFieldSymbol field ||
+                field.ContainingType?.TypeKind != TypeKind.Enum ||
+                !SymbolEqualityComparer.Default.Equals(field.ContainingType, type))
+            {
+                return false;
+            }
+
+            literal = field.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) +
+                      "." + field.Name;
+            return true;
         }
 
         private static bool TryFormatConstantValue(object? value, ITypeSymbol type, out string literal)
@@ -377,11 +403,19 @@ namespace FLib.Gen
                 var check = !disableTrim && WriteEmitter.EmitNullCheck(sb, m.Name, m.Type, true, m.DefaultValue);
                 sb.Append("key.Push(ref writer, ").Append(m.Key).Append("); ");
                 WriteEmitter.Emit(m.Type, m.Name, sb, ref uid, m.Options);
+                AppendLineBreakIfNeeded(sb);
                 if (check) sb.Append("}\n");
                 ++uid;
             }
 
             sb.Append("}\n");
+        }
+
+        private static void AppendLineBreakIfNeeded(StringBuilder sb)
+        {
+            if (sb.Length == 0 || sb[sb.Length - 1] == '\n')
+                return;
+            sb.Append('\n');
         }
 
         /// <summary>

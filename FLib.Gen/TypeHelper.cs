@@ -72,6 +72,19 @@ namespace FLib.Gen
             return s >= SpecialType.System_Char && s <= SpecialType.System_UInt32;
         }
 
+        public static bool IsFNum(ITypeSymbol t)
+        {
+            return t.Name == "FNum" && t.ContainingNamespace.ToDisplayString() == "FLib";
+        }
+
+        public static bool IsFlagsEnum(ITypeSymbol t)
+        {
+            foreach (var attr in t.GetAttributes())
+                if (attr.AttributeClass?.Name == nameof(FlagsAttribute))
+                    return true;
+            return false;
+        }
+
         /// <summary>判断类型是否可能为 null（包括引用类型和显式 nullable 标注）</summary>
         public static bool IsNullable(ITypeSymbol t)
         {
