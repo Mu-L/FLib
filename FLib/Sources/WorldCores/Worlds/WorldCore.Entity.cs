@@ -93,10 +93,9 @@ namespace FLib.WorldCores
         /// </summary>
         /// <param name="et">要检查的实体</param>
         /// <returns>如果实体存在返回 true，否则返回 false</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasEntity(WorldEntityId et)
-        {
-            return !et.IsEmpty && Entities.EntityInfos.Length > et.Id && Entities[et.Id].Version == et.Version;
-        }
+            => !et.IsEmpty && Entities.EntityInfos.Length > et.Id && Entities[et.Id].Version == et.Version;
 
         /// <summary>
         /// 检查实体是否存在且未处于销毁中。
