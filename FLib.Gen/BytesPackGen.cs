@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -55,7 +57,7 @@ namespace FLib.Gen
                 if (!TypeHelper.HasBytesPack(symbol))
                     continue;
 
-                targets.Add(symbol, CollectMembers(symbol));
+                targets.Add(symbol, CollectMembers(compilation, symbol));
             }
 
             return targets;
@@ -65,7 +67,7 @@ namespace FLib.Gen
         /// 收集类型中标记了 [BytesPackGenField] 的字段/属性，解析其 key 值。
         /// key 可以显式指定，否则自动递增。
         /// </summary>
-        private static MemberInfo[] CollectMembers(INamedTypeSymbol symbol)
+        private static MemberInfo[] CollectMembers(Compilation compilation, INamedTypeSymbol symbol)
         {
             var result = new List<MemberInfo>();
             var keyOffset = 0;
@@ -79,10 +81,158 @@ namespace FLib.Gen
                 keyOffset = TypeHelper.GetKeyFromAttr(attr, keyOffset + 1);
                 var options = TypeHelper.GetOptionsFromAttr(attr);
                 var type = (member as IFieldSymbol)?.Type ?? ((IPropertySymbol)member).Type;
-                result.Add(new MemberInfo(member.Name, type, keyOffset, options));
+                var defaultValue = GetExplicitDefaultValue(compilation, member, type);
+                result.Add(new MemberInfo(member.Name, type, keyOffset, options, defaultValue));
             }
 
             return result.ToArray();
+        }
+
+        private static string? GetExplicitDefaultValue(Compilation compilation, ISymbol member, ITypeSymbol type)
+        {
+            foreach (var syntaxRef in member.DeclaringSyntaxReferences)
+            {
+                var syntax = syntaxRef.GetSyntax();
+                ExpressionSyntax? value = syntax switch
+                {
+                    VariableDeclaratorSyntax v => v.Initializer?.Value,
+                    PropertyDeclarationSyntax p => p.Initializer?.Value,
+                    _ => null
+                };
+                if (value == null) continue;
+
+                var model = compilation.GetSemanticModel(value.SyntaxTree);
+                var constant = model.GetConstantValue(value);
+                if (constant.HasValue && TryFormatConstantValue(constant.Value, type, out var literal))
+                    return literal;
+
+                return value.ToString();
+            }
+
+            return null;
+        }
+
+        private static bool TryFormatConstantValue(object? value, ITypeSymbol type, out string literal)
+        {
+            if (value == null)
+            {
+                literal = "null";
+                return true;
+            }
+
+            if (type.TypeKind == TypeKind.Enum)
+            {
+                literal = "(" + type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) + ")" +
+                          FormatIntegralConstant(value);
+                return true;
+            }
+
+            return TryFormatPrimitiveConstant(value, type.SpecialType, out literal);
+        }
+
+        private static bool TryFormatPrimitiveConstant(object value, SpecialType special, out string literal)
+        {
+            switch (special)
+            {
+                case SpecialType.System_Boolean:
+                    literal = Convert.ToBoolean(value, CultureInfo.InvariantCulture) ? "true" : "false";
+                    return true;
+                case SpecialType.System_Char:
+                    literal = "'" + EscapeChar(Convert.ToChar(value, CultureInfo.InvariantCulture), false) + "'";
+                    return true;
+                case SpecialType.System_String:
+                    literal = "\"" + EscapeString((string)value) + "\"";
+                    return true;
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                    literal = Convert.ToString(value, CultureInfo.InvariantCulture)!;
+                    return true;
+                case SpecialType.System_UInt32:
+                    literal = Convert.ToString(value, CultureInfo.InvariantCulture)! + "u";
+                    return true;
+                case SpecialType.System_Int64:
+                    literal = Convert.ToString(value, CultureInfo.InvariantCulture)! + "L";
+                    return true;
+                case SpecialType.System_UInt64:
+                    literal = Convert.ToString(value, CultureInfo.InvariantCulture)! + "UL";
+                    return true;
+                case SpecialType.System_Single:
+                    literal = FormatSingleConstant(Convert.ToSingle(value, CultureInfo.InvariantCulture));
+                    return true;
+                case SpecialType.System_Double:
+                    literal = FormatDoubleConstant(Convert.ToDouble(value, CultureInfo.InvariantCulture));
+                    return true;
+                case SpecialType.System_Decimal:
+                    literal = Convert.ToDecimal(value, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture) + "m";
+                    return true;
+                default:
+                    literal = "";
+                    return false;
+            }
+        }
+
+        private static string FormatIntegralConstant(object value)
+        {
+            switch (value)
+            {
+                case uint v:
+                    return v.ToString(CultureInfo.InvariantCulture) + "u";
+                case ulong v:
+                    return v.ToString(CultureInfo.InvariantCulture) + "UL";
+                case long v:
+                    return v.ToString(CultureInfo.InvariantCulture) + "L";
+                default:
+                    return Convert.ToString(value, CultureInfo.InvariantCulture)!;
+            }
+        }
+
+        private static string FormatSingleConstant(float value)
+        {
+            if (float.IsNaN(value)) return "float.NaN";
+            if (float.IsPositiveInfinity(value)) return "float.PositiveInfinity";
+            if (float.IsNegativeInfinity(value)) return "float.NegativeInfinity";
+            return value.ToString("R", CultureInfo.InvariantCulture) + "f";
+        }
+
+        private static string FormatDoubleConstant(double value)
+        {
+            if (double.IsNaN(value)) return "double.NaN";
+            if (double.IsPositiveInfinity(value)) return "double.PositiveInfinity";
+            if (double.IsNegativeInfinity(value)) return "double.NegativeInfinity";
+            return value.ToString("R", CultureInfo.InvariantCulture) + "d";
+        }
+
+        private static string EscapeString(string value)
+        {
+            var sb = new StringBuilder(value.Length);
+            foreach (var c in value)
+                sb.Append(EscapeChar(c, true));
+            return sb.ToString();
+        }
+
+        private static string EscapeChar(char value, bool inString)
+        {
+            switch (value)
+            {
+                case '\0': return "\\0";
+                case '\a': return "\\a";
+                case '\b': return "\\b";
+                case '\f': return "\\f";
+                case '\n': return "\\n";
+                case '\r': return "\\r";
+                case '\t': return "\\t";
+                case '\v': return "\\v";
+                case '\\': return "\\\\";
+                case '"': return inString ? "\\\"" : "\"";
+                case '\'': return inString ? "'" : "\\'";
+                default:
+                    return value < ' ' || value > '~'
+                        ? "\\u" + ((int)value).ToString("x4", CultureInfo.InvariantCulture)
+                        : value.ToString();
+            }
         }
 
         /// <summary>嵌套类型的文件名用 "Parent.Child" 格式</summary>
@@ -133,7 +283,12 @@ namespace FLib.Gen
                 mod = hasParent ? " override" : " virtual";
 
             for (var i = 0; i < members.Length; i++)
-                members[i] = new MemberInfo(members[i].Name, members[i].Type, members[i].Key + parentKey, members[i].Options);
+                members[i] = new MemberInfo(
+                    members[i].Name,
+                    members[i].Type,
+                    members[i].Key + parentKey,
+                    members[i].Options,
+                    members[i].DefaultValue);
 
             EmitWrite(sb, symbol, members, mod, hasParent);
             EmitRead(sb, symbol, members, mod, hasParent);
@@ -156,7 +311,7 @@ namespace FLib.Gen
             foreach (var m in members)
             {
                 var disableTrim = m.HasOption(FieldOption.DisableTrim);
-                var check = !disableTrim && WriteEmitter.EmitNullCheck(sb, m.Name, m.Type, true);
+                var check = !disableTrim && WriteEmitter.EmitNullCheck(sb, m.Name, m.Type, true, m.DefaultValue);
                 sb.Append("key.Push(ref writer, ").Append(m.Key).Append("); ");
                 WriteEmitter.Emit(m.Type, m.Name, sb, ref uid, m.Options);
                 if (check) sb.Append("}\n");
@@ -237,13 +392,15 @@ namespace FLib.Gen
         public readonly ITypeSymbol Type;
         public readonly int Key;
         public readonly int Options;
+        public readonly string? DefaultValue;
 
-        public MemberInfo(string name, ITypeSymbol type, int key, int options = 0)
+        public MemberInfo(string name, ITypeSymbol type, int key, int options = 0, string? defaultValue = null)
         {
             Name = name;
             Type = type;
             Key = key;
             Options = options;
+            DefaultValue = defaultValue;
         }
 
         public bool HasOption(int flag) => (Options & flag) != 0;

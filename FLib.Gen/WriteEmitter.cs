@@ -65,7 +65,8 @@ namespace FLib.Gen
         /// 生成 null/default 检查的 if 语句头。返回 true 表示生成了 if，调用方需要补 "}"。
         /// 跳过 null/default 值的写入可以节省带宽。
         /// </summary>
-        public static bool EmitNullCheck(StringBuilder sb, string field, ITypeSymbol type, bool ignoreDefault)
+        public static bool EmitNullCheck(StringBuilder sb, string field, ITypeSymbol type, bool ignoreDefault,
+            string? defaultValue = null)
         {
             var special = type.SpecialType;
             var nullable = TypeHelper.IsNullable(type);
@@ -79,11 +80,16 @@ namespace FLib.Gen
 
             sb.Append("if (");
             if (isStr)
-                sb.Append("!string.IsNullOrEmpty(").Append(field).Append(")");
+            {
+                if (defaultValue != null)
+                    sb.Append(field).Append(" != (").Append(defaultValue).Append(')');
+                else
+                    sb.Append("!string.IsNullOrEmpty(").Append(field).Append(")");
+            }
             else if (nullable)
                 sb.Append(field).Append(" != null");
             else
-                sb.Append(field).Append(" != default");
+                sb.Append(field).Append(" != (").Append(defaultValue ?? "default").Append(')');
             sb.Append(") {\n");
             return true;
         }
