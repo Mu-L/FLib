@@ -160,12 +160,12 @@ namespace FLib
         #region List
 
         /// <summary> 移除指定索引的元素，并将最后一个元素移动到指定索引位置 </summary>
-        public static void RemoveAtSwapBack(this IList list, int index)
+        public static void RemoveAtSwapBack<T>(this List<T> list, int index)
         {
-            var lastIndex = list.Count - 1;
-            if (index < lastIndex)
-                list[index] = list[lastIndex];
-            list.RemoveAt(lastIndex);
+            var theLastIndex = list.Count - 1;
+            if (index < theLastIndex)
+                list[index] = list[theLastIndex];
+            list.RemoveAt(theLastIndex);
         }
 
         #endregion
