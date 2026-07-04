@@ -1,4 +1,4 @@
-﻿//==================={By Qcbf|qcbf@qq.com|4/27/2022 4:52:08 PM}===================
+//==================={By Qcbf|qcbf@qq.com|4/27/2022 4:52:08 PM}===================
 
 using System;
 using System.Collections;
@@ -21,14 +21,14 @@ namespace FLib
     /// Content:   1002       XXX
     /// </code>
     /// </summary>
-    public class ExcelConfigBuilder : ConfigBuilder.IBuildable
+    public class ExcelConfigBuilder : IConfigBuildable
     {
         // [ThreadStatic] private static ExcelPackage _excelBuffer;
         public string Extension => ".xlsx";
 
-        public void Build(in ConfigBuilder.TableContext ctx)
+        public void Build(ConfigBuilderTable table, ConfigBuilderFile file)
         {
-            using var stream = File.Open(ctx.SourceFile.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var stream = File.Open(file.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var reader = ExcelReaderFactory.CreateReader(stream);
             
             // 特殊行
@@ -38,7 +38,7 @@ namespace FLib
             var commentLineIndex = lineIndexTemp++;
             var defaultValueLineIndex = lineIndexTemp;
 
-            var fields = ctx.ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic).ToDictionary(k => k.Name, v => v);
+            var fields = table.ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic).ToDictionary(k => k.Name, v => v);
             var fieldObjectValues = new Dictionary<string, object>();
 
             string[] fieldNames = null;
@@ -47,7 +47,7 @@ namespace FLib
 
             var rows = reader.RowCount;
             var cols = reader.FieldCount;
-            ctx.EnsureCapacity(rows - 4);
+            table.EnsureCapacity(rows - 4);
             var row = 0;
             while (reader.Read())
             {
@@ -97,7 +97,7 @@ namespace FLib
                 else
                 {
                     object key = null;
-                    var config = (IBytesPackable)TypeAssistant.New(ctx.ConfigType);
+                    var config = (IBytesPackable)TypeAssistant.New(table.ConfigType);
                     try
                     {
                         var isExistObjectField = false;
@@ -168,12 +168,12 @@ namespace FLib
 
                         if (config != null)
                         {
-                            ctx.AddConfig(key, config);
+                            table.AddConfig(key, config);
                         }
                     }
                     catch (Exception ex)
                     {
-                        Log.Error?.Write($"{ctx} line[num:{row}, key:{key}]\n{ex}");
+                        Log.Error?.Write($"[{table.ConfigType.Name}]{file.Path} line[num:{row}, key:{key}]\n{ex}");
                     }
                 }
                 ++row;

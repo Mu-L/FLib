@@ -1,4 +1,4 @@
-﻿// ==================== qcbf@qq.com | 2025-07-01 ====================
+// ==================== qcbf@qq.com | 2025-07-01 ====================
 
 using System;
 using System.Collections;
@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace FLib
 {
-    public class Json5ConfigBuilder : ConfigBuilder.IBuildable
+    public class Json5ConfigBuilder : IConfigBuildable
     {
         public string Extension => ".json5";
 
@@ -21,10 +21,10 @@ namespace FLib
 
             public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)
             {
-                var ctx = (ConfigBuilder.TableContext)options.UserData;
-                if (ctx.IndexIdField != null)
+                var table = (ConfigBuilderTable)options.UserData;
+                if (table.IndexIdField != null)
                 {
-                    var indexIdFieldName = ctx.IndexIdField.Name;
+                    var indexIdFieldName = table.IndexIdField.Name;
                     for (var i = nodes.Position + 1; i < nodes.Nodes.Count; i++)
                     {
                         if (nodes.Nodes[i].Token != EJson5Token.Value) continue;
@@ -37,15 +37,15 @@ namespace FLib
                     }
                 }
 
-                CfgData = (IBytesPackable)nodes.To(ctx.ConfigType);
+                CfgData = (IBytesPackable)nodes.To(table.ConfigType);
                 return true;
             }
         }
 
-        public void Build(in ConfigBuilder.TableContext ctx)
+        public void Build(ConfigBuilderTable table, ConfigBuilderFile file)
         {
-            foreach (var item in Json5.Deserialize<Value[]>(File.ReadAllText(ctx.SourceFilePath), new Json5DeserializeOptionData { UserData = ctx }))
-                ctx.AddConfig(item.KeyValue, item.CfgData);
+            foreach (var item in Json5.Deserialize<Value[]>(File.ReadAllText(file.Path), new Json5DeserializeOptionData { UserData = table }))
+                table.AddConfig(item.KeyValue, item.CfgData);
         }
     }
 }

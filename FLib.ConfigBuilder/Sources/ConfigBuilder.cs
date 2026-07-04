@@ -61,7 +61,6 @@ namespace FLib
         {
             var allFiles = new ConcurrentDictionary<string, ConcurrentBag<IConfigFile>>(Environment.ProcessorCount, 1024);
             var allConfigBuilders = GetConfigBuilders();
-            var strbuf = new StringBuilder();
             foreach (var sourceDirectory in sourceDirectories)
             {
                 Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories).AsParallel().ForAll(filePath =>
@@ -75,6 +74,7 @@ namespace FLib
                             return;
                         if (!allConfigBuilders.TryGetValue(Path.GetExtension(filePath), out var builder))
                             return;
+                        var strbuf = StringFLibUtility.GetStrBuf();
                         var file = new ConfigBuilderFile() { FileSign = '*', Path = filePath, Builder = builder };
                         var argStartIndex = 0;
                         for (var i = 0; i < name.Length; i++)
@@ -94,10 +94,7 @@ namespace FLib
                                 default:
                                 {
                                     if (argStartIndex == 0)
-                                    {
                                         strbuf.Append(name[i]);
-                                    }
-
                                     break;
                                 }
                             }
@@ -105,10 +102,7 @@ namespace FLib
 
                         if (argStartIndex > 0)
                             (file.Args ??= new List<string>()).Add(name[argStartIndex..]);
-
-                        name = file.Name = strbuf.ToString();
-                        strbuf.Clear();
-
+                        name = file.Name = StringFLibUtility.ReleaseStrBufAndResult(strbuf);
                         var files = allFiles.GetOrAdd(name, static _ => new ConcurrentBag<IConfigFile>());
                         files.Add(file);
                     }
@@ -237,25 +231,26 @@ namespace FLib
             writer.Allocate(allTables.Count * 8192);
             writer.PushLength(allTables.Count);
 
-            var packageBuffer = new BytesWriter();
-            foreach (var ctx in allTables.OrderBy(v => v.Key.MetadataToken))
+            var packageBuffer = new BytesWriter(new byte[8192]);
+            foreach (var tableKv in allTables.OrderBy(v => v.Key.MetadataToken))
             {
-                var table = (ConfigBuilderTable)ctx.Value;
+                var table = (ConfigBuilderTable)tableKv.Value;
                 var options = table.Options;
-                writer.Push(TypeAssistant.GetTypeName(ctx.Key), Encoding.ASCII);
+                writer.Push(TypeAssistant.GetTypeName(tableKv.Key), Encoding.ASCII);
                 var count = table.ConfigCount;
                 writer.PushLength(count);
                 if (count == 0)
                     continue;
 
                 IEnumerable<KeyValuePair<uint, List<int>>> configs = table.AllConfigIdIndexes;
-                if ((ctx.Value.Options & ConfigHelper.EOption.OrderById) != 0)
+                if ((tableKv.Value.Options & ConfigHelper.EOption.OrderById) != 0)
                     configs = configs.OrderBy(v => v.Key);
                 foreach (var indexes in configs)
                 {
                     packageBuffer.Clear();
                     foreach (var index in indexes.Value)
                         BytesPack.Pack(table.AllConfigs[index], ref packageBuffer);
+
                     var copyOptions = options;
                     if (packageBuffer.Length >= ConfigTableCompressSize)
                         copyOptions |= ConfigHelper.EOption.AlwaysCompressRawData;

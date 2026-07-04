@@ -1,4 +1,4 @@
-﻿//==================={By Qcbf|qcbf@qq.com|7/17/2023 8:29:11 PM}===================
+//==================={By Qcbf|qcbf@qq.com|7/17/2023 8:29:11 PM}===================
 
 using System;
 using FLib;
@@ -20,7 +20,7 @@ namespace FLib
     /// Name = "XXX"
     /// </code>
     /// </summary>
-    public class TomlConfigBuilder : ConfigBuilder.IBuildable
+    public class TomlConfigBuilder : IConfigBuildable
     {
         public string Extension => ".toml";
 
@@ -49,9 +49,9 @@ namespace FLib
             }
         }
 
-        public void Build(in ConfigBuilder.TableContext ctx)
+        public void Build(ConfigBuilderTable table, ConfigBuilderFile file)
         {
-            var toml = Toml.Parse(File.OpenText(ctx.SourceFile.FilePath));
+            var toml = Toml.Parse(File.OpenText(file.Path));
             if (toml.ChildrenCount == 0)
                 return;
 
@@ -61,11 +61,11 @@ namespace FLib
             {
                 fieldMetas = tomlMeta.To<Dictionary<string, MetaData>>();
                 if (fieldMetas.Remove("_KeyName", out var KeyNameNode))
-                    configKeyField = ctx.ConfigType.GetField(KeyNameNode.ToString()!, BindingFlags.Instance | BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.NonPublic);
+                    configKeyField = table.ConfigType.GetField(KeyNameNode.ToString()!, BindingFlags.Instance | BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.NonPublic);
                 toml.Delete("meta");
             }
-            ctx.EnsureCapacity(toml.RawTable.Count);
-            configKeyField ??= ctx.ConfigType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).First();
+            table.EnsureCapacity(toml.RawTable.Count);
+            configKeyField ??= table.ConfigType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).First();
             foreach (var line in toml.RawTable)
             {
                 try
@@ -100,14 +100,14 @@ namespace FLib
                         }
                     }
 
-                    var value = (IBytesPackable)valuesTable.To(ctx.ConfigType, (tomlNode, toType) => ConfigBuilderUtility.ConvertStringToType(tomlNode.ToString(), toType));
+                    var value = (IBytesPackable)valuesTable.To(table.ConfigType, (tomlNode, toType) => ConfigBuilderUtility.ConvertStringToType(tomlNode.ToString(), toType));
                     key = ConfigBuilderUtility.ConvertObjectToType(key, configKeyField.FieldType);
                     configKeyField.SetValue(value, key);
-                    ctx.AddConfig(key, value);
+                    table.AddConfig(key, value);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error?.Write($"{ctx}\n{line}\n{ex}");
+                    Log.Error?.Write($"[{table.ConfigType.Name}]{file.Path}\n{line}\n{ex}");
                 }
             }
         }

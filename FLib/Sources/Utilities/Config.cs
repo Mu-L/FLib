@@ -225,7 +225,10 @@ namespace FLib
             if ((meta.Options & ConfigHelper.EOption.__DeserializedData) != 0) return;
             meta.Options |= ConfigHelper.EOption.__DeserializedData;
             meta.Value = new T();
-            BytesPack.Unpack(ref meta.Value, meta.RawBytes);
+            BytesReader reader = meta.RawBytes;
+            for (var i = 0; i < 10000 && reader.Available > 0; i++) // 同一张表 有多个配置文件, 同时对同一个id写入, 通常用于不同的字段分到不同的表
+                BytesPack.Unpack(ref meta.Value, ref reader);
+            Debug.Assert(reader.Available == 0);
             if ((meta.Options & ConfigHelper.EOption.AlwaysStoreRawBytes) == 0)
                 meta.RawBytes = null;
         }
