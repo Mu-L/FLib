@@ -30,7 +30,7 @@ public static class ConfigTypescriptHelper
             {
                 _process.StandardInput.WriteLine(path);
                 var result = _process.StandardOutput.ReadLine()
-                             ?? throw new Exception("not found node compile result");
+                             ?? throw new Exception($"not found node compile result\n{path}");
                 return result.StartsWith("ERROR", StringComparison.Ordinal)
                     ? throw new Exception(result)
                     : result;

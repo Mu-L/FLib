@@ -68,14 +68,21 @@ namespace FLib
             {
                 var json = ReadJson(jsonPath, p, out var strbuf);
                 var args = CommandLineHelper.ToDictionary(json.TryGet("Args")?.Array.Select(v => (string)v));
-                strbuf.WriteConfigClassHead(Path.GetFileNameWithoutExtension(jsonPath)[..^7], json, out var indent, out var name);
-                strbuf.AppendLine().Indent(indent).AppendLine("{");
+                var isCommentAttribute = args.ContainsKey(nameof(CommentAttribute));
                 var isStaticFields = args.ContainsKey("static");
+                var cfgName = json["Name"].ToString();
+                var indent = 1;
+
+                strbuf.AppendComment(indent, json)
+                    .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{Path.GetFileNameWithoutExtension(jsonPath)[..^7]}\")]")
+                    .Indent(indent).Append("public partial class ").Append(cfgName);
+
+                strbuf.AppendLine().Indent(indent).AppendLine("{");
                 var indent1 = ++indent;
                 foreach (var (key, fieldValue) in json["Members"].Dict)
                 {
                     CommandLineHelper.ToDictionary(fieldValue.TryGet("Args")?.Array.Select(v => (string)v), args);
-                    strbuf.AppendComment(indent1, fieldValue);
+                    strbuf.AppendComment(indent1, fieldValue, isCommentAttribute: isCommentAttribute);
                     strbuf.Indent(indent1).Append("[BytesPackGenField] ").Append("public ");
                     if (isStaticFields)
                         strbuf.Append("static ");
@@ -90,7 +97,7 @@ namespace FLib
 
                 strbuf.WriteConfigToString(indent, json);
                 strbuf.Indent(--indent).AppendLine("}");
-                strbuf.WriteGeneratedFile(p, $"{name}.CfgGen.cs");
+                strbuf.WriteGeneratedFile(p, $"{cfgName}.CfgGen.cs");
             }
             catch (Exception e)
             {
@@ -103,7 +110,7 @@ namespace FLib
         /// </summary>
         public static void ProcessDefines(ConfigGenerateParams p)
         {
-            var json = ReadJson(Path.GetFullPath("./src/Declares.ts", p.SourceDirPath), p, out var strbuf);
+            var json = ReadJson(Path.GetFullPath("./Declares.ts", p.SourceDirPath), p, out var strbuf);
             var indent = 1;
             var args = new Dictionary<string, string>();
             foreach (var item in json["Members"].Dict)
@@ -172,20 +179,6 @@ namespace FLib
         }
 
         /// <summary>  </summary>
-        private static void WriteConfigClassHead(this StringBuilder strbuf, string fileName, Json5AnyValue json, out int indent, out string name)
-        {
-            indent = 1;
-            name = null;
-            if (json == null || json.Count == 0)
-                return;
-            name = json["Name"].ToString();
-
-            strbuf.AppendComment(indent, json)
-                .Indent(indent).AppendLine($"[BytesPackGen, Config(\"{fileName}\")]")
-                .Indent(indent).Append("public partial class ").Append(name);
-        }
-
-        /// <summary>  </summary>
         private static void WriteConfigToString(this StringBuilder strbuf, int indent, Json5AnyValue json)
         {
             strbuf.Indent(indent).Append("public override string ToString() => ");
@@ -216,11 +209,14 @@ namespace FLib
         }
 
         /// <summary>  </summary>
-        private static StringBuilder AppendComment(this StringBuilder strbuf, int indent, Json5AnyValue value, string key = "Comment")
+        private static StringBuilder AppendComment(this StringBuilder strbuf, int indent, Json5AnyValue value, string key = "Comment", bool isCommentAttribute = false)
         {
+            var text = value.TryGet(key)?.ToString();
             strbuf.Indent(indent).Append("/// <summary> ")
-                .Append(value.TryGet(key)?.ToString())
+                .Append(text)
                 .AppendLine(" </summary>");
+            if (isCommentAttribute && text != null)
+                strbuf.Indent(indent).Append("[Comment(\"").Append(text).AppendLine("\")]");
             return strbuf;
         }
 

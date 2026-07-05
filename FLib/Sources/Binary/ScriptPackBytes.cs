@@ -16,15 +16,11 @@ namespace FLib
         /// </summary>
         public byte[] Bytes;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public readonly string ScriptTypeName => Bytes?.Length == 0 ? string.Empty : new BytesReader(Bytes).ReadString();
-
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary>  </summary>
         public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
+
+        /// <summary>  </summary>
+        public readonly string ScriptTypeName => IsEmpty ? string.Empty : new BytesReader(Bytes).ReadString();
 
         /// <summary>
         /// 
@@ -34,7 +30,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public bool IsEmpty => Bytes == null || Bytes.Length == 0;
+        public readonly bool IsEmpty => Bytes == null || Bytes.Length == 0;
 
         /// <summary>
         /// 
@@ -149,8 +145,8 @@ namespace FLib
     public struct ScriptPackBytes<T> : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IScriptPackable where T : IBytesPackable
     {
         public byte[] Bytes;
-        public bool IsEmpty => Bytes == null || Bytes.Length == 0;
-        public readonly string ScriptTypeName => Bytes?.Length == 0 ? string.Empty : new BytesReader(Bytes).ReadString();
+        public readonly bool IsEmpty => Bytes == null || Bytes.Length == 0;
+        public readonly string ScriptTypeName => IsEmpty ? string.Empty : new BytesReader(Bytes).ReadString();
         public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
         public Type ScriptBaseType => typeof(T);
         public readonly Memory<byte> InstanceBytes => new ScriptPackBytes(Bytes).InstanceBytes;
