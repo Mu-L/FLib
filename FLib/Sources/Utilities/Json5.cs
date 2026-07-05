@@ -3,6 +3,7 @@
 #nullable enable
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -35,11 +36,16 @@ namespace FLib
         public static object Deserialize(string source, Type toType, Json5DeserializeOptionData opData = default)
         {
             var nodes = DeserializeToSyntaxNodes(source, opData);
-            if (nodes.Count == 0)
-                return toType.DefaultValue();
-            var obj = Json5Deserializer.ToValue(ref nodes, toType, opData);
-            nodes.Nodes.Dispose();
-            return obj;
+            try
+            {
+                if (nodes.Count == 0)
+                    return toType.DefaultValue();
+                return Json5Deserializer.ToValue(ref nodes, toType, opData);
+            }
+            finally
+            {
+                nodes.Dispose();
+            }
         }
 
         public static Json5SyntaxNodes DeserializeToSyntaxNodes(string source, Json5DeserializeOptionData options = default)
@@ -151,11 +157,17 @@ namespace FLib
     public static class Json5Serializer
     {
         private const int PrettyInlineMaxLen = 120;
+        private const int PrettyInlineMinLen = 48;
+        private const int PrettyIndentWidth = 4;
+
+        private static readonly ConcurrentDictionary<Type, TypeSerializeMeta> TypeMetaCache = new();
 
         /// <summary>
         /// 
         /// </summary>
-        public static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        public static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData) => PushValue(obj, strbuf, indent, opData, false);
+
+        private static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, bool prettyForceMultiLine)
         {
             // strbuf.Append('\t', indent);
             // IDictionary 必须排在 IEnumerable 前面，否则字典会被当成普通枚举序列化。
@@ -188,10 +200,10 @@ namespace FLib
 
                     break;
                 case IDictionary val:
-                    PushDict(val, strbuf, indent, opData);
+                    PushDict(val, strbuf, indent, opData, prettyForceMultiLine);
                     break;
                 case IEnumerable val:
-                    PushArray(val, strbuf, indent, opData);
+                    PushArray(val, strbuf, indent, opData, prettyForceMultiLine);
                     break;
                 case float val:
                     strbuf.Append(val.ToString("0.#####"));
@@ -219,7 +231,7 @@ namespace FLib
                             strbuf.Append(obj.ToString()!.ToLowerInvariant());
                             break;
                         default:
-                            PushObject(obj, strbuf, indent, opData);
+                            PushObject(obj, strbuf, indent, opData, null, prettyForceMultiLine);
                             break;
                     }
 
@@ -232,7 +244,9 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        public static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData) => PushArray(array, strbuf, indent, opData, false);
+
+        private static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, bool prettyForceMultiLine)
         {
             IEnumerator iterator;
             try
@@ -248,16 +262,16 @@ namespace FLib
             if (opData.Op(EJson5SerializeOption.Pretty) && !opData.Op(EJson5SerializeOption.LogText))
             {
                 // Pretty 模式需要先生成子项字符串，后续根据总长度决定单行还是多行输出。
-                var elements = new List<string>();
+                var elements = array is ICollection coll ? new List<string>(coll.Count) : new List<string>();
                 var buf = new StringBuilder();
                 while (iterator.MoveNext())
                 {
                     buf.Clear();
-                    PushValue(iterator.Current, buf, indent + 1, opData);
+                    PushValue(iterator.Current, buf, indent + 1, opData, false);
                     elements.Add(buf.ToString());
                 }
 
-                AppendPrettyBlock(elements, strbuf, indent, '[', ']');
+                AppendPrettyBlock(elements, strbuf, indent, '[', ']', prettyForceMultiLine);
                 return;
             }
 
@@ -274,7 +288,7 @@ namespace FLib
 
             if (isMoveNext)
             {
-                PushValue(iterator.Current, strbuf, indent, opData);
+                PushValue(iterator.Current, strbuf, indent, opData, false);
                 if (opData.Op(EJson5SerializeOption.LogText))
                 {
                     var i = 0;
@@ -291,7 +305,7 @@ namespace FLib
                         }
 
                         strbuf.Append(',');
-                        PushValue(iterator.Current, strbuf, indent, opData);
+                        PushValue(iterator.Current, strbuf, indent, opData, false);
                     }
                 }
                 else
@@ -299,7 +313,7 @@ namespace FLib
                     while (iterator.MoveNext())
                     {
                         strbuf.Append(',');
-                        PushValue(iterator.Current, strbuf, indent, opData);
+                        PushValue(iterator.Current, strbuf, indent, opData, false);
                     }
                 }
             }
@@ -310,25 +324,27 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        public static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData) => PushDict(dict, strbuf, indent, opData, false);
+
+        private static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, bool prettyForceMultiLine)
         {
             // ReSharper disable AssignNullToNotNullAttribute
             // ReSharper disable GenericEnumeratorNotDisposed
             if (opData.Op(EJson5SerializeOption.Pretty))
             {
                 // 与数组一致，先收集条目字符串，统一交给 AppendPrettyBlock 决定布局。
-                var entries = new List<string>();
+                var entries = new List<string>(dict.Count);
                 var buf = new StringBuilder();
                 var it = dict.GetEnumerator();
                 while (it.MoveNext())
                 {
                     buf.Clear();
                     PushDictKey(it.Key, buf, indent + 1, opData);
-                    PushValue(it.Value, buf, indent + 1, opData);
+                    PushValue(it.Value, buf, indent + 1, opData, false);
                     entries.Add(buf.ToString());
                 }
 
-                AppendPrettyBlock(entries, strbuf, indent, '{', '}');
+                AppendPrettyBlock(entries, strbuf, indent, '{', '}', prettyForceMultiLine);
                 return;
             }
 
@@ -337,14 +353,14 @@ namespace FLib
             if (iterator.MoveNext())
             {
                 PushDictKey(iterator.Key, strbuf, indent, opData);
-                PushValue(iterator.Value, strbuf, indent, opData);
+                PushValue(iterator.Value, strbuf, indent, opData, false);
             }
 
             while (iterator.MoveNext())
             {
                 strbuf.Append(',');
                 PushDictKey(iterator.Key, strbuf, indent, opData);
-                PushValue(iterator.Value, strbuf, indent, opData);
+                PushValue(iterator.Value, strbuf, indent, opData, false);
             }
 
             strbuf.Append('}');
@@ -371,14 +387,15 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData = null)
+        public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData = null) =>
+            PushObject(obj, strbuf, indent, opData, customData, false);
+
+        private static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData, bool prettyForceMultiLine)
         {
             var t = obj.GetType();
+            var meta = TypeMetaCache.GetOrAdd(t, static type => new TypeSerializeMeta(type));
             // LogText 下尊重类型自己的 ToString，避免日志递归展开复杂对象图。
-            var declaringType = (opData.Options & EJson5SerializeOption.LogText) == 0
-                ? null
-                : t.GetMethod(nameof(ToString), BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), null)?.DeclaringType;
-            if (declaringType != null && declaringType != typeof(object) && declaringType != typeof(ValueType))
+            if ((opData.Options & EJson5SerializeOption.LogText) != 0 && meta.HasCustomToString)
             {
                 strbuf.Append(obj);
                 return;
@@ -391,12 +408,12 @@ namespace FLib
                 return;
 
             // 默认对象序列化只处理 public instance fields，不处理属性和 private fields。
-            var fields = t.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var fields = meta.Fields;
             var len = fields.Length;
 
             if (opData.Op(EJson5SerializeOption.Pretty))
             {
-                var fieldEntries = new List<string>();
+                var fieldEntries = new List<string>(len);
                 var buf = new StringBuilder();
                 for (var i = 0; i < len; i++)
                 {
@@ -405,7 +422,7 @@ namespace FLib
                         fieldEntries.Add(buf.ToString());
                 }
 
-                AppendPrettyBlock(fieldEntries, strbuf, indent, '{', '}');
+                AppendPrettyBlock(fieldEntries, strbuf, indent, '{', '}', prettyForceMultiLine);
                 return;
             }
 
@@ -435,8 +452,16 @@ namespace FLib
                 var val = field.GetValue(obj);
                 if (val != null && (val is not string str || str.Length > 0 || (opData.Options & EJson5SerializeOption.IncludeEmptyStringField) != 0))
                 {
+                    var entryStart = strbuf.Length;
                     PushDictKey(fieldName, strbuf, indent, opData);
-                    PushValue(val, strbuf, indent, opData);
+                    var valueStart = strbuf.Length;
+                    PushValue(val, strbuf, indent, opData, false);
+                    if (ShouldForcePrettyValueMultiLine(val, strbuf, entryStart, valueStart, indent, opData))
+                    {
+                        strbuf.Length = valueStart;
+                        PushValue(val, strbuf, indent, opData, true);
+                    }
+
                     return true;
                 }
 
@@ -447,7 +472,7 @@ namespace FLib
         /// <summary>
         /// 根据已生成的 entry 字符串选择紧凑单行或多行缩进输出。
         /// </summary>
-        private static void AppendPrettyBlock(List<string> entries, StringBuilder strbuf, int indent, char open, char close)
+        private static void AppendPrettyBlock(List<string> entries, StringBuilder strbuf, int indent, char open, char close, bool forceMultiLine)
         {
             strbuf.Append(open);
             if (entries.Count == 0)
@@ -464,7 +489,8 @@ namespace FLib
                 if (e.IndexOf('\n') >= 0) containsNewline = true;
             }
 
-            if (!containsNewline && totalLen + (entries.Count - 1) * 2 <= PrettyInlineMaxLen)
+            var lineMaxLen = GetPrettyLineMaxLen(indent);
+            if (!forceMultiLine && !containsNewline && totalLen + (entries.Count - 1) * 2 <= lineMaxLen)
             {
                 for (var i = 0; i < entries.Count; i++)
                 {
@@ -476,18 +502,101 @@ namespace FLib
             {
                 var newIndent = indent + 1;
                 strbuf.Append('\n');
+                var lineLen = 0;
+                var lineHasEntry = false;
                 for (var i = 0; i < entries.Count; i++)
                 {
-                    strbuf.Append('\t', newIndent);
-                    strbuf.Append(entries[i]);
-                    if (i < entries.Count - 1) strbuf.Append(',');
-                    strbuf.Append('\n');
+                    var entry = entries[i];
+                    var isLongOrComplex = entry.IndexOf('\n') >= 0 || entry.Length > lineMaxLen;
+                    if (isLongOrComplex)
+                    {
+                        if (lineHasEntry)
+                        {
+                            strbuf.Append(',').Append('\n');
+                            lineHasEntry = false;
+                        }
+
+                        strbuf.Append('\t', newIndent);
+                        strbuf.Append(entry);
+                        if (i < entries.Count - 1)
+                            strbuf.Append(',');
+                        strbuf.Append('\n');
+                        continue;
+                    }
+
+                    if (!lineHasEntry)
+                    {
+                        strbuf.Append('\t', newIndent);
+                        strbuf.Append(entry);
+                        lineLen = entry.Length;
+                        lineHasEntry = true;
+                        continue;
+                    }
+
+                    if (lineLen + 2 + entry.Length <= lineMaxLen)
+                    {
+                        strbuf.Append(", ");
+                        strbuf.Append(entry);
+                        lineLen += 2 + entry.Length;
+                    }
+                    else
+                    {
+                        strbuf.Append(',').Append('\n');
+                        strbuf.Append('\t', newIndent);
+                        strbuf.Append(entry);
+                        lineLen = entry.Length;
+                    }
                 }
 
+                if (lineHasEntry)
+                    strbuf.Append('\n');
                 strbuf.Append('\t', indent);
             }
 
             strbuf.Append(close);
+        }
+
+        private static int GetPrettyLineMaxLen(int indent) => Math.Max(PrettyInlineMinLen, PrettyInlineMaxLen - indent * PrettyIndentWidth);
+
+        private static bool ShouldForcePrettyValueMultiLine(object val, StringBuilder strbuf, int entryStart, int valueStart, int indent, Json5SerializeOptionData opData)
+        {
+            return opData.Op(EJson5SerializeOption.Pretty) && IsPrettyBlockValue(val) &&
+                   strbuf.Length - entryStart > GetPrettyLineMaxLen(indent) && !ContainsNewline(strbuf, valueStart);
+        }
+
+        private static bool IsPrettyBlockValue(object val)
+        {
+            return val is IDictionary || (val is IEnumerable && val is not string) || !IsPrettySimpleValue(val);
+        }
+
+        private static bool IsPrettySimpleValue(object val)
+        {
+            var t = val.GetType();
+            return t.IsPrimitive || val is string or Enum or FNum or DateTime;
+        }
+
+        private static bool ContainsNewline(StringBuilder strbuf, int begin)
+        {
+            for (var i = begin; i < strbuf.Length; i++)
+            {
+                if (strbuf[i] == '\n')
+                    return true;
+            }
+
+            return false;
+        }
+
+        private sealed class TypeSerializeMeta
+        {
+            public readonly FieldInfo[] Fields;
+            public readonly bool HasCustomToString;
+
+            public TypeSerializeMeta(Type type)
+            {
+                Fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                var declaringType = type.GetMethod(nameof(ToString), BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), null)?.DeclaringType;
+                HasCustomToString = declaringType != null && declaringType != typeof(object) && declaringType != typeof(ValueType);
+            }
         }
     }
 
@@ -892,6 +1001,11 @@ namespace FLib
     /// </summary>
     public static class Json5Deserializer
     {
+        private const BindingFlags ObjectMemberBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.IgnoreCase;
+        private const BindingFlags ObjectMemberCacheBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+
+        private static readonly ConcurrentDictionary<Type, TypeDeserializeMeta> TypeMetaCache = new();
+
         /// <summary>
         /// 
         /// </summary>
@@ -1008,6 +1122,7 @@ namespace FLib
             }
 
             var kvTypes = dict != null ? dict.GetType().GetGenericArguments() : new[] { typeof(string), null! };
+            var meta = dict == null ? TypeMetaCache.GetOrAdd(toType, static type => new TypeDeserializeMeta(type)) : null;
 
             Json5SyntaxNode node = default;
             object? key = null;
@@ -1042,14 +1157,12 @@ namespace FLib
                         {
                             if (customFieldDeserializer?.JsonDeserialize(fieldName, ref nodes, null, options).IsHooked != true)
                             {
-                                var field = new FieldOrPropertyInfo(toType, fieldName,
-                                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.IgnoreCase, false);
+                                var field = meta!.GetMember(fieldName);
                                 if (field.IsEmpty && options.FieldNameFallback != null)
                                 {
                                     var name = options.FieldNameFallback(fieldName);
                                     if (name != null)
-                                        field = new FieldOrPropertyInfo(toType, name,
-                                            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.IgnoreCase, false);
+                                        field = meta.GetMember(name);
                                 }
 
                                 if (field.IsEmpty && !options.IsIgnoreMissingField)
@@ -1102,6 +1215,41 @@ namespace FLib
             }
 
             return toType == typeof(Json5AnyValue) ? new Json5AnyValue(obj) : obj;
+        }
+
+        private sealed class TypeDeserializeMeta
+        {
+            private readonly Type _type;
+            private readonly Dictionary<string, FieldOrPropertyInfo> _fields = new(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, FieldOrPropertyInfo> _properties = new(StringComparer.OrdinalIgnoreCase);
+            private HashSet<string>? _ambiguousFields;
+            private HashSet<string>? _ambiguousProperties;
+
+            public TypeDeserializeMeta(Type type)
+            {
+                _type = type;
+                foreach (var field in type.GetFields(ObjectMemberCacheBindingFlags))
+                    AddMember(_fields, ref _ambiguousFields, field.Name, new FieldOrPropertyInfo(field));
+                foreach (var property in type.GetProperties(ObjectMemberCacheBindingFlags))
+                    AddMember(_properties, ref _ambiguousProperties, property.Name, new FieldOrPropertyInfo(property));
+            }
+
+            public FieldOrPropertyInfo GetMember(string name)
+            {
+                if (_ambiguousFields?.Contains(name) == true || _ambiguousProperties?.Contains(name) == true)
+                    return new FieldOrPropertyInfo(_type, name, ObjectMemberBindingFlags, false);
+                if (_fields.TryGetValue(name, out var field))
+                    return field;
+                return _properties.TryGetValue(name, out var property) ? property : default;
+            }
+
+            private static void AddMember(Dictionary<string, FieldOrPropertyInfo> members, ref HashSet<string>? ambiguousNames, string name, FieldOrPropertyInfo member)
+            {
+                if (members.TryAdd(name, member))
+                    return;
+                ambiguousNames ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                ambiguousNames.Add(name);
+            }
         }
 
         /// <summary>
