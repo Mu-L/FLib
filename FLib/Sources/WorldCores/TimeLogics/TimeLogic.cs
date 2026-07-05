@@ -33,7 +33,7 @@ namespace FLib.WorldCores.TimeLogics
         public FNum Duration => EndFrame * FrameDelta;
         public FNum FrameDelta => FNum.One / FrameRate;
         public ExternalReferenceStorer ExternalReferences;
-        public TimeLogicTrack this[int index] => (TimeLogicTrack)Tracks[index].Instance;
+        public TimeLogicTrack this[int index] => Tracks[index].Instance as TimeLogicTrack;
 
         public int CurrentFrame
         {
