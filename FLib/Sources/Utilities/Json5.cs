@@ -1,4 +1,4 @@
-﻿// ==================== qcbf@qq.com | 2025-07-01 ====================
+// ==================== qcbf@qq.com | 2025-07-01 ====================
 
 #nullable enable
 using System;
@@ -11,6 +11,8 @@ using System.Text;
 namespace FLib
 {
     /// <summary>
+    /// 工程内轻量 JSON5-like 序列化工具。解析流程分两段：
+    /// 先把源码扫描成只保存 range 的语法节点，再由反序列化器按目标类型消费节点。
     /// nonsupport: 未转义换行符
     /// </summary>
     public static class Json5
@@ -44,6 +46,7 @@ namespace FLib
         {
             var nodes = new Json5SyntaxNodes() { Nodes = new PooledList<Json5SyntaxNode>(128) };
             var node = new Json5SyntaxNode() { FullSource = source };
+            // 词法阶段只记录 token 类型和源码范围，避免在扫描阶段为 key/value 频繁分配字符串。
             while (node.RemainingLength > 0)
             {
                 node.Token = default;
@@ -143,7 +146,7 @@ namespace FLib
     }
 
     /// <summary>
-    /// 
+    /// 值写入器。按运行时类型分发到基础值、数组、字典或对象字段序列化。
     /// </summary>
     public static class Json5Serializer
     {
@@ -155,6 +158,7 @@ namespace FLib
         public static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
         {
             // strbuf.Append('\t', indent);
+            // IDictionary 必须排在 IEnumerable 前面，否则字典会被当成普通枚举序列化。
             switch (obj)
             {
                 case null:
@@ -243,6 +247,7 @@ namespace FLib
 
             if (opData.Op(EJson5SerializeOption.Pretty) && !opData.Op(EJson5SerializeOption.LogText))
             {
+                // Pretty 模式需要先生成子项字符串，后续根据总长度决定单行还是多行输出。
                 var elements = new List<string>();
                 var buf = new StringBuilder();
                 while (iterator.MoveNext())
@@ -275,6 +280,7 @@ namespace FLib
                     var i = 0;
                     while (iterator.MoveNext())
                     {
+                        // 日志输出避免大集合刷屏；普通序列化不截断。
                         if (++i > 512)
                         {
                             strbuf.Append(',').Append('"').Append("more...");
@@ -310,6 +316,7 @@ namespace FLib
             // ReSharper disable GenericEnumeratorNotDisposed
             if (opData.Op(EJson5SerializeOption.Pretty))
             {
+                // 与数组一致，先收集条目字符串，统一交给 AppendPrettyBlock 决定布局。
                 var entries = new List<string>();
                 var buf = new StringBuilder();
                 var it = dict.GetEnumerator();
@@ -367,6 +374,7 @@ namespace FLib
         public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData = null)
         {
             var t = obj.GetType();
+            // LogText 下尊重类型自己的 ToString，避免日志递归展开复杂对象图。
             var declaringType = (opData.Options & EJson5SerializeOption.LogText) == 0
                 ? null
                 : t.GetMethod(nameof(ToString), BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), null)?.DeclaringType;
@@ -378,9 +386,11 @@ namespace FLib
 
             if (Json5.CustomSerializers == null || !Json5.CustomSerializers.TryGetValue(t, out var serializer))
                 serializer = obj as IJson5Serializable;
+            // 类型级自定义序列化优先级最高，返回 true 表示完全接管输出。
             if (serializer?.JsonSerialize(strbuf, obj, customData, indent, opData) == true)
                 return;
 
+            // 默认对象序列化只处理 public instance fields，不处理属性和 private fields。
             var fields = t.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var len = fields.Length;
 
@@ -412,12 +422,14 @@ namespace FLib
 
             static bool PushField(object obj, FieldInfo field, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
             {
+                // 保持反射序列化的边界：跳过只读/常量、显式非序列化类型、委托和 NonSerialized 字段。
                 if (field.IsInitOnly || field.IsLiteral || ((opData.Options & EJson5SerializeOption.OnlySerializableFields) != 0 && !field.IsDefined(typeof(SerializableAttribute))) ||
                     (Json5.NonSerialized != null && (Json5.NonSerialized.Contains(field.FieldType) || Json5.NonSerialized.Contains(field.FieldType.BaseType!))) ||
                     field.IsDefined(typeof(NonSerializedAttribute)) || field.FieldType.IsSubclassOf(typeof(Delegate)))
                     return false;
 
                 var fieldName = field.Name;
+                // 字段级自定义序列化通过 customData 传入字段名，只接管当前字段输出。
                 if ((obj as IJson5Serializable)?.JsonSerialize(strbuf, obj, fieldName, indent, opData) == true)
                     return true;
                 var val = field.GetValue(obj);
@@ -433,7 +445,7 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// 根据已生成的 entry 字符串选择紧凑单行或多行缩进输出。
         /// </summary>
         private static void AppendPrettyBlock(List<string> entries, StringBuilder strbuf, int indent, char open, char close)
         {
@@ -513,7 +525,7 @@ namespace FLib
     }
 
     /// <summary>
-    /// 
+    /// 反序列化选项。字段名 fallback 用于兼容历史字段名或外部命名规则。
     /// </summary>
     public struct Json5DeserializeOptionData
     {
@@ -550,7 +562,7 @@ namespace FLib
     }
 
     /// <summary>
-    /// 
+    /// 语法节点流和当前读取游标。反序列化阶段会持续推进 Position 消费 token。
     /// </summary>
     public struct Json5SyntaxNodes : IEnumerable<Json5SyntaxNode>, IDisposable
     {
@@ -601,7 +613,7 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// 从当前游标开始向后查找指定 token，并消费到匹配 token 之后。
         /// </summary>
         public Json5SyntaxNode MoveNext(EJson5Token token)
         {
@@ -622,7 +634,7 @@ namespace FLib
     }
 
     /// <summary>
-    /// 
+    /// 用于自定义反序列化器读取一个嵌套值。BracketOpenCount 保证跳过子对象/子数组内部 token。
     /// </summary>
     public ref struct Json5SyntaxNodesReader
     {
@@ -693,7 +705,7 @@ namespace FLib
     }
 
     /// <summary>
-    /// 
+    /// 单个词法节点。SourceRange 覆盖原始片段，ContentRange 覆盖去掉外层引号/前后空白后的内容。
     /// </summary>
     public struct Json5SyntaxNode
     {
@@ -717,6 +729,7 @@ namespace FLib
             while (RemainingLength > 0)
             {
                 var c = FullSource[SourceRange.End++];
+                // 空白只作为分隔符，不产生 token；需要保留逗号/冒号时用 Skip token。
                 if (char.IsWhiteSpace(c))
                     continue;
                 ContentRange = SourceRange.End - 1;
@@ -744,6 +757,7 @@ namespace FLib
                         if (RemainingLength > 0)
                         {
                             var nextChar = FullSource[SourceRange.End];
+                            // 只在遇到 // 或 /* 时识别注释；单独的 / 会回退给 ParseValue 处理。
                             if ((c == '/' && nextChar == '/') || (c == '/' && nextChar == '*'))
                             {
                                 ++SourceRange.End;
@@ -767,6 +781,7 @@ namespace FLib
         public void ParseComment(char commentType)
         {
             ContentRange.Begin = SourceRange.Begin + 2;
+            // commentType 是第二个斜杠或星号：// 读到换行，/* 读到 */。
             while (RemainingLength > 0)
             {
                 var c = FullSource[SourceRange.End++];
@@ -791,6 +806,7 @@ namespace FLib
         /// </summary>
         public void ParseValue()
         {
+            // type: 0=未进入字符串, 1=单引号字符串, 2=双引号字符串。
             byte type = 0;
             var beginWhiteCharCount = 0;
             var endWhiteCharCount = -1;
@@ -872,7 +888,7 @@ namespace FLib
     }
 
     /// <summary>
-    /// 
+    /// 节点流到目标类型的转换器。对象/数组递归消费节点，基础值按目标 Type 转换。
     /// </summary>
     public static class Json5Deserializer
     {
@@ -884,6 +900,7 @@ namespace FLib
             var obj = TryCustomDeserialize(ref nodes, toType, in options);
             if (obj != null)
                 return obj;
+            // 每次只读取一个完整值的入口 token；对象和数组内部由各自方法继续消费。
             var node = nodes.MoveNext(EJson5Token.Value | EJson5Token.ArrayOpen | EJson5Token.ObjectOpen);
             try
             {
@@ -918,6 +935,7 @@ namespace FLib
         /// </summary>
         private static object ParseValue(Type toType, ref Json5DeserializeOptionData options, in Json5SyntaxNode node)
         {
+            // 枚举支持 A|B 写法，失败后转换为 Enum.Parse 可接受的逗号分隔格式。
             if (toType.IsEnum)
             {
                 if (node.ContentSpan.IsEmpty)
@@ -927,6 +945,7 @@ namespace FLib
 
             if (toType == typeof(object))
             {
+                // object 目标类型尽量保留数字语义：整数优先，其次无符号整数，最后浮点。
                 if (long.TryParse(node.ContentSpan, out var l))
                     return l;
                 if (ulong.TryParse(node.ContentSpan, out var ul))
@@ -945,6 +964,7 @@ namespace FLib
             {
                 try
                 {
+                    // 常规 Convert 失败后的兼容路径：byte[] base64、bool 数字写法，以及嵌套字符串再解析。
                     if (toType == typeof(byte[]) && node.ContentSpan.Length % 4 == 0)
                         return Convert.FromBase64String(node.ContentCopyString);
                     if (toType == typeof(bool))
@@ -972,6 +992,7 @@ namespace FLib
             object obj = null!;
             IDictionary? dict = null;
             IJson5FieldDeserializable? customFieldDeserializer = null;
+            // object/Json5AnyValue 走字典模型；普通类型实例化对象后按字段/属性名填充。
             if (toType == typeof(object))
             {
                 obj = dict = new Dictionary<string, object>();
@@ -995,6 +1016,7 @@ namespace FLib
                 node = nodes[0];
                 if (key == null)
                 {
+                    // 对象内 token 按 key/value 交替消费，冒号和逗号已经被 Skip 过滤或在这里跳过。
                     if (node.Token == EJson5Token.Value)
                         key = ToValue(ref nodes, kvTypes[0], options);
                     else
@@ -1035,6 +1057,7 @@ namespace FLib
                                 key = null;
                                 if ((field.IsEmpty && options.IsIgnoreMissingField) || field.IsDefineAttribute<NonSerializedAttribute>())
                                 {
+                                    // 忽略字段仍要完整跳过它的值；如果值是对象/数组，需要按括号深度跳到匹配 close。
                                     node = nodes.MoveNext(EJson5Token.Close | EJson5Token.Value | EJson5Token.ArrayOpen | EJson5Token.ObjectOpen);
                                     if (node.Token is EJson5Token.ArrayOpen or EJson5Token.ObjectOpen)
                                     {
@@ -1090,6 +1113,7 @@ namespace FLib
             byte typeCode = 0;
             var elType = toType;
             IList list;
+            // 先统一填充 IList，最后按目标类型决定返回原 List、数组或用集合构造器包装。
             if (toType == typeof(object))
             {
                 list = new List<object>();
@@ -1152,6 +1176,7 @@ namespace FLib
         {
             Json5CustomDeserializeResult result = default;
             IJson5Deserializable deserializer = null!;
+            // 注册表优先，其次目标类型自己实现 IJson5Deserializable。
             if (Json5.CustomDeserializers?.TryGetValue(toType, out deserializer!) == true)
             {
                 result = deserializer.JsonDeserialize(ref nodes, null, options);
@@ -1175,7 +1200,7 @@ namespace FLib
     #region other
 
     /// <summary>
-    /// 
+    /// 动态 JSON 值包装。用于调用方按数组/字典/基础类型延迟取值。
     /// </summary>
     public sealed class Json5AnyValue : IEnumerable<object>
     {
