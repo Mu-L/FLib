@@ -35,6 +35,21 @@ namespace FLib
         public static T Deserialize<T>(string source, Json5DeserializeOptionData opData = default) => (T)Deserialize(source, typeof(T), opData);
         public static object Deserialize(string source, Json5DeserializeOptionData opData = default) => Deserialize(source, typeof(object), opData);
 
+        public static object Deserialize(string source, object? toObject, Json5DeserializeOptionData opData = default)
+        {
+            if (toObject == null)
+                return Deserialize(source, typeof(object), opData);
+            var nodes = DeserializeToSyntaxNodes(source, opData);
+            try
+            {
+                return nodes.Count == 0 ? toObject : Json5Deserializer.ToValue(ref nodes, toObject, opData);
+            }
+            finally
+            {
+                nodes.Dispose();
+            }
+        }
+
         public static object Deserialize(string source, Type toType, Json5DeserializeOptionData opData = default)
         {
             var nodes = DeserializeToSyntaxNodes(source, opData);
@@ -1047,6 +1062,36 @@ namespace FLib
         }
 
         /// <summary>
+        /// 将节点流反序列化到已有对象。普通对象和可变集合会尽量复用传入实例。
+        /// </summary>
+        public static object ToValue(ref Json5SyntaxNodes nodes, object? toObject, Json5DeserializeOptionData options)
+        {
+            if (toObject == null)
+                return ToValue(ref nodes, typeof(object), options);
+
+            var toType = toObject.GetType();
+            var obj = TryCustomDeserialize(ref nodes, toObject, in options);
+            if (obj != null)
+                return obj;
+
+            var node = nodes.MoveNext(EJson5Token.Value | EJson5Token.ArrayOpen | EJson5Token.ObjectOpen);
+            try
+            {
+                obj = node.Token switch
+                {
+                    EJson5Token.ObjectOpen => ToObject(ref nodes, toType, options, toObject),
+                    EJson5Token.ArrayOpen => ToArray(ref nodes, toType, options, toObject),
+                    _ => ParseValue(toType, ref options, node)
+                };
+                return obj;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"{toType} | {node}", e);
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         private static object ParseValue(Type toType, ref Json5DeserializeOptionData options, in Json5SyntaxNode node)
@@ -1104,6 +1149,12 @@ namespace FLib
         /// 
         /// </summary>
         public static object ToObject(ref Json5SyntaxNodes nodes, Type toType, Json5DeserializeOptionData options)
+            => ToObject(ref nodes, toType, options, null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static object ToObject(ref Json5SyntaxNodes nodes, Type toType, Json5DeserializeOptionData options, object? toObject)
         {
             object obj = null!;
             IDictionary? dict = null;
@@ -1111,7 +1162,7 @@ namespace FLib
             // object/Json5AnyValue 走字典模型；普通类型实例化对象后按字段/属性名填充。
             if (toType == typeof(object))
             {
-                obj = dict = new Dictionary<string, object>();
+                obj = dict = toObject as IDictionary ?? new Dictionary<string, object>();
             }
             else if (toType == typeof(Json5AnyValue))
             {
@@ -1119,11 +1170,14 @@ namespace FLib
             }
             else if (!toType.IsStatic())
             {
-                dict = (obj = TypeAssistant.New(toType)) as IDictionary;
+                obj = toObject ?? TypeAssistant.New(toType);
+                dict = obj as IDictionary;
                 customFieldDeserializer = obj as IJson5FieldDeserializable;
             }
 
             var kvTypes = dict != null ? dict.GetType().GetGenericArguments() : new[] { typeof(string), null! };
+            if (dict != null && kvTypes.Length == 0)
+                kvTypes = new[] { typeof(object), typeof(object) };
             var meta = dict == null ? TypeMetaCache.GetOrAdd(toType, static type => new TypeDeserializeMeta(type)) : null;
 
             Json5SyntaxNode node = default;
@@ -1195,11 +1249,11 @@ namespace FLib
                                     if (obj is IJson5Deserializable deserializable)
                                     {
                                         var result = deserializable.JsonDeserialize(ref nodes, field.Field as object ?? field.Property, options);
-                                        val = result.IsHooked ? result.Result : ToValue(ref nodes, field.Type, options);
+                                        val = result.IsHooked ? result.Result : ToMemberValue(ref nodes, obj, field, options);
                                     }
                                     else
                                     {
-                                        val = ToValue(ref nodes, field.Type, options);
+                                        val = ToMemberValue(ref nodes, obj, field, options);
                                     }
 
                                     if (val != null)
@@ -1217,6 +1271,14 @@ namespace FLib
             }
 
             return toType == typeof(Json5AnyValue) ? new Json5AnyValue(obj) : obj;
+        }
+
+        private static object ToMemberValue(ref Json5SyntaxNodes nodes, object obj, in FieldOrPropertyInfo field, Json5DeserializeOptionData options)
+        {
+            object? existingValue = null;
+            if (field.Field != null || field.Property.GetMethod != null)
+                existingValue = field.GetValue(obj);
+            return existingValue == null || field.Type == typeof(object) ? ToValue(ref nodes, field.Type, options) : ToValue(ref nodes, existingValue, options);
         }
 
         private sealed class TypeDeserializeMeta
@@ -1256,6 +1318,12 @@ namespace FLib
         /// 
         /// </summary>
         public static object ToArray(ref Json5SyntaxNodes nodes, Type toType, Json5DeserializeOptionData options)
+            => ToArray(ref nodes, toType, options, null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static object ToArray(ref Json5SyntaxNodes nodes, Type toType, Json5DeserializeOptionData options, object? toObject)
         {
             // list, array, collection
             byte typeCode = 0;
@@ -1279,7 +1347,13 @@ namespace FLib
             else
             {
                 elType = toType.GetGenericArguments()[0];
-                if (typeof(IList).IsAssignableFrom(toType))
+                if (toObject is IList existingList)
+                {
+                    existingList.Clear();
+                    typeCode = 2;
+                    list = existingList;
+                }
+                else if (typeof(IList).IsAssignableFrom(toType))
                 {
                     typeCode = 2;
                     list = (IList)TypeAssistant.New(toType);
@@ -1339,6 +1413,28 @@ namespace FLib
                 return null;
             if (result.Result == null && result.HookedType != 2)
                 return deserializer;
+            return result.Result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static object? TryCustomDeserialize(ref Json5SyntaxNodes nodes, object toObject, in Json5DeserializeOptionData options)
+        {
+            Json5CustomDeserializeResult result = default;
+            var toType = toObject.GetType();
+            if (Json5.CustomDeserializers?.TryGetValue(toType, out var deserializer) == true)
+                result = deserializer.JsonDeserialize(ref nodes, toObject, options);
+            else if (toObject is IJson5Deserializable objectDeserializer)
+            {
+                deserializer = objectDeserializer;
+                result = deserializer.JsonDeserialize(ref nodes, null, options);
+            }
+
+            if (result.HookedType == 0)
+                return null;
+            if (result.Result == null && result.HookedType != 2)
+                return toObject;
             return result.Result;
         }
     }

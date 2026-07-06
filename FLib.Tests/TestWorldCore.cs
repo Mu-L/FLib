@@ -135,6 +135,8 @@ public class TestWorldCore
         // dynamic
         Assert.False(world.HasDyn<Buff>(player1));
         world.SetDyn(player1, new Buff { Name = "abc" });
+        foreach (var item in world.CreateQueryBuilder().WithNone<Enemy>().Query())
+            Log.Info?.Write(item, nameof(TestWorldCore), nameof(BasicAll));
         Assert.Equal([player2, player1], world.CreateQueryBuilder().WithNone<Enemy>().Query());
 
         Assert.True(world.Has<Buff>(player1));

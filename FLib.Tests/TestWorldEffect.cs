@@ -12,20 +12,21 @@ public class TestWorldEffect
     {
         public int Value;
         public uint Flags;
-        
+
         public override uint FlagsMask => Flags;
-        
+
         public override void OnDestroy()
         {
             RemoveSelf();
         }
     }
-    
+
     public TestWorldEffect()
     {
         WorldGlobalSetting.CreateEffectHandler = (in _, in _, _, _) => new AEffect { MaxStackCount = 1, Duration = 1, Flags = 1 };
+        WorldGlobalSetting.DestroyEffectHandler = (in _, _) => { };
     }
-    
+
     [Fact]
     public void Basic()
     {
@@ -41,13 +42,13 @@ public class TestWorldEffect
         Assert.Equal(FNum.Round((FNum)0.5 * 100), FNum.Round(fxSys.Get(1)!.Time.Remaining * 100));
         for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
             world.Update();
-        
+
         Assert.False(fxSys.HasEffect(1));
         Assert.False(fxSys.HasFlags(1));
-        
+
         fxSys.Add(default, 1);
         et.RemoveSelf();
-        
+
         Assert.Null(WorldEffectPool.Containers.IndexAllocator.Frees);
         Assert.Empty(WorldEffectPool.Containers);
     }
