@@ -37,8 +37,10 @@ namespace FLib.WorldCores
         [Conditional("DEBUG")]
         public static unsafe void AssertNotCopied<T>(in WorldEntity et, in T selfComponent) where T : unmanaged
         {
-            if (Unsafe.AsPointer(ref Unsafe.AsRef(in selfComponent)) != Unsafe.AsPointer(ref et.GetStaRef<T>()))
-                et.World.ThrowException($"{typeof(T)} was copied. Use ref WorldBehaviorSystem.", et);
+            var ptr1 = (ulong)Unsafe.AsPointer(ref Unsafe.AsRef(in selfComponent));
+            var ptr2 = (ulong)Unsafe.AsPointer(ref et.GetStaRef<T>());
+            if (ptr1 != ptr2)
+                et.World.ThrowException($"{typeof(T)} was copied. Use ref WorldBehaviorSystem. {ptr1}/{ptr2}", et);
         }
     }
 }

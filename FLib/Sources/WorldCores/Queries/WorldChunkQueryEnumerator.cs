@@ -82,7 +82,8 @@ namespace FLib.WorldCores.Queries
             while (_archetypeEnumerator.MoveNext())
             {
                 _sharedChunkEnumerator = _archetypeEnumerator.Current!.SharedChunks.GetEnumerator();
-                return MoveNextSharedChunk();
+                if (MoveNextSharedChunk())
+                    return true;
             }
 
             return false;
