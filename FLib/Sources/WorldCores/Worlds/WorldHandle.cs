@@ -13,14 +13,12 @@ namespace FLib.WorldCores
 
         public WorldCore World
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => WorldCore.AllWorlds[Index];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => WorldCore.AllWorlds[Index];
         }
 
         public bool IsEmpty
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Version == 0 || WorldCore.AllWorlds.Count <= Index || WorldCore.AllWorlds[Index]?.Handle.Version != Version;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Version == 0 || WorldCore.AllWorlds.Count <= Index || WorldCore.AllWorlds[Index]?.Handle.Version != Version;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,6 +32,7 @@ namespace FLib.WorldCores
         }
 
         public override int GetHashCode() => HashCode.Combine(Index, Version);
+        public override string ToString() => $"{Index},{Version}";
 
         public static bool operator ==(in WorldHandle left, in WorldHandle right) => left.Index == right.Index && left.Version == right.Version;
         public static bool operator !=(in WorldHandle left, in WorldHandle right) => left.Index != right.Index || left.Version != right.Version;

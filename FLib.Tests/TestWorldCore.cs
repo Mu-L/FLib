@@ -1,6 +1,7 @@
 // ==================== qcbf@qq.com | 2026-01-03 ====================
 
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,6 +18,7 @@ namespace FLib.Tests;
 public struct Player
 {
     public string Name;
+    public override string ToString() => Name;
 }
 
 [BytesPackGen]
@@ -82,6 +84,11 @@ public record struct Shared(int Value) : IWorldSharedComponent;
 
 public class TestWorldCore
 {
+    public TestWorldCore()
+    {
+        TestUtility.RegisterFLibLog();
+    }
+
     [Fact]
     [SuppressMessage("Usage", "CA2263:类型已知时首选泛型重载")]
     public void BasicAll()
@@ -196,7 +203,9 @@ public class TestWorldCore
         using var world = new WorldCore();
         world.Update();
         var et = world.CreateEntityBuilder().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
+        Log.Info?.Write($"{world.GetEntityInfo(et).Chunk.Has<Player>()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta.GetHashCode()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta[WorldComponentGenericMap<Player>.Id]} | {WorldComponentGenericMap<Player>.Id}");
         world.Set(et, new Managed());
+        Log.Info?.Write($"{world.GetEntityInfo(et).Chunk.Has<Player>()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta.GetHashCode()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta[WorldComponentGenericMap<Player>.Id]} | {WorldComponentGenericMap<Player>.Id}");
         world.Set(et, new Player { Name = "abc" });
 
         Assert.Equal([nameof(IWorldAwake.OnComponentAwake)], world.Get<Managed>(et).Values);
