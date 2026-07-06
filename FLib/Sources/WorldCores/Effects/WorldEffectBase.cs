@@ -16,8 +16,8 @@ namespace FLib.WorldCores.Effects
         [Comment("重复添加方式")] public EWorldEffectAddOption AddOption;
         [Comment("持续时间")] public FNum Duration;
 
-        public WorldEntityId SourceEntityId;
-        public WorldSoaComponentManaged ComponentManaged;
+        [NonSerialized] public WorldEntityId SourceEntityId;
+        [NonSerialized] public WorldSoaComponentManaged ComponentManaged;
         internal WorldEffectSystem* SystemPtr;
         internal int TimeComponentId = -1;
 
