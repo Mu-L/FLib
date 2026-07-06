@@ -187,8 +187,8 @@ namespace FLib.WorldCores
                 }
             }
 
-            for (var i = 0; i < DynamicComponentSparse.Count; i++)
-                DynamicComponentSparse[i].Dispose();
+            foreach (var sparse in DynamicComponentSparse)
+                sparse.Dispose();
 
             var isLocking = false;
             _locker.Enter(ref isLocking);

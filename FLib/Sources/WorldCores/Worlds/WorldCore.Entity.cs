@@ -71,7 +71,8 @@ namespace FLib.WorldCores
 
             if (eti.HasDynamicComponent)
             {
-                using var sparse = DynamicComponentSparse[eti.DynamicComponentSparseIndex];
+                var sparseIndex = eti.DynamicComponentSparseIndex;
+                ref var sparse = ref DynamicComponentSparse.GetRef(sparseIndex);
                 for (var i = 0; i < sparse.Count; i++)
                 {
                     ref var denseIndex = ref sparse[i];
@@ -81,7 +82,8 @@ namespace FLib.WorldCores
                     denseIndex = -1;
                 }
 
-                DynamicComponentSparse.RemoveAt(eti.DynamicComponentSparseIndex, false);
+                DynamicComponentSparse.RemoveAt(sparseIndex, false);
+                sparse.Dispose();
             }
 
             ArchetypeGroup[eti.ArchetypeIndex].RemoveEntity(eti);

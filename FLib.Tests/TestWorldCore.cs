@@ -125,7 +125,7 @@ public class TestWorldCore
         Assert.Equal([5, 10], world.Query<Team>(world.CreateQueryBuilder().WithAll<Team>().WithNone<Enemy>()).Select(vv => vv.Item2.Val.Value));
 
         // entity
-        Assert.Equal(["FLib.Tests.Player", "5", "FLib.Tests.Actor"], ((List<object>)world.GetAll(player1)).Select(v1 => v1.ToString()));
+        Assert.Equal(["p1", "5", "FLib.Tests.Actor"], ((List<object>)world.GetAll(player1)).Select(v1 => v1.ToString()));
         world.RemoveEntity(player1);
         Assert.False(world.HasEntity(player1));
         Assert.ThrowsAny<Exception>(() => world.GetSta<Team>(player1));
@@ -203,9 +203,10 @@ public class TestWorldCore
         using var world = new WorldCore();
         world.Update();
         var et = world.CreateEntityBuilder().With<Team>().With<Actor>().WithMng<Player>().WithShared<Shared>().Build();
-        Log.Info?.Write($"{world.GetEntityInfo(et).Chunk.Has<Player>()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta.GetHashCode()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta[WorldComponentGenericMap<Player>.Id]} | {WorldComponentGenericMap<Player>.Id}");
+        var meta = world.GetEntityInfo(et).Chunk.SparseComponentMeta;
         world.Set(et, new Managed());
-        Log.Info?.Write($"{world.GetEntityInfo(et).Chunk.Has<Player>()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta.GetHashCode()} | {world.GetEntityInfo(et).Chunk.SparseComponentMeta[WorldComponentGenericMap<Player>.Id]} | {WorldComponentGenericMap<Player>.Id}");
+        var sparse = world.DynamicComponentSparse.GetRef(world.GetEntityInfo(et).DynamicComponentSparseIndex);
+        Assert.False(ReferenceEquals(meta, sparse.Buffer));
         world.Set(et, new Player { Name = "abc" });
 
         Assert.Equal([nameof(IWorldAwake.OnComponentAwake)], world.Get<Managed>(et).Values);
