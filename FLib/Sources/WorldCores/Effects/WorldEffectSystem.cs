@@ -86,14 +86,14 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 添加效果实例到实体
         /// </summary>
-        public WorldEffectBase? Add(in WorldEntityId addedBy, uint id, ushort addCount = 1)
+        public WorldEffectBase? Add(in WorldEntityId source, uint id, ushort addCount = 1)
         {
             WorldCoreException.AssertNotCopied(Entity, this);
             World.Assert(!IsDisposed);
             var container = Container;
             var effects = container.Effects;
             ref var item = ref effects.GetOrAddValueRef(id);
-            var evt = new WorldAddEffectEvent { AddCount = addCount, AddedBy = addedBy.IsEmpty ? Entity : addedBy, Id = id, Effect = item.Single };
+            var evt = new WorldAddEffectEvent { AddCount = addCount, SourceEntityId = source.IsEmpty ? Entity : source, Id = id, Effect = item.Single };
             ref var effect = ref evt.Effect;
 
             if (effect == null)
@@ -259,9 +259,9 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         private unsafe WorldEffectBase CreateEffect(in WorldAddEffectEvent evt)
         {
-            var effect = WorldGlobalSetting.CreateEffectHandler(this, evt.AddedBy, evt.Id, evt.AddCount);
+            var effect = WorldGlobalSetting.CreateEffectHandler(this, evt.SourceEntityId, evt.Id, evt.AddCount);
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref this);
-            effect.AddedBy = evt.AddedBy;
+            effect.SourceEntityId = evt.SourceEntityId;
             effect.Id = evt.Id;
             if (effect.MaxStackCount == 0)
                 effect.MaxStackCount = ushort.MaxValue;
