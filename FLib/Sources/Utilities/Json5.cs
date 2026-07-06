@@ -18,6 +18,8 @@ namespace FLib
     /// </summary>
     public static class Json5
     {
+#pragma warning disable CA2211
+        // ReSharper disable once CollectionNeverUpdated.Global
         public static Dictionary<Type, IJson5Deserializable>? CustomDeserializers;
         public static Dictionary<Type, IJson5Serializable>? CustomSerializers;
         public static HashSet<Type>? NonSerialized;
@@ -1222,8 +1224,8 @@ namespace FLib
             private readonly Type _type;
             private readonly Dictionary<string, FieldOrPropertyInfo> _fields = new(StringComparer.OrdinalIgnoreCase);
             private readonly Dictionary<string, FieldOrPropertyInfo> _properties = new(StringComparer.OrdinalIgnoreCase);
-            private HashSet<string>? _ambiguousFields;
-            private HashSet<string>? _ambiguousProperties;
+            private readonly HashSet<string>? _ambiguousFields;
+            private readonly HashSet<string>? _ambiguousProperties;
 
             public TypeDeserializeMeta(Type type)
             {
@@ -1238,9 +1240,7 @@ namespace FLib
             {
                 if (_ambiguousFields?.Contains(name) == true || _ambiguousProperties?.Contains(name) == true)
                     return new FieldOrPropertyInfo(_type, name, ObjectMemberBindingFlags, false);
-                if (_fields.TryGetValue(name, out var field))
-                    return field;
-                return _properties.TryGetValue(name, out var property) ? property : default;
+                return _fields.TryGetValue(name, out var field) ? field : _properties.GetValueOrDefault(name);
             }
 
             private static void AddMember(Dictionary<string, FieldOrPropertyInfo> members, ref HashSet<string>? ambiguousNames, string name, FieldOrPropertyInfo member)
