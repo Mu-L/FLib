@@ -17,7 +17,7 @@ namespace FLib
         public byte[] Bytes;
 
         /// <summary>  </summary>
-        public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
+        public readonly Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
 
         /// <summary>  </summary>
         public readonly string ScriptTypeName => IsEmpty ? string.Empty : new BytesReader(Bytes).ReadString();
@@ -25,7 +25,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public Type ScriptBaseType => typeof(IBytesPackable);
+        public readonly Type ScriptBaseType => typeof(IBytesPackable);
 
         /// <summary>
         /// 
@@ -147,8 +147,8 @@ namespace FLib
         public byte[] Bytes;
         public readonly bool IsEmpty => Bytes == null || Bytes.Length == 0;
         public readonly string ScriptTypeName => IsEmpty ? string.Empty : new BytesReader(Bytes).ReadString();
-        public Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
-        public Type ScriptBaseType => typeof(T);
+        public readonly Type? ScriptType => TypeAssistant.GetType(ScriptTypeName, isThrowOnError: false);
+        public readonly Type ScriptBaseType => typeof(T);
         public readonly Memory<byte> InstanceBytes => new ScriptPackBytes(Bytes).InstanceBytes;
         public ScriptPackBytes(byte[] bytes) => Bytes = bytes;
 
@@ -167,7 +167,7 @@ namespace FLib
 
         public readonly bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
         {
-            ScriptPackInstance.JsonSerializeImpl(jsonText, CreateInstance(), 0);
+            ScriptPackInstance.JsonSerializeImpl(jsonText, CreateInstance(), typeof(T).Namespace?.Length ?? 0);
             return true;
         }
 

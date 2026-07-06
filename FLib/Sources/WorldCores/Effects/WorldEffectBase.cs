@@ -10,11 +10,11 @@ namespace FLib.WorldCores.Effects
     [BytesPackGenHoldKey(2)]
     public abstract unsafe class WorldEffectBase : IBytesPackable
     {
-        public uint Id;
         [Comment("最大叠加层数")] public ushort MaxStackCount = 1;
         [Comment("重复添加方式")] public EWorldEffectAddOption AddOption;
         [Comment("持续时间")] public FNum Duration;
 
+        [NonSerialized] public uint Id;
         [NonSerialized] public ushort StackCount;
         [NonSerialized] public WorldEntityId SourceEntityId;
         [NonSerialized] public WorldSoaComponentManaged ComponentManaged;

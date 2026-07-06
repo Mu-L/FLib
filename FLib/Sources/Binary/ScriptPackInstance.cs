@@ -12,17 +12,19 @@ namespace FLib
     {
         private const string ScriptTypeJsonKey = "$type";
         public IBytesPackable Instance;
-        public bool IsEmpty => Instance == null;
-        public Type ScriptType => Instance?.GetType();
+        public readonly bool IsEmpty => Instance == null;
+        public readonly Type ScriptType => Instance?.GetType();
 
-        public Type ScriptBaseType => typeof(IBytesPackable);
+        public readonly Type ScriptBaseType => typeof(IBytesPackable);
 
         public ScriptPackInstance(IBytesPackable instance) => Instance = instance;
         public void SetInstance(IBytesPackable instance) => Instance = instance;
         public IBytesPackable CreateInstance() => Instance;
 
+        public static bool operator ==(in ScriptPackInstance left, in ScriptPackInstance right) => left.Equals(right);
+        public static bool operator !=(in ScriptPackInstance left, in ScriptPackInstance right) => !(left == right);
         public override string ToString() => Instance?.ToString() ?? "null";
-        public bool Equals(ScriptPackInstance other) => EqualityComparer<object>.Default.Equals(Instance, other.Instance);
+        public readonly bool Equals(ScriptPackInstance other) => EqualityComparer<object>.Default.Equals(Instance, other.Instance);
         public override bool Equals(object obj) => obj is ScriptPackInstance other && Equals(other);
         public override int GetHashCode() => EqualityComparer<object>.Default.GetHashCode(Instance);
 
@@ -35,19 +37,13 @@ namespace FLib
         }
 
         public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)
-        {
-            return JsonDeserializeImpl(ref nodes, out Instance!, null);
-        }
+            => JsonDeserializeImpl(ref nodes, out Instance!, null);
 
         public readonly void Z_BytesWrite(ref BytesWriter writer)
-        {
-            writer.PushScript(Instance);
-        }
+            => writer.PushScript(Instance);
 
         public void Z_BytesRead(ref BytesReader reader)
-        {
-            Instance = reader.ReadScript();
-        }
+            => Instance = reader.ReadScript();
 
         public readonly void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {
@@ -118,10 +114,10 @@ namespace FLib
 
         public ScriptPackInstance(T instance) => Instance = instance;
 
-        public bool IsEmpty => Instance == null;
-        public Type ScriptType => Instance?.GetType();
+        public readonly bool IsEmpty => Instance == null;
+        public readonly Type ScriptType => Instance?.GetType();
 
-        public Type ScriptBaseType => typeof(T);
+        public readonly Type ScriptBaseType => typeof(T);
         public void SetInstance(IBytesPackable instance) => Instance = (T)instance;
         public IBytesPackable CreateInstance() => Instance;
 
@@ -131,6 +127,12 @@ namespace FLib
         public bool Equals(ScriptPackInstance<T> other) => EqualityComparer<T>.Default.Equals(Instance, other.Instance);
         public override bool Equals(object obj) => obj is ScriptPackInstance<T> other && Equals(other);
         public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode(Instance);
+
+        public static bool operator ==(in ScriptPackInstance<T> left, in ScriptPackInstance<T> right)
+            => left.Equals(right);
+
+        public static bool operator !=(in ScriptPackInstance<T> left, in ScriptPackInstance<T> right)
+            => !(left == right);
 
         #region serialization
 
@@ -149,14 +151,10 @@ namespace FLib
         }
 
         public readonly void Z_BytesWrite(ref BytesWriter writer)
-        {
-            writer.PushScript(Instance);
-        }
+            => writer.PushScript(Instance);
 
         public void Z_BytesRead(ref BytesReader reader)
-        {
-            Instance = (T)reader.ReadScript();
-        }
+            => Instance = (T)reader.ReadScript();
 
         public readonly void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {
