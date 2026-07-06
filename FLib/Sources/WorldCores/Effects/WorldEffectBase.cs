@@ -12,10 +12,10 @@ namespace FLib.WorldCores.Effects
     {
         public uint Id;
         [Comment("最大叠加层数")] public ushort MaxStackCount = 1;
-        [Comment("当前叠加层数")] public ushort StackCount;
         [Comment("重复添加方式")] public EWorldEffectAddOption AddOption;
         [Comment("持续时间")] public FNum Duration;
 
+        [NonSerialized] public ushort StackCount;
         [NonSerialized] public WorldEntityId SourceEntityId;
         [NonSerialized] public WorldSoaComponentManaged ComponentManaged;
         internal WorldEffectSystem* SystemPtr;
