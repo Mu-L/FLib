@@ -92,16 +92,30 @@ namespace FLib
             return IdMetas.ContainsKey(id);
         }
 
-        /// <summary> 按字符串 ID 获取配置引用；返回null ref。 </summary>
-        public static ref readonly T Get(string id, out bool isNullValue, ELogLevel logLevel = ELogLevel.Fatal)
+        /// <summary>  </summary>
+        public static T Get(uint id, ELogLevel logLevel = ELogLevel.Fatal)
         {
-            ref readonly var v = ref Get(id, logLevel);
+            var index = GetIndex(id, logLevel);
+            return index < 0 ? default : Index(index);
+        }
+
+        /// <summary>  </summary>
+        public static T Get(string id, ELogLevel logLevel = ELogLevel.Fatal)
+        {
+            var index = GetIndex(id, logLevel);
+            return index < 0 ? default : Index(index);
+        }
+
+        /// <summary> 按字符串 ID 获取配置引用；返回null ref。 </summary>
+        public static ref readonly T GetRef(string id, out bool isNullValue, ELogLevel logLevel = ELogLevel.Fatal)
+        {
+            ref readonly var v = ref GetRef(id, logLevel);
             isNullValue = Unsafe.IsNullRef(ref Unsafe.AsRef(v));
             return ref v;
         }
 
         /// <summary> 按字符串 ID 获取配置引用；返回null ref。 </summary>
-        public static ref readonly T Get(string id, ELogLevel logLevel = ELogLevel.Fatal)
+        public static ref readonly T GetRef(string id, ELogLevel logLevel = ELogLevel.Fatal)
         {
             var index = GetIndex(id, logLevel);
             if (index < 0)
@@ -110,15 +124,15 @@ namespace FLib
         }
 
         /// <summary> 按数值 ID 获取配置引用；返回null ref。 </summary>
-        public static ref readonly T Get(uint id, out bool isNullValue, ELogLevel logLevel = ELogLevel.Fatal)
+        public static ref readonly T GetRef(uint id, out bool isNullValue, ELogLevel logLevel = ELogLevel.Fatal)
         {
-            ref readonly var v = ref Get(id, logLevel);
+            ref readonly var v = ref GetRef(id, logLevel);
             isNullValue = Unsafe.IsNullRef(ref Unsafe.AsRef(v));
             return ref v;
         }
 
         /// <summary> 按数值 ID 获取配置引用；返回null ref。 </summary>
-        public static ref readonly T Get(uint id, ELogLevel logLevel = ELogLevel.Fatal)
+        public static ref readonly T GetRef(uint id, ELogLevel logLevel = ELogLevel.Fatal)
         {
             var index = GetIndex(id, logLevel);
             if (index < 0)
