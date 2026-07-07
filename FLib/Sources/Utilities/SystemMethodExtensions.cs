@@ -100,6 +100,12 @@ namespace FLib
             return t.IsAbstract && t.IsSealed;
         }
 
+        /// <summary> 是否为内置类型 </summary>
+        public static bool IsBuiltInType(this Type type)
+        {
+            return type.IsPrimitive || type == typeof(string) || type.Assembly == typeof(object).Assembly;
+        }
+
         #endregion
 
         #region Task
