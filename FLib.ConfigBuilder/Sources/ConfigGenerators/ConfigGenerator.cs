@@ -112,17 +112,18 @@ namespace FLib
         {
             var json = ReadJson(Path.GetFullPath("./Declares.ts", p.SourceDirPath), p, out var strbuf);
             var indent = 1;
-            var args = new Dictionary<string, string>();
+            var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in json["Members"].Dict)
             {
                 CommandLineHelper.ToDictionary(item.Value.TryGet("Args")?.Array.Select(v => (string)v), args);
                 if (args.ContainsKey("ignore"))
                     continue;
                 Json5AnyValue fields;
+                var commentAttribute = args.ContainsKey(nameof(CommentAttribute));
                 switch ((string)item.Value["Type"])
                 {
                     case "interface":
-                        strbuf.AppendComment(indent, item.Value);
+                        strbuf.AppendComment(indent, item.Value, isCommentAttribute: commentAttribute);
                         strbuf.Indent(indent).AppendLine("[BytesPackGen]");
                         strbuf.Indent(indent).Append("public partial ").Append(args.ContainsKey("class") ? "class" : "struct").Append(' ').Append(item.Key).Append(" {").AppendLine();
                         ++indent;
@@ -130,7 +131,7 @@ namespace FLib
                         {
                             foreach (var field in fields.Dict)
                             {
-                                strbuf.AppendComment(indent, field.Value);
+                                strbuf.AppendComment(indent, field.Value, isCommentAttribute: commentAttribute);
                                 strbuf.Indent(indent).Append("[BytesPackGenField] ")
                                     .Append("public ").Append(field.Value["Type"].ToString()).Append(' ').Append(field.Key).Append(';').AppendLine();
                             }
@@ -141,7 +142,7 @@ namespace FLib
 
                         break;
                     case "enum":
-                        strbuf.AppendComment(indent, item.Value);
+                        strbuf.AppendComment(indent, item.Value, isCommentAttribute: commentAttribute);
                         if (args.ContainsKey("flags"))
                             strbuf.Indent(indent).AppendLine("[Flags]");
                         strbuf.Indent(indent).Append($"public enum {item.Key}");
@@ -153,7 +154,7 @@ namespace FLib
                         {
                             foreach (var field in fields.Dict)
                             {
-                                strbuf.AppendComment(indent, field.Value);
+                                strbuf.AppendComment(indent, field.Value, isCommentAttribute: commentAttribute);
                                 strbuf.Indent(indent).Append(field.Key);
                                 if (field.Value.TryGet("Value", out var value))
                                     strbuf.Append(" = ").Append(value.ToString());
