@@ -128,6 +128,9 @@ namespace FLib
         /// 不要写入字典的空key， {"a":11, "":22}得到a:11, 22而不是 a:11, "":22， 方便做一些特殊的json值
         /// </summary>
         DictDoNotWriteEmptyKeyWithColonChar = 0x40,
+
+        /// <summary> 只序列化注释字段 </summary>
+        OnlyCommentField = 0x80,
     }
 
     /// <summary>
