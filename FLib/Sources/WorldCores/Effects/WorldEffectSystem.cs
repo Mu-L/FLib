@@ -262,6 +262,7 @@ namespace FLib.WorldCores.Effects
             var effect = WorldGlobalSetting.CreateEffectHandler(this, evt.SourceEntityId, evt.Id, evt.AddCount);
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref this);
             effect.SourceEntityId = evt.SourceEntityId;
+            effect.ComponentManaged.Entity = Entity;
             effect.Id = evt.Id;
             if (effect.MaxStackCount == 0)
                 effect.MaxStackCount = ushort.MaxValue;
