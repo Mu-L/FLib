@@ -25,11 +25,7 @@ namespace FLib
         /// <summary>按逻辑索引访问(0 = 最老)。返回 ref, 可读可写。</summary>
         public readonly ref T this[int index]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                return ref _buffer[GetPhysicalIndex(index)];
-            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref _buffer[GetPhysicalIndex(index)];
         }
 
         T IList<T>.this[int index]
@@ -98,6 +94,19 @@ namespace FLib
         }
 
         void ICollection<T>.Add(T item) => Add(item);
+
+        /// <summary>弹出最新元素。空缓冲返回 default。</summary>
+        public T Pop()
+        {
+            if (_count == 0) return default;
+            var head = _head - 1;
+            if (head < 0) head += _buffer.Length;
+            var result = _buffer[head];
+            _buffer[head] = default;
+            _head = head;
+            _count--;
+            return result;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly int GetPhysicalIndex(int index)
@@ -310,7 +319,7 @@ namespace FLib
         public readonly Enumerator GetEnumerator()
         {
             var buffer = _buffer;
-            var cap = buffer == null ? 0 : buffer.Length;
+            var cap = buffer?.Length ?? 0;
             var start = _head - _count;
             if (start < 0) start += cap;
             return new Enumerator
@@ -324,6 +333,5 @@ namespace FLib
 
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
         readonly IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
     }
 }
