@@ -6,6 +6,9 @@ using System.Runtime.InteropServices;
 
 namespace FLib.WorldCores
 {
+    /// <summary>
+    /// 临时引用，勿缓存。
+    /// </summary>
     public readonly unsafe struct Ref<T> where T : unmanaged
     {
         internal readonly T* ValuePtr;

@@ -42,6 +42,7 @@ namespace FLib.WorldCores
         /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
         /// <param name="et">目标实体</param>
         /// <returns>返回该实体的静态组件值的Ref包装</returns>
+        /// <remarks>结构变更后重取。</remarks>
         public unsafe Ref<T> GetSta<T>(WorldEntityId et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
@@ -54,6 +55,7 @@ namespace FLib.WorldCores
         /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
         /// <param name="et">目标实体</param>
         /// <returns>返回该实体的静态组件值的Ref包装, 如果没有则返回默认值</returns>
+        /// <remarks>结构变更后重取。</remarks>
         public Ref<T> GetStaOrEmpty<T>(WorldEntityId et) where T : unmanaged
         {
             return HasSta<T>(et) ? GetSta<T>(et) : default;
@@ -77,6 +79,7 @@ namespace FLib.WorldCores
         /// <typeparam name="T">组件的类型，必须是非托管类型</typeparam>
         /// <param name="et">目标实体</param>
         /// <returns>返回对该实体的静态组件的引用</returns>
+        /// <remarks>结构变更后重取。</remarks>
         public ref T GetStaRef<T>(WorldEntityId et) where T : unmanaged
         {
             ref readonly var eti = ref GetEntityInfo(et);
