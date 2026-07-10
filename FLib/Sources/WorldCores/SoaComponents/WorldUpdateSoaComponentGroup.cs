@@ -11,6 +11,7 @@ namespace FLib.WorldCores.SoaComponents
     public class WorldUpdateSoaComponentGroup<T> : WorldSoaComponentGroup<T>
     {
         public HashSet<int> StartComponentIndexes;
+        public PauseCounter PauseUpdate;
 
         public WorldUpdateSoaComponentGroup(WorldCore world) : base(world)
         {

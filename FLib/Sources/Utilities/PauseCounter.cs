@@ -32,7 +32,7 @@ namespace FLib
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetPause(string name, bool v)
+        public void Set(string name, bool v)
         {
             if (v)
                 Pause(name);
