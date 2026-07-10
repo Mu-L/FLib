@@ -14,8 +14,8 @@ namespace FLib.WorldCores.SoaComponents
     public class WorldSoaComponentGroup<T> : IWorldSoaComponentGroupable, IEnumerable<T>
     {
         public StableIndexAllocator IndexAllocator;
+        public WorldEntityId[] ComponentEntities = Array.Empty<WorldEntityId>();
         internal T[] Components = Array.Empty<T>();
-        internal WorldEntityId[] ComponentEntities = Array.Empty<WorldEntityId>();
 
 
         public WorldCore World { get; set; }
