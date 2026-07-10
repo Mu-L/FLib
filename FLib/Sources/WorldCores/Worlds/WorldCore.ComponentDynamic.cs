@@ -92,10 +92,10 @@ namespace FLib.WorldCores
         /// 设置实体的指定类型的动态组件。
         /// </summary>
         /// <param name="et">目标实体</param>
-        /// <param name="componentType">组件的类型（若为 null 则使用 component 的实际类型）</param>
         /// <param name="component">要设置的组件值</param>
+        /// <param name="componentType">组件的类型（若为 null 则使用 component 的实际类型）</param>
         /// <returns>返回组件在动态组件组中的索引</returns>
-        public int SetDyn(WorldEntityId et, Type? componentType, object? component)
+        public int SetDyn(WorldEntityId et, object? component, Type? componentType)
         {
             componentType ??= component!.GetType();
             Assert(!WorldComponentRegistry.GetInfo(componentType).IsShared, et);
@@ -122,7 +122,7 @@ namespace FLib.WorldCores
         public void SetDyn(WorldEntityId et, in ScriptPackBytes script)
         {
             var type = TypeAssistant.GetType(script.ScriptTypeName);
-            var index = SetDyn(et, type, TypeAssistant.New(type));
+            var index = SetDyn(et, TypeAssistant.New(type), type);
             WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
         }
 
@@ -237,7 +237,7 @@ namespace FLib.WorldCores
             if (info.Options?.RequiredComponents == null)
                 return;
             foreach (var reqComp in info.Options.RequiredComponents)
-                SetDyn(et, reqComp, TypeAssistant.New(reqComp));
+                SetDyn(et, TypeAssistant.New(reqComp), reqComp);
         }
     }
 }

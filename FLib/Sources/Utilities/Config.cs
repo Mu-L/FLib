@@ -282,6 +282,8 @@ namespace FLib
     /// <summary> 配置表通用工具。 </summary>
     public static class ConfigHelper
     {
+        public static int AllConfigCount;
+
         [Flags]
         public enum EOption : byte
         {
@@ -311,16 +313,16 @@ namespace FLib
         }
 
         /// <summary> 从文件加载全部配置表。 </summary>
-        public static int DeserializeAll(string path, out int buildConfigCount) => DeserializeAll(File.ReadAllBytes(path), out buildConfigCount);
+        public static int DeserializeAll(string path) => DeserializeAll(File.ReadAllBytes(path));
 
         /// <summary> 从内存数据加载全部配置表。 </summary>
-        public static int DeserializeAll(Memory<byte> buffer, out int buildConfigCount)
+        public static int DeserializeAll(Memory<byte> buffer)
         {
             BytesReader reader = buffer;
-            buildConfigCount = reader.ReadLength();
+            AllConfigCount = reader.ReadLength();
             var deserializeConfigTableParams = new object[1];
             var initializers = new List<MethodInfo>();
-            for (var i = 0; i < buildConfigCount; i++)
+            for (var i = 0; i < AllConfigCount; i++)
             {
                 var configType = TypeAssistant.GetType(reader.ReadString(Encoding.ASCII));
                 var customDeserialize = configType.GetMethod("CustomDeserialize", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
