@@ -50,7 +50,10 @@ namespace FLib.WorldCores
         /// <summary>
         /// 组件每次扩容的大小
         /// </summary>
-        public static int CapacityExpandSize = 32;
+        public static int ComponentTypeCapacityExpandSize = 32;
+
+        /// <summary> SoA组件下次扩容大小计算 </summary>
+        public static Func<int, int> SoaComponentNextCapacity = MathEx.GetNextCapacityLength;
 
         /// <summary>
         /// 内存分配

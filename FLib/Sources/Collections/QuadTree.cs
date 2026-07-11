@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -17,18 +16,17 @@ namespace FLib.Collections
         public FVector2 NodeRectOutOffset = new(1);
         public ValueLinkedList<Node> Nodes;
         public ValueLinkedList<ObjectData> Objects;
-        private FNum _size;
-        private FNum _sizeHalf;
+        private readonly FNum _sizeHalf;
 
         public ref Node Root => ref Nodes[0];
 
         public QuadTree(FRect rect, int maxNodeDepthLimit = 0)
         {
-            _size = FNum.Max(rect.Width, rect.Height);
+            var size = FNum.Max(rect.Width, rect.Height);
             _sizeHalf = FNum.Max(rect.Width, rect.Height) * FNum.OneHalf;
             if (maxNodeDepthLimit == 0)
             {
-                var temp = (int)FNum.Ceiling(FNum.Log2(_size / 4));
+                var temp = (int)FNum.Ceiling(FNum.Log2(size / 4));
                 if (temp < MaxDepthLimit)
                     MaxDepthLimit = temp;
             }
@@ -50,6 +48,15 @@ namespace FLib.Collections
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref Node GetObjNode(int index) => ref Nodes[Objects[index].NodeId];
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetTotalObjectCount(int[] counts)
+        {
+            var total = 0;
+            for (var index = 0; index < counts.Length; index++)
+                total += counts[index];
+            return total;
+        }
 
         /// <summary>
         /// 
@@ -195,7 +202,7 @@ namespace FLib.Collections
                 {
                     ObjIndexes = new HashSet<int>[Tree.MaxObjectGroup];
                     for (var i = ObjIndexes.Length - 1; i >= 0; i--)
-                        ObjIndexes[i] = new HashSet<int>();
+                        ObjIndexes[i] = new HashSet<int>(64);
                 }
 
                 if (!ObjIndexes[group].Add(objIdx))
@@ -203,7 +210,7 @@ namespace FLib.Collections
                 ++(TotalObjCounts ??= new int[Tree.MaxObjectGroup])[group];
                 if (Depth < Tree.MaxDepthLimit)
                 {
-                    if (TotalObjCounts.Sum() >= Tree.SplitNodeObjectNumber)
+                    if (GetTotalObjectCount(TotalObjCounts) >= Tree.SplitNodeObjectNumber)
                         SplitToChildren();
                 }
 
@@ -253,13 +260,13 @@ namespace FLib.Collections
                     if (ObjIndexes[group].Remove(index))
                     {
                         --TotalObjCounts[group];
-                        if (Depth > 1 && ParentIdx >= 0 && TotalObjCounts.Sum() == 0)
+                        if (Depth > 1 && ParentIdx >= 0 && GetTotalObjectCount(TotalObjCounts) == 0)
                         {
                             var mergeToParentId = ParentIdx;
                             while (mergeToParentId >= 0)
                             {
                                 ref readonly var node = ref Tree.GetNode(mergeToParentId);
-                                if (node.ParentIdx < 0 || node.TotalObjCounts.Sum() > Tree.SplitNodeObjectNumber)
+                                if (node.ParentIdx < 0 || GetTotalObjectCount(node.TotalObjCounts) > Tree.SplitNodeObjectNumber)
                                     break;
                                 mergeToParentId = node.ParentIdx;
                             }
@@ -303,7 +310,7 @@ namespace FLib.Collections
                     }
                     else
                     {
-                        if (fromNode.TotalObjCounts?.Sum() > 0)
+                        if (fromNode.TotalObjCounts != null && GetTotalObjectCount(fromNode.TotalObjCounts) > 0)
                         {
                             Array.Fill(fromNode.TotalObjCounts, 0);
                             ref var toNode = ref tree.GetNode(toNodeId);

@@ -104,7 +104,7 @@ namespace FLib.WorldCores.Components
                 meta = new WorldComponentMeta(id, size, type);
                 ComponentTypeMap[type] = meta;
                 if (_componentInfos.Length <= id)
-                    Array.Resize(ref _componentInfos, id + WorldGlobalSetting.CapacityExpandSize);
+                    Array.Resize(ref _componentInfos, id + WorldGlobalSetting.ComponentTypeCapacityExpandSize);
                 _componentInfos[id] = new WorldComponentInfo(meta, type);
             }
 
