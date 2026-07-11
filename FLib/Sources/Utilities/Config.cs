@@ -318,6 +318,7 @@ namespace FLib
         /// <summary> 从内存数据加载全部配置表。 </summary>
         public static int DeserializeAll(Memory<byte> buffer)
         {
+            buffer = Compressor.Uncompress(buffer.Span);
             BytesReader reader = buffer;
             AllConfigCount = reader.ReadLength();
             var deserializeConfigTableParams = new object[1];

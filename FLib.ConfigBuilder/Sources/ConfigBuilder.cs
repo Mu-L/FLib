@@ -45,7 +45,7 @@ namespace FLib
 
                 var outPath = Path.GetFullPath(OutputPath);
                 Directory.CreateDirectory(Path.GetDirectoryName(outPath)!);
-                File.WriteAllBytes(outPath, GenerateConfigBytes(allTables).Span.ToArray());
+                File.WriteAllBytes(outPath, Compressor.Compress(GenerateConfigBytes(allTables)).ToArray());
                 return allTables.Count;
             }
             catch (Exception ex)
