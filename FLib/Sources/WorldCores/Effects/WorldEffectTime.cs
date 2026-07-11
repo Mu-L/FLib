@@ -27,7 +27,7 @@ namespace FLib.WorldCores.Effects
                 Effect.RemoveSelf();
         }
 
-        public void RefreshTime(in FNum time)
+        public void ResetTime(in FNum time)
         {
             EndTime = time + Effect.Duration;
         }

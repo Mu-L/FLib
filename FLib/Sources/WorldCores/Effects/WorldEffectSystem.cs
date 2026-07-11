@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 using FLib.WorldCores.Entities;
 
 namespace FLib.WorldCores.Effects
@@ -12,7 +13,7 @@ namespace FLib.WorldCores.Effects
     /// 效果系统
     /// </summary>
     [WorldComponentOption(EComponentFlag.AlwaysReceiveDestroy)]
-    public struct WorldEffectSystem : IWorldAwake, IWorldDestroy
+    public struct WorldEffectSystem : IWorldAwake, IWorldDestroy, IJson5Serializable
     {
         public WorldEntity Entity;
         public uint FlagMask;
@@ -119,7 +120,7 @@ namespace FLib.WorldCores.Effects
                 switch (effect.AddOption)
                 {
                     case EWorldEffectAddOption.ResetTime:
-                        effect.Time.RefreshTime(World.Time);
+                        effect.ResetTime();
                         Entity.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.AddStack:
@@ -128,7 +129,7 @@ namespace FLib.WorldCores.Effects
                         Entity.DispatchEvent(evt);
                         return effect;
                     case EWorldEffectAddOption.AddStackAndResetTime:
-                        effect.Time.RefreshTime(World.Time);
+                        effect.ResetTime();
                         AddEffectStackCount(effect, ref evt.AddCount);
                         effect.OnStackCountChange(evt.AddCount);
                         Entity.DispatchEvent(evt);
@@ -248,7 +249,8 @@ namespace FLib.WorldCores.Effects
             }
             finally
             {
-                World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
+                if (effect.TimeComponentId >= 0)
+                    World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
                 effect.Dispose();
                 WorldGlobalSetting.DestroyEffectHandler(this, effect);
             }
@@ -266,8 +268,9 @@ namespace FLib.WorldCores.Effects
             effect.Id = evt.Id;
             if (effect.MaxStackCount == 0)
                 effect.MaxStackCount = ushort.MaxValue;
-            effect.TimeComponentId = World.Soa.GetGroup<WorldEffectTime>().Alloc(Entity, new WorldEffectTime(effect));
-            effect.Time.RefreshTime(World.Time);
+            if (effect.Duration > 0)
+                effect.TimeComponentId = World.Soa.GetGroup<WorldEffectTime>().Alloc(Entity, new WorldEffectTime(effect));
+            effect.ResetTime();
 
             var mask = effect.FlagsMask;
             FlagMask |= mask;
@@ -284,6 +287,17 @@ namespace FLib.WorldCores.Effects
             var oldCount = effect.StackCount;
             effect.StackCount = (ushort)Math.Clamp(effect.StackCount + addCount, 1, effect.MaxStackCount);
             addCount = (ushort)(effect.StackCount - oldCount);
+        }
+
+        /// <summary>  </summary>
+        public bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
+        {
+            jsonText.Append(Json5.Serialize(new Dictionary<string, object>()
+            {
+                { nameof(FlagMask), FlagMask },
+                { nameof(Effects), Container },
+            }, opData));
+            return true;
         }
     }
 }

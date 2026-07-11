@@ -88,6 +88,13 @@ namespace FLib.WorldCores.Effects
             SystemPtr = null;
         }
 
+        /// <summary>  </summary>
+        public void ResetTime()
+        {
+            if (TimeComponentId >= 0)
+                Time.ResetTime(World.Time);
+        }
+
         /// <summary>
         /// 
         /// </summary>
