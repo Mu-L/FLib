@@ -152,7 +152,7 @@ public class TestWorldCore
         world.RemoveDyn<Buff>(player1);
         Assert.False(world.HasDyn<Buff>(player1));
         Assert.ThrowsAny<Exception>(() => world.GetDyn<Buff>(player1));
-        world.SetDyn(player1, new Buff { Name = "aaa" }, null);
+        world.SetDynObject(player1, new Buff { Name = "aaa" });
         Assert.Equal("aaa", world.GetDyn<Buff>(player1).Name);
         world.Remove<Buff>(player1);
         Assert.False(world.Has<Buff>(player1));

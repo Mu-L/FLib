@@ -36,6 +36,26 @@ public class TestQuadTree
         Assert.All(objectIndexes[1..], objectIndex => Assert.Equal(0, tree.GetObj(objectIndex).NodeId));
     }
 
+    [Fact]
+    public void RefreshPositionReaddsFromRootAfterMerge()
+    {
+        var tree = new QuadTree<int>(new FRect(new FVector2(0, 0), new FVector2(100, 100)))
+        {
+            MaxDepthLimit = 2,
+            SplitNodeObjectNumber = 2
+        };
+
+        var movedObjectIndex = tree.Add(1, new FVector2(10, 10));
+        tree.Add(2, new FVector2(30, 10));
+
+        tree.RefreshPosition(movedObjectIndex, new FVector2(30, 10));
+
+        ref readonly var obj = ref tree.GetObj(movedObjectIndex);
+        ref readonly var node = ref tree.GetObjNode(movedObjectIndex);
+        Assert.False(tree.Nodes.NodeBuffer[obj.NodeId].IsFreed);
+        Assert.Contains(movedObjectIndex, node.ObjIndexes[0]);
+    }
+
     private static int[] AssertTotalObjectCounts(QuadTree<int> tree, int nodeIndex)
     {
         ref var node = ref tree.GetNode(nodeIndex);

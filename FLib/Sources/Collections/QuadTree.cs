@@ -16,14 +16,15 @@ namespace FLib.Collections
         public FVector2 NodeRectOutOffset = new(1);
         public ValueLinkedList<Node> Nodes;
         public ValueLinkedList<ObjectData> Objects;
-        private readonly FNum _sizeHalf;
+        private readonly FNum _sizeHalfSqr;
 
         public ref Node Root => ref Nodes[0];
 
         public QuadTree(FRect rect, int maxNodeDepthLimit = 0)
         {
             var size = FNum.Max(rect.Width, rect.Height);
-            _sizeHalf = FNum.Max(rect.Width, rect.Height) * FNum.OneHalf;
+            var sizeHalf = size * FNum.OneHalf;
+            _sizeHalfSqr = sizeHalf * sizeHalf;
             if (maxNodeDepthLimit == 0)
             {
                 var temp = (int)FNum.Ceiling(FNum.Log2(size / 4));
@@ -88,31 +89,25 @@ namespace FLib.Collections
         public void RefreshPosition(int objIndex, in FVector2 position, byte? newGroup = null)
         {
             ref var obj = ref Objects[objIndex];
+            var group = newGroup ?? obj.Group;
             var oldPos = obj.Position;
             obj.Position = position;
             ref var node = ref GetNode(obj.NodeId);
-            if (node.Rect.Contains(position, NodeRectOutOffset) && (newGroup == null || obj.Group == newGroup))
+            if (node.Rect.Contains(position, NodeRectOutOffset) && obj.Group == group)
                 return;
+            var parentIdx = node.ParentIdx;
             node.TryRemoveAndUpdateParents(objIndex, obj.Group);
-            if (FVector2.SqrDistance(oldPos, position) >= _sizeHalf * _sizeHalf)
+            var isShortMove = FVector2.SqrDistance(oldPos, position) < _sizeHalfSqr;
+            while (isShortMove && parentIdx >= 0 && !Nodes.NodeBuffer[parentIdx].IsFreed)
             {
-                if (!Root.TryAddToSubtree(objIndex, newGroup ?? obj.Group))
-                    throw new Exception($"add new node failure {obj}");
+                ref var parent = ref GetNode(parentIdx);
+                if (parent.TryAddAndUpdateParents(objIndex, group))
+                    return;
+                parentIdx = parent.ParentIdx;
             }
-            else
-            {
-                var parentIdx = node.ParentIdx;
-                while (parentIdx >= 0)
-                {
-                    ref var tempNode = ref GetNode(parentIdx);
-                    if (tempNode.TryAddAndUpdateParents(objIndex, newGroup ?? obj.Group))
-                        break;
-                    parentIdx = tempNode.ParentIdx;
-                }
 
-                if (parentIdx < 0)
-                    throw new Exception($"add new node failure, {node.Depth},{node.Rect}");
-            }
+            if (!Root.TryAddToSubtree(objIndex, group))
+                throw new Exception($"add new node failure {obj}");
         }
 
         public NodeReverseEnumerator GetReverseEnumerator(bool isSkipRepeatNode = true) => Root.GetReverseEnumerator(isSkipRepeatNode);
