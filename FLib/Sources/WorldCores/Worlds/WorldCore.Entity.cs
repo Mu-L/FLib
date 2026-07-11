@@ -37,7 +37,7 @@ namespace FLib.WorldCores
             ref var eti = ref Entities[et.Id];
 #if DEBUG
             if (eti.Version != et.Version)
-                ThrowException($"version error [{eti} | {et}]", et);
+                ThrowException($"version error [{eti} != {et}]", et);
 #endif
             return ref eti;
         }
