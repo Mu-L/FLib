@@ -104,7 +104,7 @@ namespace FLib.Gen
             foreach (var syntaxRef in member.DeclaringSyntaxReferences)
             {
                 var syntax = syntaxRef.GetSyntax();
-                ExpressionSyntax? value = syntax switch
+                var value = syntax switch
                 {
                     VariableDeclaratorSyntax v => v.Initializer?.Value,
                     PropertyDeclarationSyntax p => p.Initializer?.Value,

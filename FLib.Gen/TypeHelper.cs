@@ -18,8 +18,8 @@ namespace FLib.Gen
         private const string AttrRelocate = "BytesPackGenRelocateAttribute";
         private const string AttrAdditionalCode = "BytesPackGenAdditionalCodeAttribute";
         private const string AttrCustomCode = "BytesPackGenCustomCodeAttribute";
-        private const string IfaceBytesPackable = "IBytesPackable";
-        private const string IfaceBytesSerializable = "IBytesSerializable";
+        private const string IFaceBytesPackable = "IBytesPackable";
+        private const string IFaceBytesSerializable = "IBytesSerializable";
 
         public static bool HasBytesPack(ITypeSymbol typeSymbol)
         {
@@ -103,7 +103,7 @@ namespace FLib.Gen
             }
             while (t != null)
             {
-                if (HasInterface(t, IfaceBytesPackable) || HasBytesPack(t))
+                if (HasInterface(t, IFaceBytesPackable) || HasBytesPack(t))
                     return true;
                 t = t.BaseType;
             }
@@ -118,7 +118,7 @@ namespace FLib.Gen
                 if (t is IArrayTypeSymbol arr) t = arr.ElementType;
                 else break;
             }
-            return HasInterface(t, IfaceBytesSerializable);
+            return HasInterface(t, IFaceBytesSerializable);
         }
 
         /// <summary>
