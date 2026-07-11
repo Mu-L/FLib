@@ -320,7 +320,6 @@ namespace FLib.Collections
                                 {
                                     if (!toNode.ObjIndexes[group].Add(objIdx))
                                         throw new Exception($"already exist index {toNodeId} {toNode.Depth},{toNode.Rect}");
-                                    ++toNode.TotalObjCounts[group];
                                     tree.Objects[objIdx].NodeId = toNodeId;
                                 }
 
@@ -347,6 +346,7 @@ namespace FLib.Collections
                 Children[3] = CreateChildNode(new FRect(new FVector2(Rect.Min.X, Rect.Min.Y + sizeHalf.Y), new FVector2(Rect.Max.X - sizeHalf.X, Rect.Max.Y)), Tree, SelfIndex, Depth);
                 if (ObjIndexes != null)
                 {
+                    Array.Fill(TotalObjCounts, 0);
                     for (byte group = 0; group < ObjIndexes.Length; group++)
                     {
                         foreach (var objIdx in ObjIndexes[group])
