@@ -68,7 +68,7 @@ namespace FLib.WorldCores
             if (slot < 0)
             {
                 Assert(!eti.IsDestroying, et, "entity is destroying");
-                TryAddRequiredComponents(et, ref eti, WorldComponentRegistry.GetInfo(typeof(T)));
+                TryAddRequiredComponents(et, WorldComponentRegistry.GetInfo(typeof(T)));
                 slot = group.Alloc(et, component);
             }
             else
@@ -95,7 +95,7 @@ namespace FLib.WorldCores
         /// <param name="component">要设置的组件值</param>
         /// <param name="componentType">组件的类型（若为 null 则使用 component 的实际类型）</param>
         /// <returns>返回组件在动态组件组中的索引</returns>
-        public int SetDyn(WorldEntityId et, object? component, Type? componentType)
+        public int SetDynObject(WorldEntityId et, object? component, Type? componentType = null)
         {
             componentType ??= component!.GetType();
             Assert(!WorldComponentRegistry.GetInfo(componentType).IsShared, et);
@@ -105,7 +105,7 @@ namespace FLib.WorldCores
             var group = Soa.GetGroup(componentType);
             if (slot < 0)
             {
-                TryAddRequiredComponents(et, ref eti, WorldComponentRegistry.GetInfo(componentType));
+                TryAddRequiredComponents(et, WorldComponentRegistry.GetInfo(componentType));
                 slot = group.Alloc(et, component);
             }
             else
@@ -119,22 +119,24 @@ namespace FLib.WorldCores
         /// <summary>
         /// 设置实体的动态组件（使用脚本包）。
         /// </summary>
-        public void SetDyn(WorldEntityId et, in ScriptPackBytes script)
+        public int SetDynScript(WorldEntityId et, in ScriptPackBytes script)
         {
-            var type = TypeAssistant.GetType(script.ScriptTypeName);
-            var index = SetDyn(et, TypeAssistant.New(type), type);
-            WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
+            // 后续考虑改为无GC实现方式
+            var index = SetDynObject(et, script.CreateInstance());
+            // WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
+            return index;
         }
+
 
         /// <summary>
         /// 设置实体的动态组件（使用脚本包）。
         /// </summary>
-        public void SetDyn(WorldEntityId et, in ReadOnlySpan<ScriptPackBytes> scripts)
+        public int SetDynScript<T>(WorldEntityId et, in ScriptPackBytes<T> script) where T : IBytesPackable
         {
-            if (scripts.IsEmpty)
-                return;
-            foreach (var item in scripts)
-                SetDyn(et, item);
+            // 后续考虑改为无GC实现方式
+            var index = SetDynObject(et, script.CreateInstance());
+            // WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
+            return index;
         }
 
         /// <summary>
@@ -230,14 +232,13 @@ namespace FLib.WorldCores
         /// 尝试添加该组件的所有必需组件。
         /// </summary>
         /// <param name="et">目标实体</param>
-        /// <param name="eti">实体信息的引用</param>
         /// <param name="info">组件信息</param>
-        internal void TryAddRequiredComponents(WorldEntityId et, ref WorldEntityInfo eti, in WorldComponentInfo info)
+        internal void TryAddRequiredComponents(WorldEntityId et, in WorldComponentInfo info)
         {
             if (info.Options?.RequiredComponents == null)
                 return;
             foreach (var reqComp in info.Options.RequiredComponents)
-                SetDyn(et, TypeAssistant.New(reqComp), reqComp);
+                SetDynObject(et, TypeAssistant.New(reqComp), reqComp);
         }
     }
 }

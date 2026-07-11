@@ -168,7 +168,7 @@ namespace FLib.WorldCores.TimeLogics
     public class EntityTimeLogic : TimeLogic
     {
         [NonSerialized] public WorldEntity Entity;
-
+        public WorldCore World => Entity.World;
 
         public EntityTimeLogic Initialize(WorldEntity entity)
         {

@@ -74,7 +74,7 @@ namespace FLib.WorldCores.Entities
             var id = WorldComponentRegistry.GetId<T>();
             ref var eti = ref World.GetEntityInfo(Entity);
             var group = World.Soa.GetGroup<T>();
-            World.TryAddRequiredComponents(EntityId, ref eti, WorldComponentRegistry.GetInfo(typeof(T)));
+            World.TryAddRequiredComponents(EntityId, WorldComponentRegistry.GetInfo(typeof(T)));
             DynComponents.Add(new WorldSoaComponentHandle(World.EnsureDynamicComponentIndex(id, ref eti) = group.AllocWithoutAwake(EntityId, component), id));
             return this;
         }

@@ -1,5 +1,6 @@
 // ==================== qcbf@qq.com | 2026-03-02 ====================
 
+#nullable enable
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -56,12 +57,12 @@ namespace FLib.WorldCores.Entities
         /// <summary>
         /// 获得实体上所有组件的列表。
         /// </summary>
-        public IList GetAll(IList result = null) => World.GetAll(Id, result);
+        public IList GetAll(IList? result = null) => World.GetAll(Id, result);
 
         /// <summary>
         /// 获得实体上所有组件类型的列表。
         /// </summary>
-        public List<Type> GetAllTypes(List<Type> result = null) => World.GetAllTypes(Id, result);
+        public List<Type> GetAllTypes(List<Type>? result = null) => World.GetAllTypes(Id, result);
 
         #endregion
 
@@ -129,7 +130,7 @@ namespace FLib.WorldCores.Entities
         /// <summary>
         /// 获取实体的动态组件并返回引用。
         /// </summary>
-        public bool TryGetDyn<T>(out T component)
+        public bool TryGetDyn<T>(out T? component)
         {
             if (World.HasDyn<T>(Id))
             {
@@ -156,10 +157,14 @@ namespace FLib.WorldCores.Entities
         /// </summary>
         public int SetDyn<T>(in T component) => World.SetDyn(Id, component);
 
-        /// <summary>
-        /// 设置实体的动态组件（通过类型和值）。
-        /// </summary>
-        public int SetDyn(object component, Type type) => World.SetDyn(Id, component, type);
+        /// <summary> 设置实体的动态组件（通过对象） </summary>
+        public int SetDynObject(object? component, Type? componentType = null) => World.SetDynObject(Id, component, componentType);
+
+        /// <summary> 设置实体的动态组件（通过脚本） </summary>
+        public int SetDynScript(in ScriptPackBytes script) => World.SetDynScript(Id, script);
+
+        /// <summary> 设置实体的动态组件（通过脚本） </summary>
+        public int SetDynScript<T>(in ScriptPackBytes<T> script) where T : IBytesPackable => World.SetDynScript(Id, script);
 
         /// <summary>
         /// 移除实体的动态组件。
@@ -424,7 +429,7 @@ namespace FLib.WorldCores.Entities
             return strbuf.ToString();
         }
 
-        bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
+        bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
         {
             jsonText.Append(ToString());
             return true;
@@ -436,6 +441,6 @@ namespace FLib.WorldCores.Entities
         public static bool operator ==(in WorldEntity left, in WorldEntity right) => left.Id == right.Id && left.World == right.World;
         public static bool operator !=(in WorldEntity left, in WorldEntity right) => left.Id != right.Id || left.World != right.World;
         public bool Equals(WorldEntity other) => WorldHandle.Equals(other.WorldHandle) && Id.Equals(other.Id);
-        public override bool Equals(object obj) => obj is WorldEntity other && Equals(other);
+        public override bool Equals(object? obj) => obj is WorldEntity other && Equals(other);
     }
 }
