@@ -1,4 +1,4 @@
-﻿// ==================== qcbf@qq.com | 2025-07-01 ====================
+// ==================== qcbf@qq.com | 2025-07-01 ====================
 
 using System;
 using System.Collections;
@@ -66,7 +66,7 @@ namespace FLib.Collections
             if (!Root.Rect.Contains(position))
                 return -1;
             var objIdx = Objects.Add(new ObjectData() { Position = position, Data = obj });
-            Root.AddOrChildren(objIdx, group);
+            Root.TryAddToSubtree(objIdx, group);
             return objIdx;
         }
 
@@ -78,7 +78,7 @@ namespace FLib.Collections
             var nodeIdx = Objects[objIndex].NodeId;
             var group = Objects[objIndex].Group;
             var v = Objects.RemoveAt(objIndex);
-            v &= GetNode(nodeIdx).RemoveOrParents(objIndex, group);
+            v &= GetNode(nodeIdx).TryRemoveAndUpdateParents(objIndex, group);
             return v;
         }
 
@@ -93,10 +93,10 @@ namespace FLib.Collections
             ref var node = ref GetNode(obj.NodeId);
             if (node.Rect.Contains(position, NodeRectOutOffset) && (newGroup == null || obj.Group == newGroup))
                 return;
-            node.RemoveOrParents(objIndex, obj.Group);
+            node.TryRemoveAndUpdateParents(objIndex, obj.Group);
             if (FVector2.SqrDistance(oldPos, position) >= _sizeHalf * _sizeHalf)
             {
-                if (!Root.AddOrChildren(objIndex, newGroup ?? obj.Group))
+                if (!Root.TryAddToSubtree(objIndex, newGroup ?? obj.Group))
                     throw new Exception($"add new node failure {obj}");
             }
             else
@@ -105,7 +105,7 @@ namespace FLib.Collections
                 while (parentIdx >= 0)
                 {
                     ref var tempNode = ref GetNode(parentIdx);
-                    if (tempNode.AddOrParents(objIndex, newGroup ?? obj.Group))
+                    if (tempNode.TryAddAndUpdateParents(objIndex, newGroup ?? obj.Group))
                         break;
                     parentIdx = tempNode.ParentIdx;
                 }
@@ -152,9 +152,9 @@ namespace FLib.Collections
             /// <summary>
             /// 添加值
             /// </summary>
-            public bool AddOrParents(int objIdx, byte group, in FVector2 rectOutOffset = default)
+            public bool TryAddAndUpdateParents(int objIdx, byte group, in FVector2 rectOutOffset = default)
             {
-                if (AddOrChildren(objIdx, group, rectOutOffset))
+                if (TryAddToSubtree(objIdx, group, rectOutOffset))
                 {
                     var parent = ParentIdx;
                     while (parent >= 0)
@@ -173,7 +173,7 @@ namespace FLib.Collections
             /// <summary>
             /// 
             /// </summary>
-            public bool AddOrChildren(int objIdx, byte group, in FVector2 rectOutOffset = default)
+            public bool TryAddToSubtree(int objIdx, byte group, in FVector2 rectOutOffset = default)
             {
                 var pos = Tree.GetObj(objIdx).Position;
                 if (!Rect.Contains(pos, rectOutOffset))
@@ -187,7 +187,7 @@ namespace FLib.Collections
                         if (child.Rect.Contains(pos, rectOutOffset))
                         {
                             ++(TotalObjCounts ??= new int[Tree.MaxObjectGroup])[group];
-                            return child.AddOrChildren(objIdx, group, rectOutOffset);
+                            return child.TryAddToSubtree(objIdx, group, rectOutOffset);
                         }
                     }
 
@@ -220,9 +220,9 @@ namespace FLib.Collections
             /// <summary>
             /// 
             /// </summary>
-            public bool RemoveOrParents(int index, byte group)
+            public bool TryRemoveAndUpdateParents(int index, byte group)
             {
-                if (RemoveOrChildren(index, group))
+                if (TryRemoveFromSubtree(index, group))
                 {
                     var parent = ParentIdx;
                     while (parent >= 0)
@@ -241,14 +241,14 @@ namespace FLib.Collections
             /// <summary>
             /// 移除值
             /// </summary>
-            public bool RemoveOrChildren(int index, byte group)
+            public bool TryRemoveFromSubtree(int index, byte group)
             {
                 if (HasChild)
                 {
                     foreach (var childId in Children)
                     {
                         ref var node = ref Tree.GetNode(childId);
-                        if (node.TotalObjCounts?[group] > 0 && node.RemoveOrChildren(index, group))
+                        if (node.TotalObjCounts?[group] > 0 && node.TryRemoveFromSubtree(index, group))
                         {
                             --TotalObjCounts[group];
                             return true;
@@ -352,7 +352,7 @@ namespace FLib.Collections
                         foreach (var objIdx in ObjIndexes[group])
                         {
                             ref var obj = ref Tree.GetObj(objIdx);
-                            if (!AddOrChildren(objIdx, group) && !AddOrChildren(objIdx, group, Tree.NodeRectOutOffset))
+                            if (!TryAddToSubtree(objIdx, group) && !TryAddToSubtree(objIdx, group, Tree.NodeRectOutOffset))
                                 throw new Exception($"add failure rect:{Rect} pos:{obj}");
                         }
 
