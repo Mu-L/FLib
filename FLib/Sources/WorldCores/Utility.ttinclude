@@ -1,0 +1,4 @@
+﻿<#@ import namespace="System.Linq" #>
+<#+
+    public static string T(int start, int count, string separator, Func<int, string> func) => string.Join(separator, Enumerable.Range(start, count).Select(func));
+#>

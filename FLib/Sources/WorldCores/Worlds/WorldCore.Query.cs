@@ -1,4 +1,4 @@
-﻿// ==================== qcbf@qq.com | 2026-03-14 ====================
+﻿// ==================== qcbf@qq.com | 2026-07-12 ====================
 
 
 using System.Collections;
@@ -35,30 +35,43 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
-                public (WorldEntityId, Ref<T1>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>) Current => (_currentEntity, new Ref<T1>(_component1 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
@@ -90,33 +103,46 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
-                public (WorldEntityId, Ref<T1>, Ref<T2>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>, Ref<T2>) Current => (_currentEntity, new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
 					_component2 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
 					_component2 = (T2*)chunk.Get<T2>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
@@ -148,36 +174,49 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
-                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>) Current => (_currentEntity, new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
 					_component2 = null;
 					_component3 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
 					_component2 = (T2*)chunk.Get<T2>(0);
 					_component3 = (T3*)chunk.Get<T3>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
@@ -209,39 +248,52 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
 				private T4* _component4;
-                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>) Current => (_currentEntity, new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
 					_component2 = null;
 					_component3 = null;
 					_component4 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
 					_component2 = (T2*)chunk.Get<T2>(0);
 					_component3 = (T3*)chunk.Get<T3>(0);
 					_component4 = (T4*)chunk.Get<T4>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
@@ -273,42 +325,55 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
 				private T3* _component3;
 				private T4* _component4;
 				private T5* _component5;
-                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>) Current => (_currentEntity, new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
 					_component2 = null;
 					_component3 = null;
 					_component4 = null;
 					_component5 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
 					_component2 = (T2*)chunk.Get<T2>(0);
 					_component3 = (T3*)chunk.Get<T3>(0);
 					_component4 = (T4*)chunk.Get<T4>(0);
 					_component5 = (T5*)chunk.Get<T5>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
@@ -340,7 +405,6 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
@@ -348,12 +412,13 @@ namespace FLib.WorldCores
 				private T4* _component4;
 				private T5* _component5;
 				private T6* _component6;
-                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>) Current => (_currentEntity, new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
 					_component2 = null;
@@ -361,17 +426,29 @@ namespace FLib.WorldCores
 					_component4 = null;
 					_component5 = null;
 					_component6 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
 					_component2 = (T2*)chunk.Get<T2>(0);
@@ -379,6 +456,7 @@ namespace FLib.WorldCores
 					_component4 = (T4*)chunk.Get<T4>(0);
 					_component5 = (T5*)chunk.Get<T5>(0);
 					_component6 = (T6*)chunk.Get<T6>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
@@ -410,7 +488,6 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
@@ -419,12 +496,13 @@ namespace FLib.WorldCores
 				private T5* _component5;
 				private T6* _component6;
 				private T7* _component7;
-                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>) Current => (_currentEntity, new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
 					_component2 = null;
@@ -433,17 +511,29 @@ namespace FLib.WorldCores
 					_component5 = null;
 					_component6 = null;
 					_component7 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
 					_component2 = (T2*)chunk.Get<T2>(0);
@@ -452,6 +542,7 @@ namespace FLib.WorldCores
 					_component5 = (T5*)chunk.Get<T5>(0);
 					_component6 = (T6*)chunk.Get<T6>(0);
 					_component7 = (T7*)chunk.Get<T7>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
@@ -483,7 +574,6 @@ namespace FLib.WorldCores
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
                 private WorldEntityId* _entity;
                 private T1* _component1;
 				private T2* _component2;
@@ -493,12 +583,13 @@ namespace FLib.WorldCores
 				private T6* _component6;
 				private T7* _component7;
 				private T8* _component8;
-                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>) Current => (*(_entity + _index), new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index), new Ref<T8>(_component8 + _index));
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, Ref<T1>, Ref<T2>, Ref<T3>, Ref<T4>, Ref<T5>, Ref<T6>, Ref<T7>, Ref<T8>) Current => (_currentEntity, new Ref<T1>(_component1 + _index), new Ref<T2>(_component2 + _index), new Ref<T3>(_component3 + _index), new Ref<T4>(_component4 + _index), new Ref<T5>(_component5 + _index), new Ref<T6>(_component6 + _index), new Ref<T7>(_component7 + _index), new Ref<T8>(_component8 + _index));
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     _component1 = null;
 					_component2 = null;
@@ -508,17 +599,29 @@ namespace FLib.WorldCores
 					_component6 = null;
 					_component7 = null;
 					_component8 = null;
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     _component1 = (T1*)chunk.Get<T1>(0);
 					_component2 = (T2*)chunk.Get<T2>(0);
@@ -528,6 +631,7 @@ namespace FLib.WorldCores
 					_component6 = (T6*)chunk.Get<T6>(0);
 					_component7 = (T7*)chunk.Get<T7>(0);
 					_component8 = (T8*)chunk.Get<T8>(0);
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }

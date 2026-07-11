@@ -28,46 +28,59 @@ namespace FLib.WorldCores
         /// <summary>
         /// 
         /// </summary>
-        public readonly struct QueryEnumerator<<#= genericParams #>> : IEnumerable<(WorldEntity, <#= refComps #>)> <#= genericWheres #> 
+        public readonly struct QueryEnumerator<<#= genericParams #>> : IEnumerable<(WorldEntityId, <#= refComps #>)> <#= genericWheres #> 
         {
             private readonly WorldQueryFilter _filter;
             public Enumerable GetEnumerator() => new(_filter);
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<(WorldEntity, <#= refComps #>)> IEnumerable<(WorldEntity, <#= refComps #>)>.GetEnumerator() => GetEnumerator();
+            IEnumerator<(WorldEntityId, <#= refComps #>)> IEnumerable<(WorldEntityId, <#= refComps #>)>.GetEnumerator() => GetEnumerator();
             public QueryEnumerator(in WorldCore world, in WorldQueryFilter filter)
             {
                 _filter = filter;
                 if (_filter.IsEmpty)
                     _filter = new WorldQueryFilterBuilder(world)<#= T(1, i, "", n => $".WithAll<T{n}>()") #>.Build();
             }
-            public struct Enumerable : IEnumerator<(WorldEntity, <#= refComps #>)>
+            public struct Enumerable : IEnumerator<(WorldEntityId, <#= refComps #>)>
             {
                 public WorldChunkQueryEnumerator ChunkEnumerator;
                 private int _index;
-                private int _count;
-                private WorldEntity* _entity;
+                private WorldEntityId* _entity;
                 <#= T(1, i, "\n\t\t\t\t", n => $"private T{n}* _component{n};") #>
-                public (WorldEntity, <#= refComps #>) Current => (*(_entity + _index), <#= T(1, i, ", ", n => $"new Ref<T{n}>(_component{n} + _index)") #>);
+                private WorldEntityId _currentEntity;
+                public (WorldEntityId, <#= refComps #>) Current => (_currentEntity, <#= T(1, i, ", ", n => $"new Ref<T{n}>(_component{n} + _index)") #>);
                 object IEnumerator.Current => Current;
                 public Enumerable(WorldQueryFilter filter)
                 {
                     ChunkEnumerator = new WorldChunkQueryEnumerator(filter);
-                    _count = _index = 0;
+                    _index = 0;
                     _entity = null;
                     <#= T(1, i, "\n\t\t\t\t\t", n => $"_component{n} = null;") #>
+                    _currentEntity = default;
                 }
                 public bool MoveNext()
                 {
-                    if (++_index < _count)
-                        return true;
+                    var chunk = ChunkEnumerator.Current;
+                    if (chunk != null)
+                    {
+                        var count = chunk.Count;
+                        if (count > _index && *(_entity + _index) == _currentEntity)
+                            ++_index;
+
+                        if (_index < count)
+                        {
+                            _currentEntity = *(_entity + _index);
+                            return true;
+                        }
+                    }
+
                     if (!ChunkEnumerator.MoveNext())
                         return false;
 
-                    var chunk = ChunkEnumerator.Current!;
+                    chunk = ChunkEnumerator.Current!;
                     _index = 0;
-                    _count = chunk.Count;
                     _entity = chunk.GetEntity(0);
                     <#= T(1, i, "\n\t\t\t\t\t", n => $"_component{n} = (T{n}*)chunk.Get<T{n}>(0);") #>
+                    _currentEntity = *_entity;
                     return true;
                 }
                 public void Reset() { }
