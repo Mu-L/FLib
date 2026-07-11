@@ -159,7 +159,7 @@ namespace FLib.WorldCores.Effects
             WorldCoreException.AssertNotCopied(Entity, this);
             var container = Container;
             ref var item = ref container.Effects.GetValueRefOrNullRef(id);
-            return Unsafe.IsNullRef(ref item) && Remove(item.Single!, removeCount);
+            return !Unsafe.IsNullRef(ref item) && Remove(item.Single!, removeCount);
         }
 
         /// <summary>
