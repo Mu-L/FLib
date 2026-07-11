@@ -15,7 +15,7 @@ namespace FLib
         public static int ConfigTableCompressSize = 1024;
         public static char Sign = '*';
         public static string OutputPath = "cfg.bytes";
-        public static Action<ConcurrentDictionary<Type, IConfigTable>, ConcurrentDictionary<string, ConcurrentBag<IConfigFile>>> CustomBuilder;
+        public static Action<ConcurrentDictionary<Type, IConfigTable>, Dictionary<string, List<IConfigFile>>> CustomBuilder;
 
         private static readonly Func<IEnumerable<Type>> GetAllTypes = () =>
             TypeAssistant.AllAssemblies
@@ -57,32 +57,33 @@ namespace FLib
         }
 
         /// <summary> 构建配置文件 </summary>
-        public static ConcurrentDictionary<string, ConcurrentBag<IConfigFile>> BuildFiles(string[] sourceDirectories)
+        public static Dictionary<string, List<IConfigFile>> BuildFiles(string[] sourceDirectories)
         {
-            var allFiles = new ConcurrentDictionary<string, ConcurrentBag<IConfigFile>>(Environment.ProcessorCount, 1024);
+            var allFiles = new Dictionary<string, List<IConfigFile>>(256);
             var allConfigBuilders = GetConfigBuilders();
             foreach (var sourceDirectory in sourceDirectories)
             {
-                Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories).AsParallel().ForAll(filePath =>
+                foreach (var filePath in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
                 {
                     try
                     {
                         if (filePath.EndsWith(".meta", StringComparison.Ordinal))
-                            return;
+                            continue;
                         var name = Path.GetFileNameWithoutExtension(filePath);
                         if (name.StartsWith('~') || name.StartsWith('_') || name.EndsWith('~') || name.EndsWith(".schema", StringComparison.Ordinal) || name.EndsWith(".ai", StringComparison.Ordinal))
-                            return;
+                            continue;
                         if (!allConfigBuilders.TryGetValue(Path.GetExtension(filePath), out var builder))
-                            return;
+                            continue;
                         var strbuf = StringFLibUtility.GetStrBuf();
-                        var file = new ConfigBuilderFile() { FileSign = '*', Path = filePath, Builder = builder };
+                        var file = new ConfigBuilderFile() { Path = filePath, Builder = builder };
                         var argStartIndex = 0;
+                        var sign = '*';
                         for (var i = 0; i < name.Length; i++)
                         {
                             switch (name[i])
                             {
                                 case '$':
-                                    file.FileSign = name[++i]; // step $
+                                    sign = name[++i];
                                     break;
                                 case '.' when argStartIndex == 0:
                                     argStartIndex = i + 1;
@@ -100,26 +101,36 @@ namespace FLib
                             }
                         }
 
+                        if (!ConfigBuilderUtility.CheckSign(sign, Sign)) // 依据文件标记被忽略
+                            continue;
+
                         if (argStartIndex > 0)
                             (file.Args ??= new List<string>()).Add(name[argStartIndex..]);
                         name = file.Name = StringFLibUtility.ReleaseStrBufAndResult(strbuf);
-                        var files = allFiles.GetOrAdd(name, static _ => new ConcurrentBag<IConfigFile>());
+                        if (!allFiles.TryGetValue(name, out var files))
+                            allFiles.Add(name, files = new List<IConfigFile>());
                         files.Add(file);
                     }
                     catch (Exception e)
                     {
                         throw new Exception($"{filePath}", e);
                     }
-                });
+                }
+            }
+
+            foreach (var allFile in allFiles)
+            {
+                allFile.Value.TrimExcess();
+                allFile.Value.Sort((a, b) => a.Path.Length - b.Path.Length);
             }
 
             return allFiles;
         }
 
         /// <summary> 构建配置表 </summary>
-        public static ConcurrentDictionary<Type, IConfigTable> BuildTables(ConcurrentDictionary<string, ConcurrentBag<IConfigFile>> allFiles)
+        public static ConcurrentDictionary<Type, IConfigTable> BuildTables(Dictionary<string, List<IConfigFile>> allFiles)
         {
-            var tables = new ConcurrentDictionary<Type, IConfigTable>(Environment.ProcessorCount, 1024);
+            var tables = new ConcurrentDictionary<Type, IConfigTable>(Environment.ProcessorCount, allFiles.Count);
 
             CustomBuilder?.Invoke(tables, allFiles);
 
@@ -134,12 +145,11 @@ namespace FLib
                     return;
                 }
 
+                var table = (ConfigBuilderTable)tables.GetOrAdd(configType, new ConfigBuilderTable(attr.ConfigFileName, configType, attr.Options));
+
                 foreach (var item in files)
                 {
                     var file = (ConfigBuilderFile)item;
-                    if (!ConfigBuilderUtility.CheckSign(file.FileSign, Sign))
-                        continue;
-                    var table = (ConfigBuilderTable)tables.GetOrAdd(configType, new ConfigBuilderTable(attr.ConfigFileName, configType, attr.Options));
                     try
                     {
                         if (typeof(IConfigFileCustomBuildToTable).IsAssignableFrom(configType))
@@ -166,7 +176,7 @@ namespace FLib
         }
 
         /// <summary> 构建配置表最后一步处理 </summary>
-        private static void PostBuildProcess(ConcurrentDictionary<string, ConcurrentBag<IConfigFile>> allFiles, ConcurrentDictionary<Type, IConfigTable> allTables)
+        private static void PostBuildProcess(Dictionary<string, List<IConfigFile>> allFiles, ConcurrentDictionary<Type, IConfigTable> allTables)
         {
             foreach (var item in ConfigPostBuildProcessData.AdditionConfigPostBuildProcesses)
             {
@@ -185,21 +195,14 @@ namespace FLib
                 {
                     try
                     {
-                        if (table.AllConfigIdIndexes.Count > 1024)
+                        if (table.AllConfigs.Count > 1024)
                         {
-                            table.AllConfigIdIndexes.AsParallel().ForAll(indexes =>
-                            {
-                                foreach (var index in indexes.Value)
-                                    ProcessConfigPostBuild(indexes.Key, table.AllConfigs[index], table, allFiles, allTables);
-                            });
+                            table.AllConfigs.AsParallel().ForAll(configs => ProcessConfigPostBuild(configs.Key, configs.Value, table, allFiles, allTables));
                         }
                         else
                         {
-                            foreach (var indexes in table.AllConfigIdIndexes)
-                            {
-                                foreach (var index in indexes.Value)
-                                    ProcessConfigPostBuild(indexes.Key, table.AllConfigs[index], table, allFiles, allTables);
-                            }
+                            foreach (var config in table.AllConfigs)
+                                ProcessConfigPostBuild(config.Key, config.Value, table, allFiles, allTables);
                         }
                     }
                     catch (Exception ex)
@@ -210,7 +213,7 @@ namespace FLib
             });
             return;
 
-            static void ProcessConfigPostBuild(uint id, IBytesPackable cfg, IConfigTable table, ConcurrentDictionary<string, ConcurrentBag<IConfigFile>> allFiles, ConcurrentDictionary<Type, IConfigTable> allTables)
+            static void ProcessConfigPostBuild(uint id, IBytesPackable cfg, IConfigTable table, Dictionary<string, List<IConfigFile>> allFiles, ConcurrentDictionary<Type, IConfigTable> allTables)
             {
                 try
                 {
@@ -242,21 +245,19 @@ namespace FLib
                 if (count == 0)
                     continue;
 
-                IEnumerable<KeyValuePair<uint, List<int>>> configs = table.AllConfigIdIndexes;
+                IEnumerable<KeyValuePair<uint, IBytesPackable>> configs = table.AllConfigs;
                 if ((tableKv.Value.Options & ConfigHelper.EOption.OrderById) != 0)
                     configs = configs.OrderBy(v => v.Key);
-                foreach (var indexes in configs)
+                foreach (var idWithConfig in configs)
                 {
                     packageBuffer.Clear();
-                    foreach (var index in indexes.Value)
-                        BytesPack.Pack(table.AllConfigs[index], ref packageBuffer);
-
+                    BytesPack.Pack(idWithConfig.Value, ref packageBuffer);
                     var copyOptions = options;
                     if (packageBuffer.Length >= ConfigTableCompressSize)
                         copyOptions |= ConfigHelper.EOption.AlwaysCompressRawData;
                     if ((copyOptions & ConfigHelper.EOption.AlwaysCompressRawData) != 0)
                         packageBuffer = new BytesWriter(Compressor.Compress(packageBuffer));
-                    writer.PushVInt(indexes.Key);
+                    writer.PushVInt(idWithConfig.Key);
                     writer.Push(copyOptions);
                     writer.Push(packageBuffer.Span);
                 }

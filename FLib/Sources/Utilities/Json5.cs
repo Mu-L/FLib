@@ -23,6 +23,8 @@ namespace FLib
         public static Dictionary<Type, IJson5Deserializable>? CustomDeserializers;
         public static Dictionary<Type, IJson5Serializable>? CustomSerializers;
         public static HashSet<Type>? NonSerialized;
+        public static char PrettySpace = '\t';
+        
 
         // ReSharper disable Unity.PerformanceAnalysis
         public static string SerializeToLog(object? val, Json5SerializeOptionData opData = default)
@@ -189,7 +191,6 @@ namespace FLib
 
         private static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, bool prettyForceMultiLine)
         {
-            // strbuf.Append('\t', indent);
             // IDictionary 必须排在 IEnumerable 前面，否则字典会被当成普通枚举序列化。
             switch (obj)
             {
@@ -536,7 +537,7 @@ namespace FLib
                             lineHasEntry = false;
                         }
 
-                        strbuf.Append('\t', newIndent);
+                        strbuf.Append(Json5.PrettySpace, newIndent);
                         strbuf.Append(entry);
                         if (i < entries.Count - 1)
                             strbuf.Append(',');
@@ -546,7 +547,7 @@ namespace FLib
 
                     if (!lineHasEntry)
                     {
-                        strbuf.Append('\t', newIndent);
+                        strbuf.Append(Json5.PrettySpace, newIndent);
                         strbuf.Append(entry);
                         lineLen = entry.Length;
                         lineHasEntry = true;
@@ -562,7 +563,7 @@ namespace FLib
                     else
                     {
                         strbuf.Append(',').Append('\n');
-                        strbuf.Append('\t', newIndent);
+                        strbuf.Append(Json5.PrettySpace, newIndent);
                         strbuf.Append(entry);
                         lineLen = entry.Length;
                     }
@@ -570,7 +571,7 @@ namespace FLib
 
                 if (lineHasEntry)
                     strbuf.Append('\n');
-                strbuf.Append('\t', indent);
+                strbuf.Append(Json5.PrettySpace, indent);
             }
 
             strbuf.Append(close);

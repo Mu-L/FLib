@@ -380,13 +380,13 @@ namespace FLib
     /// <summary> 当配置表build之后的回调 </summary>
     public interface IConfigPostBuildProcessable
     {
-        void OnConfigPostBuildProcess(char sign, IConfigTable table, IReadOnlyDictionary<string, ConcurrentBag<IConfigFile>> allFiles, IReadOnlyDictionary<Type, IConfigTable> allTables);
+        void OnConfigPostBuildProcess(char sign, IConfigTable table, Dictionary<string, List<IConfigFile>> allFiles, IReadOnlyDictionary<Type, IConfigTable> allTables);
     }
 
     /// <summary> 配置文件自定义构建到表, 由自己写入到context </summary>
     public interface IConfigFileCustomBuildToTable
     {
-        void ConfigFileDeserializeToTable(char sign, IConfigFile file, IConfigTable table, IReadOnlyDictionary<string, ConcurrentBag<IConfigFile>> allFiles, IReadOnlyDictionary<Type, IConfigTable> allTables);
+        void ConfigFileDeserializeToTable(char sign, IConfigFile file, IConfigTable table, Dictionary<string, List<IConfigFile>> allFiles, IReadOnlyDictionary<Type, IConfigTable> allTables);
     }
 
     /// <summary> 当配置表build之后的回调, 自己注册 </summary>
@@ -417,21 +417,15 @@ namespace FLib
         public ConfigHelper.EOption Options { get; }
 
         /// <summary> 所有配置数据 </summary>
-        public List<IBytesPackable> AllConfigs { get; }
+        public Dictionary<uint, IBytesPackable> AllConfigs { get; }
 
-        /// <summary> 所有配置数据索引 </summary>
-        public Dictionary<uint, List<int>> AllConfigIdIndexes { get; }
-
-        (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, TypeCode overrideTypeCode = TypeCode.Empty);
+        (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, string[] applyFields = null, TypeCode overrideTypeCode = TypeCode.Empty);
     }
 
     public interface IConfigFile
     {
         /// <summary> 文件路径 </summary>
         public string Path { get; }
-
-        /// <summary> 文件标志 </summary>
-        public char FileSign { get; }
 
         /// <summary> 有`.`分割的文件名 </summary>
         public List<string> Args { get; }

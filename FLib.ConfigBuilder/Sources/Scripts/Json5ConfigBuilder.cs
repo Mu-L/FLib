@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace FLib
 {
@@ -13,11 +14,16 @@ namespace FLib
     {
         public string Extension => ".json5";
 
+        public class Table<T>
+        {
+            public string[] Fields;
+            public List<T> Values;
+        }
 
         public class Value : IJson5Deserializable
         {
             public IBytesPackable CfgData;
-            public string KeyValue = string.Empty;
+            public string Id = string.Empty;
 
             public Json5CustomDeserializeResult JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options)
             {
@@ -31,7 +37,7 @@ namespace FLib
                         var key = nodes.Nodes[i].ContentSpan;
                         if (key.SequenceEqual(indexIdFieldName))
                         {
-                            KeyValue = nodes.Nodes[i + 1].ContentCopyString;
+                            Id = nodes.Nodes[i + 1].ContentCopyString;
                             break;
                         }
                     }
@@ -44,8 +50,9 @@ namespace FLib
 
         public void Build(ConfigBuilderTable table, ConfigBuilderFile file)
         {
-            foreach (var item in Json5.Deserialize<Value[]>(File.ReadAllText(file.Path), new Json5DeserializeOptionData { UserData = table }))
-                table.AddConfig(item.KeyValue, item.CfgData);
+            var parsedTable = Json5.Deserialize<Table<Value>>(File.ReadAllText(file.Path), new Json5DeserializeOptionData { UserData = table });
+            foreach (var value in parsedTable.Values)
+                table.AddConfig(value.Id, value.CfgData, parsedTable.Fields);
         }
     }
 }

@@ -13,9 +13,6 @@ namespace FLib
         /// <summary> 文件名 </summary>
         public string Name { get; set; }
 
-        /// <summary> 文件标志 </summary>
-        public char FileSign { get; set; }
-
         /// <summary> 有`.`分割的文件名 </summary>
         public List<string> Args { get; set; }
 

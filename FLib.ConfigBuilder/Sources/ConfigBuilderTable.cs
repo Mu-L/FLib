@@ -23,16 +23,14 @@ namespace FLib
         /// <summary> 配置表选项 </summary>
         public ConfigHelper.EOption Options { get; set; }
 
-        /// <summary> 所有配置数据 </summary>
-        public List<IBytesPackable> AllConfigs { get; set; } = new(512);
-
-        /// <summary> 所有配置数据索引 </summary>
-        public Dictionary<uint, List<int>> AllConfigIdIndexes { get; set; } = new(512);
+        /// <summary> 所有配置表 </summary>
+        public Dictionary<uint, IBytesPackable> AllConfigs { get; set; } = new(512);
 
         private SpinLock _locker;
         private readonly TypeCode _indexIdTypeCode;
+        private Dictionary<string, FieldInfo> _fieldCache;
 
-        public int ConfigCount => AllConfigIdIndexes.Count;
+        public int ConfigCount => AllConfigs.Count;
         public override string ToString() => ConfigType.Name;
 
         public ConfigBuilderTable(string name, Type type, ConfigHelper.EOption options)
@@ -49,34 +47,40 @@ namespace FLib
         /// </summary>
         public void EnsureCapacity(int capacity)
         {
-#if NET6_0_OR_GREATER
-                AllConfigs.EnsureCapacity(capacity);
-#else
-            if (capacity > AllConfigs.Capacity)
-                AllConfigs.Capacity = capacity;
-#endif
-            AllConfigIdIndexes.EnsureCapacity(capacity);
+            AllConfigs.EnsureCapacity(capacity);
         }
 
         /// <summary>
         /// 
         /// </summary>0
-        public (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, TypeCode overrideTypeCode = TypeCode.Empty)
+        public (uint Id, int Index)? AddConfig(object objId, IBytesPackable config, string[] applyFields = null, TypeCode overrideTypeCode = TypeCode.Empty)
         {
             if (objId == null || config == null)
                 return null;
             var isLocking = false;
-            _locker.Enter(ref isLocking);
+            _locker.Enter(ref isLocking); // 大部分情况只有一个线程执行
             try
             {
                 var index = AllConfigs.Count;
                 if (overrideTypeCode == TypeCode.Empty)
                     overrideTypeCode = _indexIdTypeCode;
                 var id = overrideTypeCode >= TypeCode.SByte && overrideTypeCode <= TypeCode.UInt64 ? Convert.ToUInt32(objId) : ConfigHelper.StringToUniqueId(objId.ToString());
-                if (!AllConfigIdIndexes.TryGetValue(id, out var indexes))
-                    AllConfigIdIndexes.Add(id, indexes = new List<int>());
-                indexes.Add(index);
-                AllConfigs.Add(config);
+                if (!AllConfigs.TryGetValue(id, out var mainConfig))
+                {
+                    AllConfigs.Add(id, config);
+                }
+                else
+                {
+                    Log.AssertNotNull(applyFields)?.Write($"{TypeAssistant.GetTypeName(ConfigType)}.{objId} addition config not found apply fields");
+                    _fieldCache ??= ConfigType.GetFields(BindingFlags.Public | BindingFlags.Instance).ToDictionary(v => v.Name);
+                    foreach (var fieldName in applyFields)
+                    {
+                        var fi = _fieldCache[fieldName];
+                        var val = fi.GetValue(config);
+                        fi.SetValue(mainConfig, val);
+                    }
+                }
+
                 return (id, index);
             }
             finally

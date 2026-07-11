@@ -15,7 +15,7 @@ namespace FLib
         {
             var json = ConfigTypescriptHelper.Compile(file.Path);
             foreach (var item in Json5.Deserialize<Json5ConfigBuilder.Value[]>(json, new Json5DeserializeOptionData { UserData = table }))
-                table.AddConfig(item.KeyValue, item.CfgData);
+                table.AddConfig(item.Id, item.CfgData);
         }
     }
 }
