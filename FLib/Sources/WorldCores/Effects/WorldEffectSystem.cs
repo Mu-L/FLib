@@ -93,7 +93,7 @@ namespace FLib.WorldCores.Effects
             World.Assert(!IsDisposed);
             var container = Container;
             var effects = container.Effects;
-            ref var item = ref effects.GetOrAddValueRef(id);
+            ref var item = ref effects.GetValueOrAdd(id);
             var evt = new WorldAddEffectEvent { AddCount = addCount, SourceEntityId = source.IsEmpty ? Entity : source, Id = id, Effect = item.Single };
             ref var effect = ref evt.Effect;
 

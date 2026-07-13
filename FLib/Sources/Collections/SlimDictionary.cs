@@ -360,7 +360,7 @@ namespace FLib
 
         public void Add(TKey k, in TValue v)
         {
-            GetOrAddValueRef(k) = v;
+            GetValueOrAdd(k) = v;
         }
 
         /// <summary>
@@ -396,7 +396,7 @@ namespace FLib
         /// </summary>
         /// <param name="key">Key to look for</param>
         /// <returns>Reference to the new or existing value</returns>
-        public ref TValue GetOrAddValueRef(TKey key)
+        public ref TValue GetValueOrAdd(TKey key)
         {
             var hashCode = key.GetHashCode();
             var entries = mEntries;
@@ -579,20 +579,20 @@ namespace FLib
         TValue IDictionary<TKey, TValue>.this[TKey key]
         {
             get => this[key];
-            set => GetOrAddValueRef(key) = value;
+            set => GetValueOrAdd(key) = value;
         }
 
         object IDictionary.this[object key]
         {
             get => this[(TKey)key];
-            set => GetOrAddValueRef((TKey)key) = (TValue)value;
+            set => GetValueOrAdd((TKey)key) = (TValue)value;
         }
 
-        void IDictionary<TKey, TValue>.Add(TKey key, TValue value) => GetOrAddValueRef(key) = value;
+        void IDictionary<TKey, TValue>.Add(TKey key, TValue value) => GetValueOrAdd(key) = value;
         bool IDictionary<TKey, TValue>.ContainsKey(TKey key) => ContainsKey(key);
         bool IDictionary<TKey, TValue>.Remove(TKey key) => Remove(key);
         bool IDictionary<TKey, TValue>.TryGetValue(TKey key, out TValue value) => TryGetValue(key, out value);
-        void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item) => GetOrAddValueRef(item.Key) = item.Value;
+        void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item) => GetValueOrAdd(item.Key) = item.Value;
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> item) => ContainsKey(item.Key);
 
         void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
@@ -607,7 +607,7 @@ namespace FLib
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) => Remove(item.Key);
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
-        void IDictionary.Add(object key, object value) => GetOrAddValueRef((TKey)key) = (TValue)value;
+        void IDictionary.Add(object key, object value) => GetValueOrAdd((TKey)key) = (TValue)value;
         bool IDictionary.Contains(object key) => ContainsKey((TKey)key);
         IDictionaryEnumerator IDictionary.GetEnumerator() => new Enumerator(this);
         void IDictionary.Remove(object key) => Remove((TKey)key);

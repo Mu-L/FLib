@@ -55,7 +55,7 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         public void Alloc(in WorldEntityId et, in T component, int hash)
         {
-            ref var r = ref Groups.GetOrAddValueRef(hash);
+            ref var r = ref Groups.GetValueOrAdd(hash);
             if (r.RefCount == 0)
                 r.Index = base.Alloc(et, component);
             ++r.RefCount;
