@@ -163,7 +163,7 @@ namespace FLib.WorldCores.Effects
         }
 
         /// <summary>
-        /// 移除效果实例的内部实现
+        /// 移除效果实例
         /// </summary>
         public bool Remove(WorldEffectBase effect, ushort removeCount = ushort.MaxValue)
         {
@@ -203,9 +203,9 @@ namespace FLib.WorldCores.Effects
         }
 
         /// <summary>
-        /// 清空效果的内部实现
+        /// 清空效果
         /// </summary>
-        private void Clear(uint flags = uint.MaxValue, IList<uint>? idList = null)
+        public void Clear(uint flags = uint.MaxValue, IList<uint>? idList = null)
         {
             using var effectsEnum = Container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
