@@ -36,7 +36,7 @@ namespace FLib
             if (Stream.Length > MaxSize)
             {
                 Stream.Dispose();
-                File.Move(FilePath, FIO.PathRename(FilePath, $".bak{TimeHelper.Timestamp}", true));
+                File.Move(FilePath, PathUtility.PathRename(FilePath, $".bak{TimeHelper.Timestamp}", true));
                 AllocStream();
             }
 

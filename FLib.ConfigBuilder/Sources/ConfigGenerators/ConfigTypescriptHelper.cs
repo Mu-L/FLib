@@ -77,7 +77,7 @@ public static class ConfigTypescriptHelper
             worker.Dispose();
         }
 
-        var newWorker = new NodeWorker(FIO.PathTrimRightDirectory(path, 2));
+        var newWorker = new NodeWorker(PathUtility.PathTrimRightDirectory(path, 2));
         AllWorkers.Add(newWorker);
         return newWorker;
     }

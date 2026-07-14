@@ -1,16 +1,20 @@
 ﻿//==================={By Qcbf|qcbf@qq.com}===================
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace FLib
 {
-    public static class FIO
+    public static class PathUtility
     {
+        private static readonly string[] SizeNames = { "Byte", "KB", "MB", "GB", "TB" };
+
+        private const int CompareBufferSize = 81920;
+
         /// <summary>
         /// 当前基础目录末尾+/
         /// </summary>
@@ -32,37 +36,12 @@ namespace FLib
             }
             else
             {
-                foreach (var item in Directory.GetFiles(path, "*", SearchOption.TopDirectoryOnly))
-                {
+                foreach (var item in Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly)) 
                     File.Delete(item);
-                }
 
-                foreach (var item in Directory.GetDirectories(path, "*", SearchOption.TopDirectoryOnly))
-                {
+                foreach (var item in Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly)) 
                     Directory.Delete(item, true);
-                }
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static bool TryDeleteFile(string path)
-        {
-            if (File.Exists(path))
-            {
-                try
-                {
-                    File.Delete(path);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -70,33 +49,25 @@ namespace FLib
         /// </summary>
         public static void CopyDirectory(string src, string dest, string searchPattern = "*", Func<string, bool, bool> filter = null, Action<string, string> copyHandler = null)
         {
-            if (!Directory.Exists(dest))
-            {
+            if (!Directory.Exists(dest)) 
                 Directory.CreateDirectory(dest);
-            }
 
-            foreach (var item in Directory.GetFiles(src, searchPattern, SearchOption.TopDirectoryOnly))
+            foreach (var item in Directory.EnumerateFiles(src, searchPattern, SearchOption.TopDirectoryOnly))
             {
                 if (filter?.Invoke(item, false) != false)
                 {
-                    var fileName = Path.GetFileName(item);
+                    var destPath = Path.Combine(dest, Path.GetFileName(item));
                     if (copyHandler != null)
-                    {
-                        copyHandler(item, Path.Combine(dest, fileName));
-                    }
+                        copyHandler(item, destPath);
                     else
-                    {
-                        File.Copy(item, Path.Combine(dest, fileName), true);
-                    }
+                        File.Copy(item, destPath, true);
                 }
             }
 
-            foreach (var item in Directory.GetDirectories(src, "*", SearchOption.TopDirectoryOnly))
+            foreach (var item in Directory.EnumerateDirectories(src, "*", SearchOption.TopDirectoryOnly))
             {
-                if (filter?.Invoke(item, true) != false)
-                {
+                if (filter?.Invoke(item, true) != false) 
                     CopyDirectory(item, Path.Combine(dest, Path.GetFileName(item)), searchPattern, filter, copyHandler);
-                }
             }
         }
 
@@ -107,32 +78,22 @@ namespace FLib
         /// <param name="count">层级次数</param>
         public static string PathTrimRightDirectory(string path, int count)
         {
-            var strBuf = StringFLibUtility.GetStrBuf();
-            strBuf.Append(path);
-            var endChar = strBuf[^1];
-            if (endChar == '/' || endChar == '\\')
-            {
-                strBuf.Remove(strBuf.Length - 1, 1);
-            }
+            var endIndex = path.Length;
+            if (IsDirectorySeparator(path[^1]))
+                --endIndex;
 
-            for (var i = strBuf.Length - 1; i >= 0; i--)
+            for (var i = endIndex - 1; i >= 0; --i)
             {
-                if (strBuf[i] == '/' || strBuf[i] == '\\')
+                if (IsDirectorySeparator(path[i]))
                 {
-                    count--;
-                    if (count <= 0)
-                    {
-                        strBuf.Remove(i + 1, strBuf.Length - i - 1);
-                        break;
-                    }
-                    else
-                    {
-                        strBuf.Remove(i, strBuf.Length - i);
-                    }
+                    if (--count <= 0)
+                        return path[..(i + 1)];
+
+                    endIndex = i;
                 }
             }
 
-            return StringFLibUtility.ReleaseStrBufAndResult(strBuf);
+            return path[..endIndex];
         }
 
 
@@ -144,25 +105,18 @@ namespace FLib
         public static string PathTrimLeftDirectory(string path, int count)
         {
             if (path.Length <= 2) return path;
-            var strBuf = StringFLibUtility.GetStrBuf();
-            strBuf.Append(path);
-            var firstChar = strBuf[^1];
-            if (firstChar == '/' || firstChar == '\\')
-            {
-                strBuf.Remove(0, 1);
-            }
+            var startIndex = IsDirectorySeparator(path[^1]) ? 1 : 0;
 
-            for (var i = 0; count > 0 && i < strBuf.Length; i++)
+            for (var i = startIndex; count > 0 && i < path.Length; ++i)
             {
-                if (strBuf[i] == '/' || strBuf[i] == '\\')
+                if (IsDirectorySeparator(path[i]))
                 {
-                    strBuf.Remove(0, i + 1);
-                    i = 0;
-                    count--;
+                    startIndex = i + 1;
+                    --count;
                 }
             }
 
-            return StringFLibUtility.ReleaseStrBufAndResult(strBuf);
+            return path[startIndex..];
         }
 
         /// <summary>
@@ -174,36 +128,20 @@ namespace FLib
         {
             if (path.Length <= 2) return path;
 
-            if (path[0] == '/' || path[0] == '\\')
-            {
-                path = path[1..];
-            }
-
-            var count = path.Length;
-            var strBuf = StringFLibUtility.GetStrBuf();
-            for (var i = 0; i < count; i++)
+            var startIndex = IsDirectorySeparator(path[0]) ? 1 : 0;
+            for (var i = startIndex; i < path.Length; ++i)
             {
                 var c = path[i];
-                if (c == '/' || c == '\\')
+                if (IsDirectorySeparator(c))
                 {
-                    leftCount--;
-                    if (leftCount <= 0 || i == count - 1)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        strBuf.Clear();
-                    }
-                }
-                else
-                {
-                    strBuf.Append(c);
+                    if (--leftCount <= 0 || i == path.Length - 1)
+                        return path[startIndex..i];
+
+                    startIndex = i + 1;
                 }
             }
 
-
-            return StringFLibUtility.ReleaseStrBufAndResult(strBuf);
+            return path[startIndex..];
         }
 
         /// <summary>
@@ -211,12 +149,12 @@ namespace FLib
         /// </summary>
         public static ReadOnlySpan<char> PathTrimToDirectionName(ReadOnlySpan<char> path, ReadOnlySpan<char> directionName, bool containsDirectionName = false)
         {
-            if (path[^1] == '/' || path[^1] == '\\')
+            if (IsDirectorySeparator(path[^1]))
                 path = path[..^1];
             var endIndex = path.Length;
             for (var i = path.Length - 1; i >= 0; i--)
             {
-                if (path[i] == '/' || path[i] == '\\')
+                if (IsDirectorySeparator(path[i]))
                 {
                     if (path[(i + 1)..endIndex].Equals(directionName, StringComparison.Ordinal))
                         return containsDirectionName ? path[..endIndex] : path[..i];
@@ -232,15 +170,14 @@ namespace FLib
         /// </summary>
         public static string FormatSize(double size)
         {
-            string[] sizeNames = { "Byte", "KB", "MB", "GB", "TB" };
             var order = 0;
-            while (size >= 1024 && order < sizeNames.Length - 1)
+            while (size >= 1024 && order < SizeNames.Length - 1)
             {
                 order++;
                 size /= 1024f;
             }
 
-            return size.ToString("0.##") + sizeNames[order];
+            return size.ToString("0.##") + SizeNames[order];
         }
 
 
@@ -249,12 +186,11 @@ namespace FLib
         /// </summary>
         public static string SafePath(bool isFilePath, string path, string splitChar = "-", int minSuffixLength = 0)
         {
-            var strbuf = StringFLibUtility.GetStrBuf();
             var oldPath = path;
             if (minSuffixLength > 0)
             {
                 var tempDotIndex = path.LastIndexOf('.');
-                var suffix = strbuf.Append('0', minSuffixLength).ToString();
+                var suffix = new string('0', minSuffixLength);
                 path = tempDotIndex >= 0 ? path.Insert(tempDotIndex, splitChar + suffix) : path + splitChar + suffix;
             }
 
@@ -274,20 +210,18 @@ namespace FLib
                 path2 = path2[..dotIndex];
             }
 
-            strbuf.Clear();
+            var strbuf = StringFLibUtility.GetStrBuf(path2.Length + splitChar.Length + minSuffixLength + extension.Length + 10);
             strbuf.Append(path2).Append(splitChar);
-            var path2Count = path2.Length + 1;
+            var path2Count = path2.Length + splitChar.Length;
             try
             {
                 for (var i = 1; i < int.MaxValue; i++)
                 {
-                    var str = i.ToString();
-                    if (str.Length < minSuffixLength)
-                    {
-                        strbuf.Append('0', minSuffixLength - str.Length);
-                    }
+                    var digitCount = GetDigitCount(i);
+                    if (digitCount < minSuffixLength)
+                        strbuf.Append('0', minSuffixLength - digitCount);
 
-                    strbuf.Append(str);
+                    strbuf.Append(i);
                     var newPath = strbuf.Append(extension).ToString();
                     strbuf.Remove(path2Count, strbuf.Length - path2Count);
                     if ((isFilePath && !File.Exists(newPath)) || (!isFilePath && !Directory.Exists(newPath)))
@@ -390,35 +324,31 @@ namespace FLib
         public static bool Compare(Stream a, Stream b)
         {
             if (a.Length != b.Length) return false;
-            var readCount = sizeof(long);
-            var loopBlockCount = a.Length / readCount;
-            var loopByteCount = a.Length % readCount;
-            //var buffer1 = stackalloc byte[readCount];
-            //var buffer2 = stackalloc byte[readCount];
-            if (loopBlockCount > 0)
+
+            var buffer1 = ArrayPool<byte>.Shared.Rent(CompareBufferSize);
+            var buffer2 = ArrayPool<byte>.Shared.Rent(CompareBufferSize);
+            try
             {
-                var buffer1 = new byte[readCount];
-                var buffer2 = new byte[readCount];
-                for (var i = 0; i < loopBlockCount; i++)
+                var remaining = a.Length;
+                while (remaining > 0)
                 {
-                    _ = a.Read(buffer1, 0, readCount);
-                    _ = b.Read(buffer2, 0, readCount);
-                    if (BitConverter.ToInt64(buffer1, 0) != BitConverter.ToInt64(buffer2, 0))
-                    {
+                    var readCount = (int)Math.Min(remaining, CompareBufferSize);
+                    if (!ReadFully(a, buffer1, readCount) || !ReadFully(b, buffer2, readCount))
                         return false;
-                    }
-                }
-            }
 
-            if (loopByteCount > 0)
+                    if (!buffer1.AsSpan(0, readCount).SequenceEqual(buffer2.AsSpan(0, readCount)))
+                        return false;
+
+                    remaining -= readCount;
+                }
+
+                return true;
+            }
+            finally
             {
-                for (var i = 0; i < loopByteCount; i++)
-                {
-                    if (a.ReadByte() != b.ReadByte()) return false;
-                }
+                ArrayPool<byte>.Shared.Return(buffer1);
+                ArrayPool<byte>.Shared.Return(buffer2);
             }
-
-            return true;
         }
 
         /// <summary>
@@ -426,8 +356,18 @@ namespace FLib
         /// </summary>
         public static FileStream OpenTempFile(string extension = ".txt")
         {
-            var path = Path.Combine(Path.GetTempPath(), Path.GetTempFileName() + extension);
-            return File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+            var tempDirectory = Path.GetTempPath();
+            while (true)
+            {
+                var path = Path.Combine(tempDirectory, Path.GetRandomFileName() + extension);
+                try
+                {
+                    return File.Open(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite);
+                }
+                catch (IOException) when (File.Exists(path))
+                {
+                }
+            }
         }
 
         /// <summary>
@@ -435,10 +375,7 @@ namespace FLib
         /// </summary>
         public static void CreateZip(string[] paths, string zipFilePath, Regex excludePatterns = null, CompressionLevel level = CompressionLevel.Optimal)
         {
-            if (File.Exists(zipFilePath))
-                File.Delete(zipFilePath);
-
-            using var zipStream = new FileStream(zipFilePath!, FileMode.CreateNew);
+            using var zipStream = new FileStream(zipFilePath!, FileMode.Create);
             using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
 
             foreach (var path in paths)
@@ -446,10 +383,9 @@ namespace FLib
                 var entryName = Path.GetFileName(path);
                 if (excludePatterns?.Match(entryName).Success == true)
                     continue;
+
                 if (File.Exists(path))
                 {
-                    if (excludePatterns?.Match(entryName).Success == true)
-                        continue;
                     archive.CreateEntryFromFile(path, entryName, level);
                 }
                 else if (Directory.Exists(path))
@@ -471,6 +407,37 @@ namespace FLib
                     Log.Warn?.Write($"警告：路径不存在，已跳过 {path}");
                 }
             }
+        }
+
+        private static bool IsDirectorySeparator(char c) => c is '/' or '\\';
+
+        private static int GetDigitCount(int value)
+        {
+            if (value < 10) return 1;
+            if (value < 100) return 2;
+            if (value < 1000) return 3;
+            if (value < 10000) return 4;
+            if (value < 100000) return 5;
+            if (value < 1000000) return 6;
+            if (value < 10000000) return 7;
+            if (value < 100000000) return 8;
+            if (value < 1000000000) return 9;
+            return 10;
+        }
+
+        private static bool ReadFully(Stream stream, byte[] buffer, int count)
+        {
+            var offset = 0;
+            while (offset < count)
+            {
+                var readCount = stream.Read(buffer, offset, count - offset);
+                if (readCount == 0)
+                    return false;
+
+                offset += readCount;
+            }
+
+            return true;
         }
     }
 }
