@@ -190,6 +190,7 @@ namespace FLib.WorldCores.Entities
 
         #region Events
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 分发事件（后处理）。
         /// </summary>
@@ -212,6 +213,7 @@ namespace FLib.WorldCores.Entities
             }
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 按 ID 分发事件（后处理）。
         /// </summary>
@@ -234,6 +236,7 @@ namespace FLib.WorldCores.Entities
             }
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 按 ID 分发空事件（后处理）。
         /// </summary>
@@ -256,6 +259,7 @@ namespace FLib.WorldCores.Entities
             }
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 分发前置事件，返回是否继续执行。
         /// </summary>
@@ -276,6 +280,7 @@ namespace FLib.WorldCores.Entities
             return World.DispatchPreEvent(ref evtData, etEvt) && etEvt.DispatchPreEvent(ref evtData);
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 按 ID 分发前置事件，返回是否继续执行。
         /// </summary>
@@ -296,6 +301,7 @@ namespace FLib.WorldCores.Entities
             return World.DispatchPreEventById(evtId, ref evtData, etEvt) && etEvt.DispatchPreEventById(evtId, ref evtData);
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 按 ID 分发前置空事件，返回是否继续执行。
         /// </summary>

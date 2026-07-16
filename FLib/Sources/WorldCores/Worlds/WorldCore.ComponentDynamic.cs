@@ -51,6 +51,7 @@ namespace FLib.WorldCores
             return SetDyn(et, component, ref GetEntityInfo(et));
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// 设置实体的动态组件（使用实体信息引用）。
         /// </summary>
