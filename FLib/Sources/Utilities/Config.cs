@@ -169,8 +169,7 @@ namespace FLib
             }
 
             ref var v = ref AllMetas[configMetaIndex];
-            TryDecompressRawBytes(ref v);
-            TryDeserializeData(ref v);
+            TryDecompressRawBytes(ref v, true);
             return ref v.Value;
         }
 
