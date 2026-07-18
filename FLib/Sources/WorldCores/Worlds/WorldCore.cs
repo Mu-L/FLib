@@ -148,7 +148,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 执行一次世界更新，包含增加帧数和运行所有更新器。
         /// </summary>
-        public void Update()
+        public virtual void Update()
         {
             ++Frame;
             Time += WorldGlobalSetting.DeltaTime;
