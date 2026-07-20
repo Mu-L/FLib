@@ -15,7 +15,7 @@ namespace FLib
 
         public readonly int Length => End - Start;
 
-        public IntRange(int value) => End = (Start = value) + 1;
+        public IntRange(int value) => End = Start = value;
 
         public IntRange(int start, int end)
         {

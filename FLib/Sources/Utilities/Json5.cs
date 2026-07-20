@@ -24,7 +24,7 @@ namespace FLib
         public static Dictionary<Type, IJson5Serializable>? CustomSerializers;
         public static HashSet<Type>? NonSerialized;
         public static char PrettySpace = '\t';
-        
+
 
         // ReSharper disable Unity.PerformanceAnalysis
         public static string SerializeToLog(object? val, Json5SerializeOptionData opData = default)
