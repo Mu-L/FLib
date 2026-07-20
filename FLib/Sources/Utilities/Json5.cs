@@ -844,8 +844,8 @@ namespace FLib
         public EJson5Token Token;
         public string FullSource;
         public ReadOnlyMemory<char> ContentMem => FullSource.AsMemory(ContentRange);
-        public string ContentCopyString => FullSource.Substring(ContentRange.Begin, ContentRange.End - ContentRange.Begin);
-        public ReadOnlySpan<char> ContentSpan => FullSource.AsSpan(ContentRange.Begin, ContentRange.End - ContentRange.Begin);
+        public string ContentCopyString => FullSource.Substring(ContentRange.Start, ContentRange.Length);
+        public ReadOnlySpan<char> ContentSpan => FullSource.AsSpan(ContentRange.Start, ContentRange.Length);
         public ReadOnlyMemory<char> Source => FullSource.AsMemory(SourceRange);
         public int RemainingLength => FullSource.Length - SourceRange.End;
         public override string ToString() => $"[{Token}]{ContentMem}";
@@ -910,7 +910,7 @@ namespace FLib
         /// </summary>
         public void ParseComment(char commentType)
         {
-            ContentRange.Begin = SourceRange.Begin + 2;
+            ContentRange.Start = SourceRange.Start + 2;
             // commentType 是第二个斜杠或星号：// 读到换行，/* 读到 */。
             while (RemainingLength > 0)
             {
@@ -997,7 +997,7 @@ namespace FLib
             }
 
             if (beginWhiteCharCount > 0)
-                ContentRange.Begin += beginWhiteCharCount;
+                ContentRange.Start += beginWhiteCharCount;
             ContentRange.End = SourceRange.End - endWhiteCharCount;
         }
     }
