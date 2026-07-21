@@ -23,7 +23,7 @@ namespace FLib.WorldCores.Effects
 
         public abstract uint FlagsMask { get; }
         public ref WorldEffectSystem System => ref *SystemPtr;
-        public ref WorldEntity Entity => ref SystemPtr->Entity;
+        public ref WorldEntity Self => ref SystemPtr->Entity;
         public WorldCore World => SystemPtr->Entity.World;
         public bool IsEmpty => SystemPtr == null;
         public ref WorldEffectTime Time => ref World.Soa.GetGroup<WorldEffectTime>()[TimeComponentId];
