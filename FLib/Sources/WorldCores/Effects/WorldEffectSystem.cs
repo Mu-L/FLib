@@ -210,7 +210,7 @@ namespace FLib.WorldCores.Effects
             using var effectsEnum = Container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
             {
-                if ((effectsEnum.Value.Single!.FlagsMask | flags) == 0)
+                if ((effectsEnum.Value.Single!.FlagsMask & flags) == 0)
                     continue;
                 idList?.Add(effectsEnum.Key);
                 if (!effectsEnum.Value.MoreList.IsEmpty)
