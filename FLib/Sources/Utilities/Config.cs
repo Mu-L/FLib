@@ -375,6 +375,22 @@ namespace FLib
         public ConfigAttribute(string configFileName, ConfigHelper.EOption options) : this(configFileName) => Options = options;
     }
 
+    /// <summary> 配置反序列化时的回调 </summary>
+    public class ConfigDeserializationAttribute : Attribute
+    {
+        public EType Type;
+        public ConfigDeserializationAttribute(EType type) => Type = type;
+
+        public enum EType
+        {
+            /// <summary>  </summary>
+            CustomDeserialize,
+
+            /// <summary>  </summary>
+            AllConfigDeserializeFinish,
+        }
+    }
+
 
     /// <summary> 当配置表build之后的回调 </summary>
     public interface IConfigPostBuildProcessable
