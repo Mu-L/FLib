@@ -325,7 +325,16 @@ namespace FLib
             for (var i = 0; i < AllConfigCount; i++)
             {
                 var configType = TypeAssistant.GetType(reader.ReadString(Encoding.ASCII));
-                var customDeserialize = configType.GetMethod("CustomDeserialize", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                MethodInfo customDeserialize = null;
+                foreach (var method in configType.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                {
+                    var attribute = method.GetCustomAttribute<ConfigDeserializationActionAttribute>();
+                    if (attribute?.ActionType == EConfigDeserializationActionType.CustomDeserialize)
+                        customDeserialize = method;
+                    else if (attribute?.ActionType == EConfigDeserializationActionType.AllConfigDeserializeFinish)
+                        initializers.Add(method);
+                }
+
                 deserializeConfigTableParams[0] = buffer[reader.Position..];
                 if (customDeserialize != null)
                 {
@@ -337,10 +346,6 @@ namespace FLib
                     var configTypeWrap = typeof(Config<>).MakeGenericType(configType);
                     reader.Position += (int)configTypeWrap.GetMethod("DeserializeConfigTable", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, deserializeConfigTableParams)!;
                 }
-
-                var initializer = configType.GetMethod("OnAllConfigInitialized", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                if (initializer != null)
-                    initializers.Add(initializer);
             }
 
             foreach (var initializer in initializers)
@@ -375,20 +380,22 @@ namespace FLib
         public ConfigAttribute(string configFileName, ConfigHelper.EOption options) : this(configFileName) => Options = options;
     }
 
-    /// <summary> 配置反序列化时的回调 </summary>
-    public class ConfigDeserializationAttribute : Attribute
+    /// <summary> 标记配置反序列化回调 </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ConfigDeserializationActionAttribute : Attribute
     {
-        public EType Type;
-        public ConfigDeserializationAttribute(EType type) => Type = type;
+        public EConfigDeserializationActionType ActionType;
+        public ConfigDeserializationActionAttribute(EConfigDeserializationActionType actionType) => ActionType = actionType;
+    }
 
-        public enum EType
-        {
-            /// <summary>  </summary>
-            CustomDeserialize,
+    /// <summary> 标记配置反序列化回调类型 </summary>
+    public enum EConfigDeserializationActionType
+    {
+        /// <summary> 自定义反序列化。方法签名：<c>static int Method(in Memory&lt;byte&gt; buffer)</c>。 </summary>
+        CustomDeserialize,
 
-            /// <summary>  </summary>
-            AllConfigDeserializeFinish,
-        }
+        /// <summary> 全部配置表反序列化完成后执行。方法签名：<c>static void Method()</c>。 </summary>
+        AllConfigDeserializeFinish,
     }
 
 
