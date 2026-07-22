@@ -110,7 +110,7 @@ namespace FLib
         /// </summary>
         public static void ProcessDefines(ConfigGenerateParams p)
         {
-            var json = ReadJson(Path.GetFullPath("./Declares.ts", p.SourceDirPath), p, out var strbuf);
+            var json = ReadJson(Path.GetFullPath("./_Defines.ts", p.SourceDirPath), p, out var strbuf);
             var indent = 1;
             var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in json["Members"].Dict)
