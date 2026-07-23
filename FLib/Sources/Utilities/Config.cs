@@ -93,6 +93,26 @@ namespace FLib
         }
 
         /// <summary>  </summary>
+        public static bool TryGet(uint id, out T cfg)
+        {
+            var index = GetIndex(id);
+            if (index >= 0)
+            {
+                cfg = Index(index);
+                return true;
+            }
+
+            cfg = default;
+            return false;
+        }
+
+        /// <summary>  </summary>
+        public static bool TryGet(string id, out T cfg)
+        {
+            return TryGet(ConfigHelper.StringToUniqueId(id), out cfg);
+        }
+
+        /// <summary>  </summary>
         public static T Get(uint id, ELogLevel logLevel = ELogLevel.Fatal)
         {
             var index = GetIndex(id, logLevel);
@@ -102,8 +122,7 @@ namespace FLib
         /// <summary>  </summary>
         public static T Get(string id, ELogLevel logLevel = ELogLevel.Fatal)
         {
-            var index = GetIndex(id, logLevel);
-            return index < 0 ? default : Index(index);
+            return Get(ConfigHelper.StringToUniqueId(id), logLevel);
         }
 
         /// <summary> 按字符串 ID 获取配置引用；返回null ref。 </summary>
@@ -117,10 +136,7 @@ namespace FLib
         /// <summary> 按字符串 ID 获取配置引用；返回null ref。 </summary>
         public static ref readonly T GetRef(string id, ELogLevel logLevel = ELogLevel.Fatal)
         {
-            var index = GetIndex(id, logLevel);
-            if (index < 0)
-                return ref Unsafe.NullRef<T>();
-            return ref Index(index);
+            return ref GetRef(ConfigHelper.StringToUniqueId(id), logLevel);
         }
 
         /// <summary> 按数值 ID 获取配置引用；返回null ref。 </summary>
