@@ -48,12 +48,12 @@ namespace FLib.WorldCores.Archetypes
 
         void IObjectPoolActivatable.ObjectPoolActivate()
         {
-            Buffer = WorldGlobalSetting.ChunkAllocator.Alloc();
+            Buffer = WorldSetting.ChunkAllocator.Alloc();
         }
 
         void IObjectPoolDeactivatable.ObjectPoolDeactivatable()
         {
-            WorldGlobalSetting.ChunkAllocator.Free(ref Buffer);
+            WorldSetting.ChunkAllocator.Free(ref Buffer);
             ArrayPool<int>.Shared.Return(SparseComponentMeta);
             SparseComponentMeta = null;
             AllSharedComponents = null;

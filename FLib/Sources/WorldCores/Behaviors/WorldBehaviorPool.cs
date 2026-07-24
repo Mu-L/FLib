@@ -14,7 +14,7 @@ namespace FLib.WorldCores.Behaviors
     public static class WorldBehaviorPool
     {
         public static WorldBehavior[] Behaviors = new WorldBehavior[256];
-        public static ConcurrentDictionary<Type, ConcurrentStack<int>> AllFrees = new(WorldGlobalSetting.ThreadConcurrencyLevel, 256);
+        public static ConcurrentDictionary<Type, ConcurrentStack<int>> AllFrees = new(WorldSetting.ThreadConcurrencyLevel, 256);
 
         private static readonly object SyncLock = new();
         private static int _count;
@@ -58,7 +58,7 @@ namespace FLib.WorldCores.Behaviors
         {
             var allCount = capacities.Sum(v => v.Item2);
             Behaviors = new WorldBehavior[allCount];
-            AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<int>>(WorldGlobalSetting.ThreadConcurrencyLevel, allCount);
+            AllFrees = new ConcurrentDictionary<Type, ConcurrentStack<int>>(WorldSetting.ThreadConcurrencyLevel, allCount);
             for (var i = 0; i < capacities.Length; i++)
             {
                 var type = capacities[i].Item1;

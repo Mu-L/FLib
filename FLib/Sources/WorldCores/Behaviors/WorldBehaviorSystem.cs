@@ -30,7 +30,7 @@ namespace FLib.WorldCores.Behaviors
         {
             SecondaryId = PrimaryId = -1;
             Self = new WorldEntity(world, entityId);
-            WorldGlobalSetting.DoDefaultBehaviorHandler(ref this);
+            WorldSetting.DoDefaultBehaviorHandler(ref this);
         }
 
         void IWorldDestroy.OnComponentDestroy(WorldCore world, WorldEntityId entityId)
@@ -351,7 +351,7 @@ namespace FLib.WorldCores.Behaviors
                 }
                 else if (isDoDefault)
                 {
-                    WorldGlobalSetting.DoDefaultBehaviorHandler(ref this);
+                    WorldSetting.DoDefaultBehaviorHandler(ref this);
                 }
             }
         }

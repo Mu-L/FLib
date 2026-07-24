@@ -10,7 +10,7 @@ namespace FLib.WorldCores
 {
     // ReSharper disable ConvertToConstant.Global
 #pragma warning disable CA2211
-    public static class WorldGlobalSetting
+    public static class WorldSetting
     {
         /// <summary>
         /// 帧率

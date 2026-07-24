@@ -146,7 +146,7 @@ namespace FLib.WorldCores.Entities
         public WorldEntityId Build()
         {
             PrepareComponents();
-            WorldGlobalSetting.OnCreateEntityEvent?.Invoke(EntityId.AsEntity(World));
+            WorldSetting.OnCreateEntityEvent?.Invoke(EntityId.AsEntity(World));
             return EntityId;
         }
 

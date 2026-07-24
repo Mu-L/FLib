@@ -151,7 +151,7 @@ namespace FLib.WorldCores
         public virtual void Update()
         {
             ++Frame;
-            Time += WorldGlobalSetting.DeltaTime;
+            Time += WorldSetting.DeltaTime;
             Update1.Update(this);
             Update2.Update(this);
         }

@@ -74,7 +74,7 @@ namespace FLib.WorldCores.Archetypes
                     tempComponents.Add(meta);
             }
 
-            var chunkSize = (int)WorldGlobalSetting.ChunkAllocator.ChunkSize;
+            var chunkSize = (int)WorldSetting.ChunkAllocator.ChunkSize;
             var entitySize = sizeof(WorldEntityId);
             EntitiesPerChunk = Math.Max(1, chunkSize / (builder.ComponentsSize + entitySize));
             int totalEnd;
@@ -84,7 +84,7 @@ namespace FLib.WorldCores.Archetypes
                 for (var i = 0; i < tempComponents.Count; i++)
                 {
                     ref readonly var meta = ref tempComponents[i];
-                    var alignment = Math.Min(Math.Max(1, meta.Size & ~(meta.Size - 1)), (int)WorldGlobalSetting.ChunkAllocator.Alignment);
+                    var alignment = Math.Min(Math.Max(1, meta.Size & ~(meta.Size - 1)), (int)WorldSetting.ChunkAllocator.Alignment);
                     offset = MathEx.AlignUp(offset, alignment);
                     SparseComponentOffset[meta.Id] = offset;
                     offset += meta.Size * EntitiesPerChunk;
@@ -98,7 +98,7 @@ namespace FLib.WorldCores.Archetypes
             for (var i = 0; i < SparseComponentOffset.Length; i++)
             {
                 if (SparseComponentOffset[i] != 0
-                    && SparseComponentOffset[i] + WorldComponentRegistry.GetInfo(new WorldIncrementId(i + 1)).Meta.Size * EntitiesPerChunk > WorldGlobalSetting.ChunkAllocator.ChunkSize)
+                    && SparseComponentOffset[i] + WorldComponentRegistry.GetInfo(new WorldIncrementId(i + 1)).Meta.Size * EntitiesPerChunk > WorldSetting.ChunkAllocator.ChunkSize)
                     throw new OverflowException($"memory overflow {i}");
             }
 #endif

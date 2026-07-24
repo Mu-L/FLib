@@ -252,7 +252,7 @@ namespace FLib.WorldCores.Effects
                 if (effect.TimeComponentId >= 0)
                     World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
                 effect.Dispose();
-                WorldGlobalSetting.DestroyEffectHandler(this, effect);
+                WorldSetting.DestroyEffectHandler(this, effect);
             }
         }
 
@@ -261,7 +261,7 @@ namespace FLib.WorldCores.Effects
         /// </summary>
         private unsafe WorldEffectBase CreateEffect(in WorldAddEffectEvent evt)
         {
-            var effect = WorldGlobalSetting.CreateEffectHandler(this, evt.SourceEntityId, evt.Id, evt.AddCount);
+            var effect = WorldSetting.CreateEffectHandler(this, evt.SourceEntityId, evt.Id, evt.AddCount);
             effect.SystemPtr = (WorldEffectSystem*)Unsafe.AsPointer(ref this);
             effect.SourceEntityId = evt.SourceEntityId;
             effect.ComponentManaged.Entity = Entity;

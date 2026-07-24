@@ -62,7 +62,7 @@ namespace FLib.WorldCores
 
             try
             {
-                WorldGlobalSetting.OnRemoveEntityEvent?.Invoke(et.AsEntity(this));
+                WorldSetting.OnRemoveEntityEvent?.Invoke(et.AsEntity(this));
             }
             catch (Exception e)
             {
