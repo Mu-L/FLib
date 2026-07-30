@@ -383,7 +383,7 @@ namespace FLib
         public ref TValue GetValueRefOrNullRef(TKey key, out bool isNullValue)
         {
             ref var value = ref GetValueRefOrNullRef(key);
-            isNullValue = value == null;
+            isNullValue = Unsafe.IsNullRef(ref value);
             return ref value;
         }
 
