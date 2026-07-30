@@ -48,7 +48,7 @@ namespace FLib
             var sw = Stopwatch.StartNew();
             if (p.Op(EConfigGenerateOption.Clear))
             {
-                foreach (var item in Directory.EnumerateFiles(p.DestDirPath, "*.g.cs", SearchOption.TopDirectoryOnly))
+                foreach (var item in Directory.EnumerateFiles(p.DestDirPath, "*.cs", SearchOption.TopDirectoryOnly))
                     File.Delete(item);
             }
 
@@ -97,7 +97,7 @@ namespace FLib
 
                 strbuf.WriteConfigToString(indent, json);
                 strbuf.Indent(--indent).AppendLine("}");
-                strbuf.WriteGeneratedFile(p, $"{cfgName}.g.cs");
+                strbuf.WriteGeneratedFile(p, $"{cfgName}.cs");
             }
             catch (Exception e)
             {
@@ -168,7 +168,7 @@ namespace FLib
                 }
             }
 
-            strbuf.WriteGeneratedFile(p, "_ConfigDefines.g.cs");
+            strbuf.WriteGeneratedFile(p, "_ConfigDefines.cs");
         }
 
         /// <summary>  </summary>
