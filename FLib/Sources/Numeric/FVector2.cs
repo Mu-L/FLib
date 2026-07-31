@@ -80,18 +80,26 @@ namespace FLib
                 else
                     break;
             }
+
             if (node.Token != EJson5Token.Close)
                 nodes.MoveNext(EJson5Token.Close);
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly bool Equals(FVector2 other) => this == other;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly override bool Equals(object obj) => obj is FVector2 v && v == this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly override int GetHashCode() => HashCode.Combine(X, Y);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool Equals(FVector2 other) => this == other;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum Cross(in FVector2 a, in FVector2 b) => a.X * b.Y - a.Y * b.X;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly override bool Equals(object obj) => obj is FVector2 v && v == this;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum Dot(in FVector2 a, in FVector2 b) => a.X * b.X + a.Y * b.Y;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly override int GetHashCode() => HashCode.Combine(X, Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum Cross(in FVector2 a, in FVector2 b) => a.X * b.Y - a.Y * b.X;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum Dot(in FVector2 a, in FVector2 b) => a.X * b.X + a.Y * b.Y;
 
         /// <summary>
         /// 旋转向量
@@ -160,52 +168,114 @@ namespace FLib
             return dx * dx + dy * dy;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum Distance(in FVector2 a, in FVector2 b) => FNum.Sqrt(SqrDistance(a, b));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 Abs(in FVector2 a) => new(FNum.Abs(a.X), FNum.Abs(a.Y));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 Max(in FVector2 a, in FVector2 b) => new(FNum.Max(a.X, b.X), FNum.Max(a.Y, b.Y));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 Min(in FVector2 a, in FVector2 b) => new(FNum.Min(a.X, b.X), FNum.Min(a.Y, b.Y));
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 Lerp(in FVector2 from, in FVector2 to, FNum t) => new(from.X + (to.X - from.X) * t, from.Y + (to.Y - from.Y) * t);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 Forward(FNum radian) => new(FNum.FastCos(radian), FNum.FastSin(radian));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum Distance(in FVector2 a, in FVector2 b) => FNum.Sqrt(SqrDistance(a, b));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 Abs(in FVector2 a) => new(FNum.Abs(a.X), FNum.Abs(a.Y));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 Max(in FVector2 a, in FVector2 b) => new(FNum.Max(a.X, b.X), FNum.Max(a.Y, b.Y));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 Min(in FVector2 a, in FVector2 b) => new(FNum.Min(a.X, b.X), FNum.Min(a.Y, b.Y));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 Lerp(in FVector2 from, in FVector2 to, FNum t) => new(from.X + (to.X - from.X) * t, from.Y + (to.Y - from.Y) * t);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 Forward(FNum radian) => new(FNum.FastCos(radian), FNum.FastSin(radian));
 
         /// <summary>
         /// 
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool CheckMoveToPoint(in FVector2 current, in FVector2 next, in FVector2 to, in FNum distance)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool CheckMoveToPoint(in FVector2 current, in FVector2 next, in FVector2 to, in FNum distance)
             => SqrDistance(next, to) <= distance * distance || CheckMoveToPoint(current, next, to);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns>is move finished</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool CheckMoveToPoint(in FVector2 current, in FVector2 next, in FVector2 to)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool CheckMoveToPoint(in FVector2 current, in FVector2 next, in FVector2 to)
             => (to.X - current.X) * (next.Y - current.Y) == (next.X - current.X) * (to.Y - current.Y) &&
                FNum.Min(current.X, next.X) <= to.X && to.X <= FNum.Max(current.X, next.X) &&
                FNum.Min(current.Y, next.Y) <= to.Y && to.Y <= FNum.Max(current.Y, next.Y);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator +(in FVector2 a, in FVector2 b) => new(a.X + b.X, a.Y + b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator -(in FVector2 a, in FVector2 b) => new(a.X - b.X, a.Y - b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator *(in FVector2 a, in FVector2 b) => new(a.X * b.X, a.Y * b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator /(in FVector2 a, in FVector2 b) => new(a.X / b.X, a.Y / b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator +(in FNum a, in FVector2 b) => new(a + b.X, a + b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator -(in FNum a, in FVector2 b) => new(a - b.X, a - b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator *(in FNum a, in FVector2 b) => new(a * b.X, a * b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator /(in FNum a, in FVector2 b) => new(a / b.X, a / b.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator +(in FVector2 a, in FNum b) => new(a.X + b, a.Y + b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator -(in FVector2 a, in FNum b) => new(a.X - b, a.Y - b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator *(in FVector2 a, in FNum b) => new(a.X * b, a.Y * b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator /(in FVector2 a, in FNum b) => new(a.X / b, a.Y / b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator +(in FVector2 a, in double b) => new(a.X + (FNum)b, a.Y + (FNum)b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator -(in FVector2 a, in double b) => new(a.X - (FNum)b, a.Y - (FNum)b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator *(in FVector2 a, in double b) => new(a.X * (FNum)b, a.Y * (FNum)b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator /(in FVector2 a, in double b) => new(a.X / (FNum)b, a.Y / (FNum)b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FVector2 operator -(in FVector2 a) => new(-a.X, -a.Y);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator ==(in FVector2 a, in FVector2 b) => FNum.Abs(a.X - b.X) <= FNum.Epsilon && FNum.Abs(a.Y - b.Y) <= FNum.Epsilon;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator !=(in FVector2 a, in FVector2 b) => !(a == b);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator >(in FVector2 a, in FVector2 b) => a.X > b.X && a.Y > b.Y;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator >=(in FVector2 a, in FVector2 b) => a.X >= b.X && a.Y >= b.Y;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator <(in FVector2 a, in FVector2 b) => a.X < b.X && a.Y < b.Y;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator <=(in FVector2 a, in FVector2 b) => a.X <= b.X && a.Y <= b.Y;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FVector2(in (FNum, FNum) v) => new(v.Item1, v.Item2);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator (FNum, FNum)(in FVector2 v) => new(v.X, v.Y);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator +(in FVector2 a, in FVector2 b) => new(a.X + b.X, a.Y + b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator -(in FVector2 a, in FVector2 b) => new(a.X - b.X, a.Y - b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator *(in FVector2 a, in FVector2 b) => new(a.X * b.X, a.Y * b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator /(in FVector2 a, in FVector2 b) => new(a.X / b.X, a.Y / b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator +(in FNum a, in FVector2 b) => new(a + b.X, a + b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator -(in FNum a, in FVector2 b) => new(a - b.X, a - b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator *(in FNum a, in FVector2 b) => new(a * b.X, a * b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator /(in FNum a, in FVector2 b) => new(a / b.X, a / b.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator +(in FVector2 a, in FNum b) => new(a.X + b, a.Y + b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator -(in FVector2 a, in FNum b) => new(a.X - b, a.Y - b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator *(in FVector2 a, in FNum b) => new(a.X * b, a.Y * b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator /(in FVector2 a, in FNum b) => new(a.X / b, a.Y / b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator +(in FVector2 a, in double b) => new(a.X + (FNum)b, a.Y + (FNum)b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator -(in FVector2 a, in double b) => new(a.X - (FNum)b, a.Y - (FNum)b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator *(in FVector2 a, in double b) => new(a.X * (FNum)b, a.Y * (FNum)b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator /(in FVector2 a, in double b) => new(a.X / (FNum)b, a.Y / (FNum)b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FVector2 operator -(in FVector2 a) => new(-a.X, -a.Y);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(in FVector2 a, in FVector2 b) => FNum.Abs(a.X - b.X) <= FNum.Epsilon && FNum.Abs(a.Y - b.Y) <= FNum.Epsilon;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(in FVector2 a, in FVector2 b) => !(a == b);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >(in FVector2 a, in FVector2 b) => a.X > b.X && a.Y > b.Y;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >=(in FVector2 a, in FVector2 b) => a.X >= b.X && a.Y >= b.Y;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <(in FVector2 a, in FVector2 b) => a.X < b.X && a.Y < b.Y;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <=(in FVector2 a, in FVector2 b) => a.X <= b.X && a.Y <= b.Y;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FVector2(in (FNum, FNum) v) => new(v.Item1, v.Item2);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator (FNum, FNum)(in FVector2 v) => new(v.X, v.Y);
     }
 }
