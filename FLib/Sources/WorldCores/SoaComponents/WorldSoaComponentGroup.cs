@@ -24,7 +24,15 @@ namespace FLib.WorldCores.SoaComponents
 
         public virtual ref T this[int index]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref Components[index];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+#if DEBUG
+                if (index < 0 || index >= Components.Length)
+                    World.ThrowException($"not found dynamic component {typeof(T)} at index {index}");
+#endif
+                return ref Components[index];
+            }
         }
 
         public WorldSoaComponentGroup(WorldCore world)
