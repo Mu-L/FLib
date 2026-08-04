@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace FLib
 {
-    public static class PathUtility
+    public static class IOUtility
     {
         private static readonly string[] SizeNames = { "Byte", "KB", "MB", "GB", "TB" };
 

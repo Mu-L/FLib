@@ -10,7 +10,7 @@ namespace FLib.WorldCores.Components
         public readonly WorldIncrementId Id;
         public readonly ushort Size;
 
-        public override string ToString() => $"{Id},{PathUtility.FormatSize(Size)},{GetTypeName(Type)}";
+        public override string ToString() => $"{Id},{IOUtility.FormatSize(Size)},{GetTypeName(Type)}";
         public Type Type => WorldComponentRegistry.GetType(this);
 
         internal WorldComponentMeta(WorldIncrementId id, ushort size, Type type)
