@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace FLib
@@ -63,7 +64,7 @@ namespace FLib
         public object Create()
         {
             object inst = null;
-             while (Frees != null && Frees.TryPop(out var tempInst))
+            while (Frees != null && Frees.TryPop(out var tempInst))
             {
                 if (tempInst is WeakReference weakRef)
                 {
@@ -74,8 +75,10 @@ namespace FLib
                 {
                     inst = tempInst;
                 }
+
                 break;
             }
+
             inst ??= NewInstance();
             (inst as IObjectPoolActivatable)?.ObjectPoolActivate();
             (inst as IObjectPoolParamActivatable)?.ObjectPoolActivate(this);
@@ -119,8 +122,7 @@ namespace FLib
     /// </summary>
     public sealed class MultiObjectPool
     {
-        [ThreadStatic]
-        private static MultiObjectPool _global;
+        [ThreadStatic] private static MultiObjectPool _global;
 
         public static MultiObjectPool Global => _global ??= new MultiObjectPool();
 
