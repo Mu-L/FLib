@@ -233,6 +233,21 @@ namespace FLib
             #endregion
         }
 
+        /// <summary> 将字节数组转换为十六进制字符串 </summary>
+        public static string ToHex(ReadOnlySpan<byte> bytes)
+        {
+            var chars = new char[bytes.Length * 2];
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                var b = bytes[i];
+                chars[i * 2] = GetHexChar(b >> 4);
+                chars[i * 2 + 1] = GetHexChar(b & 0xF);
+            }
+
+            return new string(chars);
+            static char GetHexChar(int val) => (char)(val < 10 ? '0' + val : 'a' + val - 10);
+        }
+
         /// <summary>
         /// 首字母到大小
         /// </summary>
