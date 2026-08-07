@@ -36,10 +36,10 @@ namespace FLib
             }
             else
             {
-                foreach (var item in Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly)) 
+                foreach (var item in Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly))
                     File.Delete(item);
 
-                foreach (var item in Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly)) 
+                foreach (var item in Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly))
                     Directory.Delete(item, true);
             }
         }
@@ -49,7 +49,7 @@ namespace FLib
         /// </summary>
         public static void CopyDirectory(string src, string dest, string searchPattern = "*", Func<string, bool, bool> filter = null, Action<string, string> copyHandler = null)
         {
-            if (!Directory.Exists(dest)) 
+            if (!Directory.Exists(dest))
                 Directory.CreateDirectory(dest);
 
             foreach (var item in Directory.EnumerateFiles(src, searchPattern, SearchOption.TopDirectoryOnly))
@@ -66,7 +66,7 @@ namespace FLib
 
             foreach (var item in Directory.EnumerateDirectories(src, "*", SearchOption.TopDirectoryOnly))
             {
-                if (filter?.Invoke(item, true) != false) 
+                if (filter?.Invoke(item, true) != false)
                     CopyDirectory(item, Path.Combine(dest, Path.GetFileName(item)), searchPattern, filter, copyHandler);
             }
         }
