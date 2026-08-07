@@ -38,7 +38,7 @@ namespace FLib
         {
             if (date.Kind != DateTimeKind.Utc)
                 date = date.ToUniversalTime();
-            return (uint)((date.Ticks - Default.BaseDate.Ticks) / TimeSpan.TicksPerMinute);
+            return (uint)((date.Ticks - Default.BaseDate.Ticks) / TimeSpan.TicksPerSecond);
         }
 
         /// <summary>
