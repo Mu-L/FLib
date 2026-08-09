@@ -24,26 +24,26 @@ namespace FLib.WorldCores.SoaComponents
         /// <summary>
         /// 获取动态组件组
         /// </summary>
-        public WorldSoaComponentGroup<T> GetGroup<T>()
+        public WorldSoaComponentGroup<T> Get<T>()
         {
             var id = WorldComponentRegistry.GetId<T>().Id;
             if (id < Groups.Length && Groups[id] != null)
                 return (WorldSoaComponentGroup<T>)Groups[id];
-            return (WorldSoaComponentGroup<T>)GetGroup(typeof(T));
+            return (WorldSoaComponentGroup<T>)Get(typeof(T));
         }
 
         /// <summary>
         /// 获取动态组件组
         /// </summary>
-        public IWorldSoaComponentGroupable GetGroup(Type componentType)
+        public IWorldSoaComponentGroupable Get(Type componentType)
         {
-            return GetGroup(WorldComponentRegistry.GetId(componentType));
+            return Get(WorldComponentRegistry.GetId(componentType));
         }
 
         /// <summary>
         /// 获取动态组件组
         /// </summary>
-        public IWorldSoaComponentGroupable GetGroup(WorldIncrementId id)
+        public IWorldSoaComponentGroupable Get(WorldIncrementId id)
         {
             if (id >= Groups.Length)
             {

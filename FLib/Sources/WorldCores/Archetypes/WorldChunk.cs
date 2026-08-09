@@ -213,7 +213,7 @@ namespace FLib.WorldCores.Archetypes
             result ??= new List<object>();
             foreach (var sharedComponent in AllSharedComponents)
             {
-                var group = world.Soa[sharedComponent.ComponentId];
+                var group = world.DynComponentGroups[sharedComponent.ComponentId];
                 var index = ((IWorldSharedComponentGroupable)group).GetIndexFromHash(sharedComponent.Hash);
                 result.Add(group.Components.GetValue(index));
             }

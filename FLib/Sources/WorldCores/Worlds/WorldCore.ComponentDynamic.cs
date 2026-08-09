@@ -22,7 +22,7 @@ namespace FLib.WorldCores
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Assert(dynIdx >= 0);
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[WorldComponentRegistry.GetId<T>()];
-            return ref Soa.GetGroup<T>()[compIdx];
+            return ref DynComponentGroups.Get<T>()[compIdx];
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace FLib.WorldCores
             var dynIdx = GetEntityInfo(et).DynamicComponentSparseIndex;
             Assert(dynIdx >= 0);
             var compIdx = DynamicComponentSparse.GetRef(dynIdx)[WorldComponentRegistry.GetId(type)];
-            return Soa.GetGroup(type).Components.GetValue(compIdx)!;
+            return DynComponentGroups.Get(type).Components.GetValue(compIdx)!;
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace FLib.WorldCores
             Assert(!WorldComponentRegistry.GetInfo(typeof(T)).IsShared, et);
             var id = WorldComponentRegistry.GetId<T>();
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
-            var group = Soa.GetGroup<T>();
+            var group = DynComponentGroups.Get<T>();
             if (slot < 0)
             {
                 Assert(!eti.IsDestroying, et, "entity is destroying");
@@ -103,7 +103,7 @@ namespace FLib.WorldCores
             var id = WorldComponentRegistry.GetId(componentType);
             ref var eti = ref GetEntityInfo(et);
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
-            var group = Soa.GetGroup(componentType);
+            var group = DynComponentGroups.Get(componentType);
             if (slot < 0)
             {
                 TryAddRequiredComponents(et, WorldComponentRegistry.GetInfo(componentType));
@@ -164,7 +164,7 @@ namespace FLib.WorldCores
             var id = WorldComponentRegistry.GetId(type).Id;
             var compIdx = sparse[id];
             sparse[id] = -1;
-            Soa.GetGroup(type).Free(et, compIdx, false);
+            DynComponentGroups.Get(type).Free(et, compIdx, false);
         }
 
         /// <summary>

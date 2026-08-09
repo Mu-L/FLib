@@ -40,12 +40,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 面向数据的组件群组管理器。
         /// </summary>
-        public WorldSoaComponentGroupManager Soa;
-
-        /// <summary>
-        /// 动态组件的稀疏表示列表。
-        /// </summary>
-        public StableIndexList<PooledList<int>> DynamicComponentSparse;
+        public WorldSoaComponentGroupManager DynComponentGroups;
 
         /// <summary>
         /// 实体容器，管理世界中的所有实体。
@@ -61,6 +56,11 @@ namespace FLib.WorldCores
         /// 当前世界的帧数计数器。
         /// </summary>
         public uint Frame;
+
+        /// <summary>
+        /// 动态组件的稀疏表示列表。
+        /// </summary>
+        internal StableIndexList<PooledList<int>> DynamicComponentSparse;
 
         /// <summary>
         /// 第一个更新器，用于处理第一阶段的逻辑更新。
@@ -90,7 +90,7 @@ namespace FLib.WorldCores
             Update2 = new WorldUpdater();
             Update1 = new WorldUpdater();
             ArchetypeGroup = new WorldArchetypeGroup(this);
-            Soa = new WorldSoaComponentGroupManager(this);
+            DynComponentGroups = new WorldSoaComponentGroupManager(this);
             Entities = new WorldEntityContainer(this, entityCapacity);
             DynamicComponentSparse = new StableIndexList<PooledList<int>>(entityCapacity >> 1);
 

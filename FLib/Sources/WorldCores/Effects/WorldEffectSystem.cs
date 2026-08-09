@@ -250,7 +250,7 @@ namespace FLib.WorldCores.Effects
             finally
             {
                 if (effect.TimeComponentId >= 0)
-                    World.Soa.GetGroup<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
+                    World.DynComponentGroups.Get<WorldEffectTime>().Free(Entity, effect.TimeComponentId, false);
                 effect.Dispose();
                 WorldSetting.DestroyEffectHandler(this, effect);
             }
@@ -269,7 +269,7 @@ namespace FLib.WorldCores.Effects
             if (effect.MaxStackCount == 0)
                 effect.MaxStackCount = ushort.MaxValue;
             if (effect.Duration > 0)
-                effect.TimeComponentId = World.Soa.GetGroup<WorldEffectTime>().Alloc(Entity, new WorldEffectTime(effect));
+                effect.TimeComponentId = World.DynComponentGroups.Get<WorldEffectTime>().Alloc(Entity, new WorldEffectTime(effect));
             effect.ResetTime();
 
             var mask = effect.FlagsMask;

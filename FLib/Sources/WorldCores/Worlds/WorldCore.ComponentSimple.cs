@@ -24,7 +24,7 @@ namespace FLib.WorldCores
             if (eti.HasDynamicComponent && !eti.Chunk.Has<T>())
             {
                 var compIdx = DynamicComponentSparse.GetRef(eti.DynamicComponentSparseIndex)[WorldComponentRegistry.GetId<T>()];
-                return ref Soa.GetGroup<T>()[compIdx];
+                return ref DynComponentGroups.Get<T>()[compIdx];
             }
 
             return ref eti.Chunk.GetRef<T>(eti.IndexInChunk);

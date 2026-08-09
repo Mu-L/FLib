@@ -73,7 +73,7 @@ namespace FLib.WorldCores.Entities
             Debug.Assert(!EntityId.IsEmpty, "must call PrepareEntity first");
             var id = WorldComponentRegistry.GetId<T>();
             ref var eti = ref World.GetEntityInfo(Entity);
-            var group = World.Soa.GetGroup<T>();
+            var group = World.DynComponentGroups.Get<T>();
             World.TryAddRequiredComponents(EntityId, WorldComponentRegistry.GetInfo(typeof(T)));
             DynComponents.Add(new WorldSoaComponentHandle(World.EnsureDynamicComponentIndex(id, ref eti) = group.AllocWithoutAwake(EntityId, component), id));
             return this;
@@ -129,7 +129,7 @@ namespace FLib.WorldCores.Entities
                 }
 
                 foreach (var dynComp in DynComponents)
-                    World.Soa.GetGroup(dynComp.TypeId).InvokeAwake(EntityId, dynComp.Index);
+                    World.DynComponentGroups.Get(dynComp.TypeId).InvokeAwake(EntityId, dynComp.Index);
             }
             finally
             {

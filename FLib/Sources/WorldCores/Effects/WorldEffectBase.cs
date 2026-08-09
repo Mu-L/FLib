@@ -26,7 +26,7 @@ namespace FLib.WorldCores.Effects
         public ref WorldEntity Self => ref SystemPtr->Entity;
         public WorldCore World => SystemPtr->Entity.World;
         public bool IsEmpty => SystemPtr == null;
-        public ref WorldEffectTime Time => ref World.Soa.GetGroup<WorldEffectTime>()[TimeComponentId];
+        public ref WorldEffectTime Time => ref World.DynComponentGroups.Get<WorldEffectTime>()[TimeComponentId];
 
         /// <summary>
         /// 

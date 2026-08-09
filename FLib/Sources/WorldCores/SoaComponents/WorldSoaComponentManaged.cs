@@ -32,7 +32,7 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         public int Add<T>(in T component)
         {
-            var idx = World.Soa.GetGroup<T>().Alloc(Entity.Id, component);
+            var idx = World.DynComponentGroups.Get<T>().Alloc(Entity.Id, component);
             Components.Add(new WorldSoaComponentHandle(idx, WorldComponentRegistry.GetId<T>()));
             return idx;
         }
@@ -46,7 +46,7 @@ namespace FLib.WorldCores.SoaComponents
             foreach (var item in Components)
             {
                 if (item.TypeId == id)
-                    return ref World.Soa.GetGroup<T>()[item.Index];
+                    return ref World.DynComponentGroups.Get<T>()[item.Index];
             }
 
             throw new WorldCoreException(Entity, $"{Entity} has no component {typeof(T)}");
@@ -57,13 +57,13 @@ namespace FLib.WorldCores.SoaComponents
         /// </summary>
         public ref T Get<T>(int index)
         {
-            return ref ((WorldSoaComponentGroup<T>)World.Soa.GetGroup(Components[index].TypeId))[Components[index].Index];
+            return ref ((WorldSoaComponentGroup<T>)World.DynComponentGroups.Get(Components[index].TypeId))[Components[index].Index];
         }
 
         public void Clear()
         {
             foreach (var item in Components)
-                World.Soa.GetGroup(item.TypeId).Free(Entity, item.Index, false);
+                World.DynComponentGroups.Get(item.TypeId).Free(Entity, item.Index, false);
             Components.Clear();
         }
 

@@ -112,7 +112,7 @@ namespace FLib.WorldCores
             var newHash = val.GetHashCode();
             if (oldHash == newHash) return;
 
-            var sharedGroup = (WorldSharedComponentGroup<T>)Soa.GetGroup<T>();
+            var sharedGroup = (WorldSharedComponentGroup<T>)DynComponentGroups.Get<T>();
             sharedGroup.Alloc(et, val, newHash);
             eti.GetArchetype(this).SetSharedComponent(eti, new WorldQuerySharedComponent(compId, newHash));
         }
