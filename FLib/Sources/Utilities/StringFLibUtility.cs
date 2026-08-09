@@ -1,9 +1,14 @@
 ﻿//==================={By Qcbf|qcbf@qq.com|5/28/2021 7:09:13 PM}===================
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Hashing;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace FLib
@@ -233,21 +238,6 @@ namespace FLib
             #endregion
         }
 
-        /// <summary> 将字节数组转换为十六进制字符串 </summary>
-        public static string ToHex(ReadOnlySpan<byte> bytes)
-        {
-            var chars = new char[bytes.Length * 2];
-            for (var i = 0; i < bytes.Length; i++)
-            {
-                var b = bytes[i];
-                chars[i * 2] = GetHexChar(b >> 4);
-                chars[i * 2 + 1] = GetHexChar(b & 0xF);
-            }
-
-            return new string(chars);
-            static char GetHexChar(int val) => (char)(val < 10 ? '0' + val : 'a' + val - 10);
-        }
-
         /// <summary>
         /// 首字母到大小
         /// </summary>
@@ -277,59 +267,33 @@ namespace FLib
             }
         }
 
-        /// <summary>
-        /// 字符串转换为Murmurhash，性能低点，但是冲突概率更小
-        /// </summary>
-        public static int LongTextToHash(ReadOnlySpan<char> data)
+        /// <summary> 将字符串转换为hash字符串 </summary>
+        public static string XxHash(ReadOnlySpan<char> text, int seed = 9, byte hashShardingCharCount = 0)
         {
-            const uint c1 = 0xcc9e2d51;
-            const uint c2 = 0x1b873593;
-            const int r1 = 15;
-            const int r2 = 13;
-            const uint m = 5;
-            const uint n = 0xe6546b64;
+            Span<byte> buf = stackalloc byte[16];
+            XxHash128.Hash(MemoryMarshal.AsBytes(text), buf, seed);
 
-            var hash = 0u;
-            var len = data.Length * sizeof(char);
-            var index = 0;
+            if (hashShardingCharCount > 0)
+                hashShardingCharCount += 1;
 
-            while (len >= 4)
+            Span<char> chars = stackalloc char[buf.Length * 2 + hashShardingCharCount];
+
+            for (var i = 0; i < buf.Length; i++)
             {
-                var k = data[index / 2] | ((uint)data[(index / 2) + 1] << 16);
-                k *= c1;
-                k = (k << r1) | (k >> (32 - r1));
-                k *= c2;
-
-                hash ^= k;
-                hash = (hash << r2) | (hash >> (32 - r2));
-                hash = hash * m + n;
-
-                index += 4;
-                len -= 4;
+                var b = buf[i];
+                chars[hashShardingCharCount + i * 2] = GetHexChar(b >> 4);
+                chars[hashShardingCharCount + i * 2 + 1] = GetHexChar(b & 0xF);
             }
 
-            if (len > 0)
+            if (hashShardingCharCount > 0)
             {
-                uint k = 0;
-                for (var i = 0; i < len / sizeof(char); i++)
-                {
-                    k |= (uint)data[index / 2 + i] << (8 * i * sizeof(char));
-                }
-
-                k *= c1;
-                k = (k << r1) | (k >> (32 - r1));
-                k *= c2;
-                hash ^= k;
+                chars[hashShardingCharCount - 1] = '/';
+                for (var i = 0; i < hashShardingCharCount - 1; i++)
+                    chars[i] = chars[i + hashShardingCharCount];
             }
 
-            hash ^= (uint)data.Length * sizeof(char);
-            hash ^= hash >> 16;
-            hash *= 0x85ebca6b;
-            hash ^= hash >> 13;
-            hash *= 0xc2b2ae35;
-            hash ^= hash >> 16;
-
-            return (int)hash;
+            return new string(chars);
+            static char GetHexChar(int val) => (char)(val < 10 ? '0' + val : 'a' + val - 10);
         }
 
         /// <summary>
