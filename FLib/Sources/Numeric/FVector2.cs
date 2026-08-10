@@ -186,23 +186,6 @@ namespace FLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FVector2 Forward(FNum radian) => new(FNum.FastCos(radian), FNum.FastSin(radian));
 
-        /// <summary>
-        /// 
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CheckMoveToPoint(in FVector2 current, in FVector2 next, in FVector2 to, in FNum distance)
-            => SqrDistance(next, to) <= distance * distance || CheckMoveToPoint(current, next, to);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns>is move finished</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CheckMoveToPoint(in FVector2 current, in FVector2 next, in FVector2 to)
-            => (to.X - current.X) * (next.Y - current.Y) == (next.X - current.X) * (to.Y - current.Y) &&
-               FNum.Min(current.X, next.X) <= to.X && to.X <= FNum.Max(current.X, next.X) &&
-               FNum.Min(current.Y, next.Y) <= to.Y && to.Y <= FNum.Max(current.Y, next.Y);
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FVector2 operator +(in FVector2 a, in FVector2 b) => new(a.X + b.X, a.Y + b.Y);
 
