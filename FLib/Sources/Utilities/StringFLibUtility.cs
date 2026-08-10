@@ -13,7 +13,7 @@ using System.Text;
 
 namespace FLib
 {
-    public class StringFLibUtility
+    public static class StringFLibUtility
     {
         public static readonly UTF8Encoding Encoding = new(false);
         public static string WordTenThousand = "w";
