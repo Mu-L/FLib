@@ -10,78 +10,55 @@ using FLib;
 
 namespace FLib
 {
+    /// <summary> 基于分层位图的二维格子地图。 </summary>
     public class QuadMap : IBytesSerializable
     {
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 按顺时针排列的八方向邻近格偏移。 </summary>
         private static readonly FVector2Int[] NearestEightPositions = { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) };
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 地图左下角的世界坐标。 </summary>
         public FVector2 Offset;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 单个格子的世界尺寸。 </summary>
         public FNum TileSize = FNum.One;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 地图的格子尺寸。 </summary>
         public FVector2Int TerrainSize;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 按层存储的格子位图数据。 </summary>
         public ulong[][] Terrain;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 地图层数。 </summary>
         public int LayerCount => Terrain.Length;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 地图在世界空间中的尺寸。 </summary>
         public FVector2 WorldSize => new(TerrainSize.X * TileSize, TerrainSize.Y * TileSize);
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 地图在世界空间中的边界矩形。 </summary>
         public FRect WorldRect => new(Offset, Offset + WorldSize);
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 获取或设置指定层和格子坐标的值。 </summary>
         public bool this[int layer, in FVector2Int pos]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)] get => this[layer, PosToIdx(pos)];
             [MethodImpl(MethodImplOptions.AggressiveInlining)] set => this[layer, PosToIdx(pos)] = value;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 获取或设置指定层及横纵坐标的值。 </summary>
         public bool this[int layer, in int x, int y]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)] get => this[layer, PosToIdx(new FVector2Int(x, y))];
             [MethodImpl(MethodImplOptions.AggressiveInlining)] set => this[layer, PosToIdx(new FVector2Int(x, y))] = value;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 获取或设置指定层和线性索引的值。 </summary>
         public bool this[int layer, int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)] get => BitArrayOperator.GetBit(Terrain[layer], index);
             [MethodImpl(MethodImplOptions.AggressiveInlining)] set => BitArrayOperator.SetBit(Terrain[layer], index, value);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 将地图配置和地形数据深拷贝到目标地图。 </summary>
         public virtual void CopyTo(QuadMap to)
         {
             if (to == null) return;
@@ -91,9 +68,7 @@ namespace FLib
             to.Terrain = Terrain.Select(v => (ulong[])v.Clone()).ToArray();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 将格子坐标转换为格子中心的世界坐标。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FVector2 MapToWorldPos(in FVector2Int pos)
         {
@@ -101,27 +76,19 @@ namespace FLib
             return new FVector2(pos.X * TileSize + half + Offset.X, pos.Y * TileSize + half + Offset.Y);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 将世界坐标转换为格子坐标。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FVector2Int WorldToMapPos(FVector2 pos) => new((int)FNum.Floor((pos.X - Offset.X) / TileSize), (int)FNum.Floor((pos.Y - Offset.Y) / TileSize));
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 将线性索引转换为格子坐标。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public FVector2Int IdxToPos(int index) => new() { X = index % TerrainSize.X, Y = index / TerrainSize.X };
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 将格子坐标转换为线性索引。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int PosToIdx(in FVector2Int pos) => pos.Y * TerrainSize.X + pos.X;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 设置层数并保留各层已有位数据。 </summary>
         public virtual QuadMap SetLayers(int count)
         {
             Array.Resize(ref Terrain, count);
@@ -131,9 +98,7 @@ namespace FLib
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 设置地图尺寸和可选层数，并保留交集区域的位数据。 </summary>
         public virtual QuadMap SetSize(in FVector2Int size, int layerCount = -1)
         {
             var oldSize = TerrainSize;
@@ -167,21 +132,15 @@ namespace FLib
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 检查格子坐标是否位于地图边界内。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool CheckTileValid(in FVector2Int pos) => pos.X >= 0 && pos.Y >= 0 && pos.X < TerrainSize.X && pos.Y < TerrainSize.Y;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 检查指定层的格子是否位于地图内且具有目标值。 </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool CheckTile(in FVector2Int pos, bool value = false, int layer = 0) => CheckTileValid(pos) && BitArrayOperator.GetBit(Terrain[layer], PosToIdx(pos)) == value;
+        public bool CheckTile(in FVector2Int pos, bool value, int layer = 0) => CheckTileValid(pos) && BitArrayOperator.GetBit(Terrain[layer], PosToIdx(pos)) == value;
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 检查指定层的矩形区域是否位于地图内且全部具有目标值。 </summary>
         public bool CheckTile(in FVector2Int pos, FVector2Int size, bool value = false, int layer = 0)
         {
             for (var y = 0; y < size.Y; y++)
@@ -196,28 +155,20 @@ namespace FLib
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 在指定层查找邻近的单格目标位置。 </summary>
         public bool TryFindNearPos(FVector2Int pos, out FVector2Int o, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, int layer = 0) => TryFindNearPos(pos, FVector2Int.One, out o, findMaxDist, value, checker, layer);
 
-        /// <summary>
-        ///
-        /// </summary>
+        /// <summary> 在指定层查找邻近的矩形目标位置。 </summary>
         public bool TryFindNearPos(FVector2Int pos, FVector2Int size, out FVector2Int o, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, int layer = 0)
         {
             o = FindNearPos(pos, size, findMaxDist, value, checker, layer);
             return o != FVector2Int.None;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 在指定层查找邻近的单格目标位置，失败时返回 None。 </summary>
         public FVector2Int FindNearPos(FVector2Int pos, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, int layer = 0) => FindNearPos(pos, FVector2Int.One, findMaxDist, value, checker, layer);
 
-        /// <summary>
-        ///
-        /// </summary>
+        /// <summary> 在指定层查找邻近的矩形目标位置，失败时返回 None。 </summary>
         public FVector2Int FindNearPos(FVector2Int pos, FVector2Int size, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, int layer = 0)
         {
             if (CheckTile(pos, size, value, layer) && checker?.Invoke(this, pos) != false)
@@ -254,9 +205,7 @@ namespace FLib
             return FVector2Int.None;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 沿目标方向查找指定层的下一步可用格子。 </summary>
         public FVector2Int FindNearNextStepPos(in FVector2Int from, in FVector2Int to, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, HashSet<FVector2Int> blackPositions = null, int layer = 0)
         {
             var segment = (FNum)45;
@@ -281,7 +230,7 @@ namespace FLib
             return FVector2Int.None;
         }
 
-        /// <summary>  </summary>
+        /// <summary> 将世界坐标限制到地图内，并回退到指定层的可用格子。 </summary>
         public void ClampToWalkable(ref FVector2 pos, out FVector2Int mapPos, bool value = false, int layer = 0)
         {
             var rect = WorldRect;
@@ -307,17 +256,13 @@ namespace FLib
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 返回地图的简要文本表示。 </summary>
         public override string ToString()
         {
             return ToString(false);
         }
 
-        /// <summary>
-        ///
-        /// </summary>
+        /// <summary> 返回地图的简要或完整文本表示。 </summary>
         public string ToString(bool isVerbose)
         {
             if (Terrain == null)
@@ -340,9 +285,7 @@ namespace FLib
             return strbuf.ToString();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> 将各层位图拆分为低位在前的 32 位整数数组。 </summary>
         public int[][] ToIntArray(int[][] dest = null)
         {
             dest ??= new int[Terrain.Length][];
@@ -362,6 +305,7 @@ namespace FLib
 
         #region BytesSerializer
 
+        /// <summary> 将地图数据写入字节流。 </summary>
         public virtual void Z_BytesWrite(ref BytesWriter writer)
         {
             writer.Push(Offset);
@@ -370,6 +314,7 @@ namespace FLib
             writer.Push(Terrain);
         }
 
+        /// <summary> 从字节流读取地图数据。 </summary>
         public virtual void Z_BytesRead(ref BytesReader reader)
         {
             reader.Read(ref Offset);
