@@ -15,7 +15,6 @@ namespace FLib
         private static readonly T[] EmptyArray = Array.Empty<T>();
 
         private T[] _items;
-        private int _size;
         private int _version;
 
         public List2()
@@ -44,7 +43,7 @@ namespace FLib
 
                 _items = new T[count];
                 items.CopyTo(_items, 0);
-                _size = count;
+                Count = count;
                 return;
             }
 
@@ -57,13 +56,14 @@ namespace FLib
             get => _items.Length;
             set
             {
-                if (value < _size) throw new ArgumentOutOfRangeException(nameof(value));
+                if (value < Count) throw new ArgumentOutOfRangeException(nameof(value));
                 if (value == _items.Length) return;
                 _items = value == 0 ? EmptyArray : Resize(value);
             }
         }
 
-        public int Count => _size;
+        public int Count { get; private set; }
+
         bool ICollection<T>.IsReadOnly => false;
 
         public T this[int index]
@@ -92,24 +92,24 @@ namespace FLib
 
         public void Add(T item)
         {
-            if (_size == _items.Length) Grow(_size + 1);
-            _items[_size++] = item;
+            if (Count == _items.Length) Grow(Count + 1);
+            _items[Count++] = item;
             _version++;
         }
 
         public void AddRange(IEnumerable<T> collection)
         {
-            InsertRange(_size, collection);
+            InsertRange(Count, collection);
         }
 
         public int BinarySearch(T item)
         {
-            return BinarySearch(0, _size, item, null);
+            return BinarySearch(0, Count, item, null);
         }
 
         public int BinarySearch(T item, IComparer<T> comparer)
         {
-            return BinarySearch(0, _size, item, comparer);
+            return BinarySearch(0, Count, item, comparer);
         }
 
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
@@ -120,9 +120,9 @@ namespace FLib
 
         public void Clear()
         {
-            if (_size > 0)
-                Array.Clear(_items, 0, _size);
-            _size = 0;
+            if (Count > 0)
+                Array.Clear(_items, 0, Count);
+            Count = 0;
             _version++;
         }
 
@@ -134,10 +134,10 @@ namespace FLib
         public List2<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
         {
             if (converter == null) throw new ArgumentNullException(nameof(converter));
-            var result = new List2<TOutput>(_size);
-            for (var i = 0; i < _size; i++)
+            var result = new List2<TOutput>(Count);
+            for (var i = 0; i < Count; i++)
                 result._items[i] = converter(_items[i]);
-            result._size = _size;
+            result.Count = Count;
             return result;
         }
 
@@ -148,7 +148,7 @@ namespace FLib
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            Array.Copy(_items, 0, array, arrayIndex, _size);
+            Array.Copy(_items, 0, array, arrayIndex, Count);
         }
 
         public void CopyTo(int index, T[] array, int arrayIndex, int count)
@@ -172,7 +172,7 @@ namespace FLib
         public T Find(Predicate<T> match)
         {
             if (match == null) throw new ArgumentNullException(nameof(match));
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < Count; i++)
             {
                 if (match(_items[i])) return _items[i];
             }
@@ -184,7 +184,7 @@ namespace FLib
         {
             if (match == null) throw new ArgumentNullException(nameof(match));
             var result = new List2<T>();
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < Count; i++)
             {
                 if (match(_items[i])) result.Add(_items[i]);
             }
@@ -194,12 +194,12 @@ namespace FLib
 
         public int FindIndex(Predicate<T> match)
         {
-            return FindIndex(0, _size, match);
+            return FindIndex(0, Count, match);
         }
 
         public int FindIndex(int startIndex, Predicate<T> match)
         {
-            return FindIndex(startIndex, _size - startIndex, match);
+            return FindIndex(startIndex, Count - startIndex, match);
         }
 
         public int FindIndex(int startIndex, int count, Predicate<T> match)
@@ -219,7 +219,7 @@ namespace FLib
         public T FindLast(Predicate<T> match)
         {
             if (match == null) throw new ArgumentNullException(nameof(match));
-            for (var i = _size - 1; i >= 0; i--)
+            for (var i = Count - 1; i >= 0; i--)
             {
                 if (match(_items[i])) return _items[i];
             }
@@ -229,7 +229,7 @@ namespace FLib
 
         public int FindLastIndex(Predicate<T> match)
         {
-            return FindLastIndex(_size - 1, _size, match);
+            return FindLastIndex(Count - 1, Count, match);
         }
 
         public int FindLastIndex(int startIndex, Predicate<T> match)
@@ -240,8 +240,8 @@ namespace FLib
         public int FindLastIndex(int startIndex, int count, Predicate<T> match)
         {
             if (match == null) throw new ArgumentNullException(nameof(match));
-            if (_size == 0 && startIndex == -1) return -1;
-            if ((uint)startIndex >= (uint)_size) throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (Count == 0 && startIndex == -1) return -1;
+            if ((uint)startIndex >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(startIndex));
             if (count < 0 || count > startIndex + 1) throw new ArgumentOutOfRangeException(nameof(count));
 
             var endIndex = startIndex - count;
@@ -257,7 +257,7 @@ namespace FLib
         {
             if (action == null) throw new ArgumentNullException(nameof(action));
             var version = _version;
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < Count; i++)
             {
                 if (version != _version) break;
                 action(_items[i]);
@@ -276,19 +276,19 @@ namespace FLib
             CheckRange(index, count);
             var result = new List2<T>(count);
             Array.Copy(_items, index, result._items, 0, count);
-            result._size = count;
+            result.Count = count;
             return result;
         }
 
         public int IndexOf(T item)
         {
-            return Array.IndexOf(_items, item, 0, _size);
+            return Array.IndexOf(_items, item, 0, Count);
         }
 
         public int IndexOf(T item, int index)
         {
-            if ((uint)index > (uint)_size) throw new ArgumentOutOfRangeException(nameof(index));
-            return Array.IndexOf(_items, item, index, _size - index);
+            if ((uint)index > (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
+            return Array.IndexOf(_items, item, index, Count - index);
         }
 
         public int IndexOf(T item, int index, int count)
@@ -299,37 +299,37 @@ namespace FLib
 
         public void Insert(int index, T item)
         {
-            if ((uint)index > (uint)_size) throw new ArgumentOutOfRangeException(nameof(index));
-            if (_size == _items.Length) Grow(_size + 1);
-            if (index < _size) Array.Copy(_items, index, _items, index + 1, _size - index);
+            if ((uint)index > (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
+            if (Count == _items.Length) Grow(Count + 1);
+            if (index < Count) Array.Copy(_items, index, _items, index + 1, Count - index);
             _items[index] = item;
-            _size++;
+            Count++;
             _version++;
         }
 
         public void InsertRange(int index, IEnumerable<T> collection)
         {
-            if ((uint)index > (uint)_size) throw new ArgumentOutOfRangeException(nameof(index));
+            if ((uint)index > (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
             if (collection == null) throw new ArgumentNullException(nameof(collection));
 
             if (collection is ICollection<T> items)
             {
                 var count = items.Count;
                 if (count == 0) return;
-                EnsureCapacity(_size + count);
-                if (index < _size) Array.Copy(_items, index, _items, index + count, _size - index);
+                EnsureCapacity(Count + count);
+                if (index < Count) Array.Copy(_items, index, _items, index + count, Count - index);
 
                 if (ReferenceEquals(this, items))
                 {
                     Array.Copy(_items, 0, _items, index, index);
-                    Array.Copy(_items, index + count, _items, index * 2, _size - index);
+                    Array.Copy(_items, index + count, _items, index * 2, Count - index);
                 }
                 else
                 {
                     items.CopyTo(_items, index);
                 }
 
-                _size += count;
+                Count += count;
                 _version++;
                 return;
             }
@@ -340,20 +340,20 @@ namespace FLib
 
         public int LastIndexOf(T item)
         {
-            return _size == 0 ? -1 : LastIndexOf(item, _size - 1, _size);
+            return Count == 0 ? -1 : LastIndexOf(item, Count - 1, Count);
         }
 
         public int LastIndexOf(T item, int index)
         {
-            if (_size == 0) return -1;
-            if ((uint)index >= (uint)_size) throw new ArgumentOutOfRangeException(nameof(index));
+            if (Count == 0) return -1;
+            if ((uint)index >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
             return LastIndexOf(item, index, index + 1);
         }
 
         public int LastIndexOf(T item, int index, int count)
         {
-            if (_size == 0) return -1;
-            if ((uint)index >= (uint)_size) throw new ArgumentOutOfRangeException(nameof(index));
+            if (Count == 0) return -1;
+            if ((uint)index >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
             if (count < 0 || count > index + 1) throw new ArgumentOutOfRangeException(nameof(count));
             return Array.LastIndexOf(_items, item, index, count);
         }
@@ -371,19 +371,19 @@ namespace FLib
             if (match == null) throw new ArgumentNullException(nameof(match));
 
             var freeIndex = 0;
-            while (freeIndex < _size && !match(_items[freeIndex])) freeIndex++;
-            if (freeIndex >= _size) return 0;
+            while (freeIndex < Count && !match(_items[freeIndex])) freeIndex++;
+            if (freeIndex >= Count) return 0;
 
             var current = freeIndex + 1;
-            while (current < _size)
+            while (current < Count)
             {
-                while (current < _size && match(_items[current])) current++;
-                if (current < _size) _items[freeIndex++] = _items[current++];
+                while (current < Count && match(_items[current])) current++;
+                if (current < Count) _items[freeIndex++] = _items[current++];
             }
 
-            Array.Clear(_items, freeIndex, _size - freeIndex);
-            var result = _size - freeIndex;
-            _size = freeIndex;
+            Array.Clear(_items, freeIndex, Count - freeIndex);
+            var result = Count - freeIndex;
+            Count = freeIndex;
             _version++;
             return result;
         }
@@ -391,9 +391,9 @@ namespace FLib
         public void RemoveAt(int index)
         {
             CheckIndex(index);
-            _size--;
-            if (index < _size) Array.Copy(_items, index + 1, _items, index, _size - index);
-            _items[_size] = default;
+            Count--;
+            if (index < Count) Array.Copy(_items, index + 1, _items, index, Count - index);
+            _items[Count] = default;
             _version++;
         }
 
@@ -402,15 +402,15 @@ namespace FLib
             CheckRange(index, count);
             if (count == 0) return;
 
-            _size -= count;
-            if (index < _size) Array.Copy(_items, index + count, _items, index, _size - index);
-            Array.Clear(_items, _size, count);
+            Count -= count;
+            if (index < Count) Array.Copy(_items, index + count, _items, index, Count - index);
+            Array.Clear(_items, Count, count);
             _version++;
         }
 
         public void Reverse()
         {
-            Reverse(0, _size);
+            Reverse(0, Count);
         }
 
         public void Reverse(int index, int count)
@@ -422,12 +422,12 @@ namespace FLib
 
         public void Sort()
         {
-            Sort(0, _size, null);
+            Sort(0, Count, null);
         }
 
         public void Sort(IComparer<T> comparer)
         {
-            Sort(0, _size, comparer);
+            Sort(0, Count, comparer);
         }
 
         public void Sort(int index, int count, IComparer<T> comparer)
@@ -440,27 +440,27 @@ namespace FLib
         public void Sort(Comparison<T> comparison)
         {
             if (comparison == null) throw new ArgumentNullException(nameof(comparison));
-            if (_size > 1) Array.Sort(_items, 0, _size, Comparer<T>.Create(comparison));
+            if (Count > 1) Array.Sort(_items, 0, Count, Comparer<T>.Create(comparison));
             _version++;
         }
 
         public T[] ToArray()
         {
-            if (_size == 0) return EmptyArray;
-            var result = new T[_size];
-            Array.Copy(_items, result, _size);
+            if (Count == 0) return EmptyArray;
+            var result = new T[Count];
+            Array.Copy(_items, result, Count);
             return result;
         }
 
         public void TrimExcess()
         {
-            if (_size < (int)(_items.Length * 0.9)) Capacity = _size;
+            if (Count < (int)(_items.Length * 0.9)) Capacity = Count;
         }
 
         public bool TrueForAll(Predicate<T> match)
         {
             if (match == null) throw new ArgumentNullException(nameof(match));
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < Count; i++)
             {
                 if (!match(_items[i])) return false;
             }
@@ -474,20 +474,20 @@ namespace FLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckIndex(int index)
         {
-            if ((uint)index >= (uint)_size) throw new ArgumentOutOfRangeException(nameof(index));
+            if ((uint)index >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckRange(int index, int count)
         {
-            if ((uint)index > (uint)_size) throw new ArgumentOutOfRangeException(nameof(index));
-            if (count < 0 || count > _size - index) throw new ArgumentOutOfRangeException(nameof(count));
+            if ((uint)index > (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
+            if (count < 0 || count > Count - index) throw new ArgumentOutOfRangeException(nameof(count));
         }
 
         private T[] Resize(int capacity)
         {
             var items = new T[capacity];
-            if (_size > 0) Array.Copy(_items, items, _size);
+            if (Count > 0) Array.Copy(_items, items, Count);
             return items;
         }
 
@@ -504,24 +504,24 @@ namespace FLib
             private readonly List2<T> _list;
             private readonly int _version;
             private int _index;
-            private T _current;
 
             internal Enumerator(List2<T> list)
             {
                 _list = list;
                 _version = list._version;
                 _index = 0;
-                _current = default;
+                Current = default;
             }
 
-            public T Current => _current;
+            public T Current { get; private set; }
+
             object IEnumerator.Current
             {
                 get
                 {
-                    if (_index == 0 || _index == _list._size + 1)
+                    if (_index == 0 || _index == _list.Count + 1)
                         throw new InvalidOperationException("Enumeration has not started or has already finished.");
-                    return _current;
+                    return Current;
                 }
             }
 
@@ -529,14 +529,14 @@ namespace FLib
             {
                 if (_version != _list._version)
                     throw new InvalidOperationException("Collection was modified during enumeration.");
-                if ((uint)_index < (uint)_list._size)
+                if ((uint)_index < (uint)_list.Count)
                 {
-                    _current = _list._items[_index++];
+                    Current = _list._items[_index++];
                     return true;
                 }
 
-                _index = _list._size + 1;
-                _current = default;
+                _index = _list.Count + 1;
+                Current = default;
                 return false;
             }
 
@@ -545,7 +545,7 @@ namespace FLib
                 if (_version != _list._version)
                     throw new InvalidOperationException("Collection was modified during enumeration.");
                 _index = 0;
-                _current = default;
+                Current = default;
             }
 
             public void Dispose()

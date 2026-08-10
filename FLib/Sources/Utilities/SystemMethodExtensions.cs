@@ -166,7 +166,7 @@ namespace FLib
         #region List
 
         /// <summary> 移除指定索引的元素，并将最后一个元素移动到指定索引位置 </summary>
-        public static void RemoveAtSwapBack<T>(this List<T> list, int index)
+        public static void RemoveAtSwapBack<T>(this IList<T> list, int index)
         {
             var theLastIndex = list.Count - 1;
             if (index < theLastIndex)
