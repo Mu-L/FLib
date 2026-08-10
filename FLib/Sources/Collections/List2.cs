@@ -8,7 +8,7 @@ namespace FLib
 {
     [Serializable]
     [DebuggerDisplay("Count = {Count}")]
-    public class List2<T> : IList<T>, IList, IReadOnlyList<T>
+    public class List2<T> : IList<T>, IReadOnlyList<T>
     {
         private const int DefaultCapacity = 4;
         private const int MaxArrayLength = 0X7FEFFFFF;
@@ -17,7 +17,6 @@ namespace FLib
         private T[] _items;
         private int _size;
         private int _version;
-        [NonSerialized] private object _syncRoot;
 
         public List2()
         {
@@ -66,10 +65,6 @@ namespace FLib
 
         public int Count => _size;
         bool ICollection<T>.IsReadOnly => false;
-        bool IList.IsReadOnly => false;
-        bool IList.IsFixedSize => false;
-        bool ICollection.IsSynchronized => false;
-        object ICollection.SyncRoot => _syncRoot ??= new object();
 
         public T this[int index]
         {
@@ -84,12 +79,6 @@ namespace FLib
                 _items[index] = value;
                 _version++;
             }
-        }
-
-        object IList.this[int index]
-        {
-            get => this[index];
-            set => this[index] = (T)value;
         }
 
         /// <summary> Returns a reference to the element at <paramref name="index"/>. </summary>
@@ -479,33 +468,8 @@ namespace FLib
             return true;
         }
 
-        void ICollection<T>.Add(T item) => Add(item);
-        int IList.Add(object value)
-        {
-            Add((T)value);
-            return _size - 1;
-        }
-
-        bool IList.Contains(object value) => IsCompatibleObject(value) && Contains((T)value);
-        int IList.IndexOf(object value) => IsCompatibleObject(value) ? IndexOf((T)value) : -1;
-        void IList.Insert(int index, object value) => Insert(index, (T)value);
-        void IList.Remove(object value)
-        {
-            if (IsCompatibleObject(value)) Remove((T)value);
-        }
-
-        void ICollection.CopyTo(Array array, int index)
-        {
-            Array.Copy(_items, 0, array, index, _size);
-        }
-
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        private static bool IsCompatibleObject(object value)
-        {
-            return value is T || value == null && default(T) is null;
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckIndex(int index)
