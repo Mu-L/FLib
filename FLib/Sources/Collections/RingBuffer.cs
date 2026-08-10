@@ -15,8 +15,8 @@ namespace FLib
         /// <summary>物理数组长度。</summary>
         public readonly int Capacity => _buffer?.Length ?? 0;
 
-        /// <summary>当前按 [0..LastWriteIndex] 暴露的数量。</summary>
-        public readonly int Count => LastWriteIndex + 1;
+        /// <summary>当前有效元素数量。</summary>
+        public int Count { get; private set; }
 
         /// <summary>最后一次写入的物理槽位。</summary>
         public int LastWriteIndex { get; private set; }
@@ -33,17 +33,28 @@ namespace FLib
             if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity));
             _buffer = capacity == 0 ? Array.Empty<T>() : new T[capacity];
             LastWriteIndex = -1;
+            Count = 0;
         }
 
-        /// <summary>扩容(仅增长)。物理槽位保持不变。</summary>
+        /// <summary>扩容(仅增长)。有效元素会按从旧到新的顺序重排。</summary>
         public void Resize(int newCapacity)
         {
             var oldCapacity = Capacity;
             if (newCapacity <= oldCapacity) return;
 
             var newBuffer = new T[newCapacity];
-            if (oldCapacity > 0)
-                Array.Copy(_buffer, 0, newBuffer, 0, oldCapacity);
+            if (Count > 0)
+            {
+                var index = GetFirstIndex(oldCapacity);
+                for (var i = 0; i < Count; i++)
+                {
+                    newBuffer[i] = _buffer[index];
+                    if (++index == oldCapacity) index = 0;
+                }
+
+                LastWriteIndex = Count - 1;
+            }
+
             _buffer = newBuffer;
         }
 
@@ -59,6 +70,7 @@ namespace FLib
             if (index == buf.Length) index = 0;
             LastWriteIndex = index;
             buf[index] = val;
+            if (Count < buf.Length) Count++;
             return index;
         }
 
@@ -73,26 +85,47 @@ namespace FLib
             index = LastWriteIndex + 1;
             if (index == buf.Length) index = 0;
             LastWriteIndex = index;
+            if (Count < buf.Length) Count++;
             return ref buf[index];
         }
 
         /// <summary>弹出 LastWriteIndex 槽位。空缓冲返回 default。</summary>
         public T Pop()
         {
-            if (LastWriteIndex < 0) return default;
+            if (Count == 0) return default;
 
             var result = _buffer[LastWriteIndex];
             _buffer[LastWriteIndex] = default;
-            LastWriteIndex--;
+            if (--Count == 0)
+                LastWriteIndex = -1;
+            else
+                LastWriteIndex = LastWriteIndex == 0 ? Capacity - 1 : LastWriteIndex - 1;
             return result;
         }
 
-        /// <summary>清空指定物理槽位。只有移除 LastWriteIndex 时才收缩 Count。</summary>
+        /// <summary>移除指定物理槽位，并保持有效元素连续。</summary>
         public void RemoveAt(int index)
         {
-            _buffer[index] = default;
-            if (index == LastWriteIndex)
-                LastWriteIndex--;
+            var capacity = Capacity;
+            var firstIndex = GetFirstIndex(capacity);
+            var offset = index - firstIndex;
+            if (offset < 0) offset += capacity;
+            if ((uint)offset >= (uint)Count) throw new ArgumentOutOfRangeException(nameof(index));
+
+            for (var i = offset; i < Count - 1; i++)
+            {
+                var to = firstIndex + i;
+                if (to >= capacity) to -= capacity;
+                var from = to + 1;
+                if (from == capacity) from = 0;
+                _buffer[to] = _buffer[from];
+            }
+
+            _buffer[LastWriteIndex] = default;
+            if (--Count == 0)
+                LastWriteIndex = -1;
+            else
+                LastWriteIndex = LastWriteIndex == 0 ? capacity - 1 : LastWriteIndex - 1;
         }
 
         public bool Remove(in T item)
@@ -111,6 +144,7 @@ namespace FLib
             if (isClearMemory && _buffer != null)
                 Array.Fill(_buffer, default);
             LastWriteIndex = -1;
+            Count = 0;
         }
 
         public readonly bool Contains(in T item)
@@ -118,40 +152,54 @@ namespace FLib
             return IndexOf(item) >= 0;
         }
 
-        /// <summary>在 [0..LastWriteIndex] 中查找并返回物理槽位。不存在返回 -1。</summary>
+        /// <summary>查找并返回物理槽位。不存在返回 -1。</summary>
         public readonly int IndexOf(in T item)
         {
-            if (LastWriteIndex < 0) return -1;
+            if (Count == 0) return -1;
 
             var comparer = EqualityComparer<T>.Default;
-            for (var i = 0; i <= LastWriteIndex; i++)
+            var index = GetFirstIndex(Capacity);
+            for (var i = 0; i < Count; i++)
             {
-                if (comparer.Equals(_buffer[i], item))
-                    return i;
+                if (comparer.Equals(_buffer[index], item))
+                    return index;
+                if (++index == Capacity) index = 0;
             }
 
             return -1;
         }
 
-        /// <summary>从物理槽位 0 开始拷贝 [0..LastWriteIndex]。</summary>
+        /// <summary>从最旧元素开始拷贝有效段。</summary>
         public readonly void CopyTo(T[] array, int arrayIndex)
         {
-            if (LastWriteIndex < 0) return;
-            Array.Copy(_buffer, 0, array, arrayIndex, LastWriteIndex + 1);
+            var capacity = Capacity;
+            var index = GetFirstIndex(capacity);
+            for (var i = 0; i < Count; i++)
+            {
+                array[arrayIndex + i] = _buffer[index];
+                if (++index == capacity) index = 0;
+            }
         }
 
-        /// <summary>零分配枚举器, 从物理槽位 0 开始枚举到 LastWriteIndex。</summary>
+        /// <summary>零分配枚举器，从最旧元素枚举到最新元素。</summary>
         public struct Enumerator : IEnumerator<T>
         {
             private readonly T[] _buffer;
-            private readonly int _lastWriteIndex;
+            private readonly int _capacity;
+            private readonly int _count;
+            private readonly int _firstIndex;
+            private int _remaining;
             private int _index;
 
-            public Enumerator(T[] buffer, int lastWriteIndex)
+            public Enumerator(T[] buffer, int lastWriteIndex, int count)
             {
                 _buffer = buffer;
-                _lastWriteIndex = lastWriteIndex;
-                _index = -1;
+                _capacity = buffer?.Length ?? 0;
+                _count = count;
+                _remaining = count;
+                _firstIndex = count > 0 ? lastWriteIndex - count + 1 : -1;
+                if (_firstIndex < 0) _firstIndex += _capacity;
+                _index = _firstIndex == 0 ? _capacity - 1 : _firstIndex - 1;
             }
 
             public T Current
@@ -164,14 +212,15 @@ namespace FLib
 
             public bool MoveNext()
             {
-                if (++_index > _lastWriteIndex)
-                    return false;
+                if (_remaining-- <= 0) return false;
+                if (++_index == _capacity) _index = 0;
                 return true;
             }
 
             public void Reset()
             {
-                _index = -1;
+                _index = _firstIndex == 0 ? _capacity - 1 : _firstIndex - 1;
+                _remaining = _count;
             }
 
             public void Dispose()
@@ -181,7 +230,15 @@ namespace FLib
 
         public readonly Enumerator GetEnumerator()
         {
-            return new Enumerator(_buffer, LastWriteIndex);
+            return new Enumerator(_buffer, LastWriteIndex, Count);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private readonly int GetFirstIndex(int capacity)
+        {
+            if (Count == 0) return -1;
+            var firstIndex = LastWriteIndex - Count + 1;
+            return firstIndex < 0 ? firstIndex + capacity : firstIndex;
         }
 
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
