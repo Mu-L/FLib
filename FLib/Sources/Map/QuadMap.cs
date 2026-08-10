@@ -136,25 +136,32 @@ namespace FLib
         /// </summary>
         public virtual QuadMap SetSize(in FVector2Int size, int layerCount = -1)
         {
-            var w = Math.Min(TerrainSize.X, size.X);
-            var h = Math.Min(TerrainSize.Y, size.Y);
+            var oldSize = TerrainSize;
+            var w = Math.Min(oldSize.X, size.X);
+            var h = Math.Min(oldSize.Y, size.Y);
             TerrainSize = size;
             if (layerCount > 0)
                 Array.Resize(ref Terrain, layerCount);
             else if (Terrain == null)
                 Terrain = new ulong[1][];
+            var tileCount = BitArrayOperator.GetBitsLength(size.X * size.Y);
             for (var i = 0; i < LayerCount; i++)
             {
                 var oldTerrain = Terrain[i];
-                Array.Resize(ref Terrain[i], BitArrayOperator.GetBitsLength(size.X * size.Y));
+                var newTerrain = new ulong[tileCount];
                 if (oldTerrain != null)
                 {
                     for (var y = 0; y < h; y++)
                     {
                         for (var x = 0; x < w; x++)
-                            BitArrayOperator.SetBit(Terrain[i], y * size.X + x, BitArrayOperator.GetBit(oldTerrain, y * w + x));
+                        {
+                            if (BitArrayOperator.GetBit(oldTerrain, y * oldSize.X + x))
+                                BitArrayOperator.SetBit(newTerrain, y * size.X + x, true);
+                        }
                     }
                 }
+
+                Terrain[i] = newTerrain;
             }
 
             return this;
@@ -195,7 +202,7 @@ namespace FLib
         public bool TryFindNearPos(int layer, FVector2Int pos, FVector2Int size, out FVector2Int o, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null)
         {
             o = FindNearPos(layer, pos, size, findMaxDist, value, checker);
-            return o == FVector2Int.None;
+            return o != FVector2Int.None;
         }
 
         /// <summary>
@@ -206,7 +213,7 @@ namespace FLib
             if (CheckTile(layer, pos, size, value) && checker?.Invoke(this, pos) != false)
                 return pos;
             if (findMaxDist <= 0)
-                findMaxDist = Math.Max(TerrainSize.X, TerrainSize.Y) / 2;
+                findMaxDist = Math.Max(TerrainSize.X, TerrainSize.Y);
             else
                 ++findMaxDist;
             for (var i = 1; i < findMaxDist; i++)
@@ -219,7 +226,7 @@ namespace FLib
                     if (CheckTile(layer, mapPos, size, value) && checker?.Invoke(this, mapPos) != false)
                         return mapPos;
                     mapPos.Y = to.Y;
-                    if (CheckTile(layer, mapPos, size, value))
+                    if (CheckTile(layer, mapPos, size, value) && checker?.Invoke(this, mapPos) != false)
                         return mapPos;
                 }
 
@@ -246,7 +253,7 @@ namespace FLib
             var half = segment * FNum.OneHalf;
             var index = (int)((FVector2.Angle360(FVector2.Right, to - from) + half) / segment) % 8;
             var next = from + NearestEightPositions[index];
-            if (CheckTile(layer, next, value) && checker?.Invoke(this, next) != false)
+            if (CheckTile(layer, next, value) && blackPositions?.Contains(next) != true && checker?.Invoke(this, next) != false)
                 return next;
             for (var i = 1; i < 4; i++)
             {
@@ -258,7 +265,7 @@ namespace FLib
                     return next;
             }
 
-            next = from + NearestEightPositions[(index + 8) % 8];
+            next = from + NearestEightPositions[(index + 4) % 8];
             if (CheckTile(layer, next, value) && blackPositions?.Contains(next) != true && checker?.Invoke(this, next) != false)
                 return next;
             return FVector2Int.None;
@@ -281,8 +288,12 @@ namespace FLib
             mapPos = WorldToMapPos(pos);
             if (!CheckTile(layer, mapPos, value))
             {
-                mapPos = FindNearPos(0, mapPos, FVector2Int.One);
-                pos = MapToWorldPos(mapPos);
+                var nearPos = FindNearPos(layer, mapPos, FVector2Int.One, value: value);
+                if (nearPos != FVector2Int.None)
+                {
+                    mapPos = nearPos;
+                    pos = MapToWorldPos(mapPos);
+                }
             }
         }
 
@@ -327,8 +338,13 @@ namespace FLib
             dest ??= new int[Terrain.Length][];
             for (var i = 0; i < Terrain.Length; i++)
             {
-                dest[i] = new int[Terrain[i].Length / 32];
-                Terrain[i].CopyTo(dest[i], 0);
+                var terrain = Terrain[i];
+                var ints = dest[i] = new int[terrain.Length * 2];
+                for (var j = 0; j < terrain.Length; j++)
+                {
+                    ints[j * 2] = (int)terrain[j];
+                    ints[j * 2 + 1] = (int)(terrain[j] >> 32);
+                }
             }
 
             return dest;
