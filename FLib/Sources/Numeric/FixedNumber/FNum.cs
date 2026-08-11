@@ -64,7 +64,7 @@ namespace FLib
 #endif
 
         public static readonly FNum One = 1;
-        public static readonly FNum Zero = new();
+        public static readonly FNum Zero;
         public static readonly FNum Ten = One * 10;
         public static readonly FNum Hundred = One * 100;
         public static readonly FNum Thousand = One * 1000;
@@ -1057,7 +1057,7 @@ namespace FLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly byte IConvertible.ToByte(IFormatProvider provider) => (byte)this;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly char IConvertible.ToChar(IFormatProvider provider) => (char)(byte)this;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly DateTime IConvertible.ToDateTime(IFormatProvider provider) => TimeHelper.Default.TimestampToDate((uint)this);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly decimal IConvertible.ToDecimal(IFormatProvider provider) => (decimal)this;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly decimal IConvertible.ToDecimal(IFormatProvider provider) => this;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly double IConvertible.ToDouble(IFormatProvider provider) => this;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly short IConvertible.ToInt16(IFormatProvider provider) => (short)this;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly int IConvertible.ToInt32(IFormatProvider provider) => (int)this;
