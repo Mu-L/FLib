@@ -16,7 +16,6 @@ namespace FLib
     public static class StringFLibUtility
     {
         public static readonly UTF8Encoding Encoding = new(false);
-        public static string WordTenThousand = "w";
 
         [ThreadStatic] private static StringBuilder _strBuf1;
 
