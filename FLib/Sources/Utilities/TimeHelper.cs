@@ -50,5 +50,29 @@ namespace FLib
                 date = date.ToUniversalTime();
             return (date.Ticks - Default.BaseDate.Ticks) / TimeSpan.TicksPerMillisecond;
         }
+
+        /// <summary> 格式化时间 </summary>
+        public static string FormatSeconds(uint seconds, string dayText = "d ", string hourText = "h ", string minuteText = "m ", string secondText = "s")
+        {
+            var days = seconds / 86400;
+            seconds -= days * 86400;
+            var hours = seconds / 3600;
+            seconds -= hours * 3600;
+            var minutes = seconds / 60;
+            seconds -= minutes * 60;
+            var strBuf = StringFLibUtility.GetStrBuf();
+            var hasHour = days > 0 || hours > 0;
+            var hasMinute = hasHour || minutes > 0;
+
+            if (days > 0)
+                strBuf.Append(days).Append(dayText);
+            if (hasHour)
+                strBuf.Append(hours).Append(hourText);
+            if (hasMinute)
+                strBuf.Append(minutes).Append(minuteText);
+            strBuf.Append(seconds).Append(secondText);
+
+            return StringFLibUtility.ReleaseStrBufAndResult(strBuf);
+        }
     }
 }
