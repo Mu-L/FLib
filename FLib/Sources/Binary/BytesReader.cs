@@ -79,18 +79,30 @@ namespace FLib
         }
 
         /// <summary>
-        /// 
+        /// read signed protobuf-style variable-length integer.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long ReadVInt()
         {
-            var v = 0L;
-            for (byte i = 0; i < byte.MaxValue; i += 7)
+            var v = ReadUVInt();
+            return unchecked((long)(v >> 1)) ^ -(long)(v & 1);
+        }
+
+        /// <summary>
+        /// Reads an unsigned protobuf-style variable-length integer.
+        /// </summary>
+        public ulong ReadUVInt()
+        {
+            var v = 0UL;
+            for (var shift = 0; shift < 64; shift += 7)
             {
-                v |= (long)(BytesBuffer[Position] & 0x7f) << i;
-                if ((BytesBuffer[Position++] & 0x80) == 0) break;
+                var b = BytesBuffer[Position++];
+                v |= (ulong)(b & 0x7f) << shift;
+                if ((b & 0x80) == 0)
+                    return v;
             }
 
-            return (v >> 1) ^ -(v & 1);
+            throw new FormatException("Invalid variable-length integer.");
         }
 
         #region string

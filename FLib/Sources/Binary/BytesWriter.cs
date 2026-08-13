@@ -238,6 +238,7 @@ namespace FLib
 
 
         #region vint
+
         public void PushVInt(int atPosition, long v, int placeholderSize = 4)
         {
             var bytes = new BytesWriter(stackalloc byte[placeholderSize], 0);
@@ -254,10 +255,18 @@ namespace FLib
         /// <summary>
         /// 类似protobuf的变长数字
         /// </summary>
-        public unsafe void PushVInt(long v)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void PushVInt(long v)
         {
-            v = (v << 1) ^ (v >> 63);
-            var buffer = stackalloc byte[8];
+            PushUVInt(unchecked((ulong)((v << 1) ^ (v >> 63))));
+        }
+
+        /// <summary>
+        /// 类似protobuf的变长数字
+        /// </summary>
+        public unsafe void PushUVInt(ulong v)
+        {
+            var buffer = stackalloc byte[10];
             buffer[0] = (byte)(v & 0x7f);
             v >>= 7;
             var length = 0;
@@ -274,9 +283,11 @@ namespace FLib
                 Unsafe.CopyBlock(bPtr + Position, buffer, (uint)length);
             Position += length;
         }
+
         #endregion
 
         #region string
+
         /// <summary>
         ///
         /// </summary>
@@ -348,9 +359,11 @@ namespace FLib
         //     StringFLibUtility.Encoding.GetBytes(v, Span);
         //     Position += byteCount;
         // }
+
         #endregion
 
         #region array
+
         /// <summary>
         ///
         /// </summary>
@@ -408,9 +421,11 @@ namespace FLib
                 }
             }
         }
+
         #endregion
 
         #region script
+
         /// <summary>
         /// 
         /// </summary>
@@ -443,6 +458,7 @@ namespace FLib
                 PushLength(0);
             }
         }
+
         #endregion
 
 
