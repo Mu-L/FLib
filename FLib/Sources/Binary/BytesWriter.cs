@@ -141,7 +141,7 @@ namespace FLib
         /// </summary>
         public void PushLength(int length)
         {
-            PushVInt(length);
+            PushUVInt((ulong)length);
         }
 
         /// <summary>

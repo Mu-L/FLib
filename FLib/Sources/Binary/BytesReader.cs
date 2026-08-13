@@ -62,7 +62,7 @@ namespace FLib
 
         public int ReadLength()
         {
-            return (int)ReadVInt();
+            return (int)ReadUVInt();
         }
 
         public int ReadLength3()
