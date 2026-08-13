@@ -144,12 +144,6 @@ namespace FLib
             return path[startIndex..];
         }
 
-        /// <summary> 获取路径的哈希值 </summary>
-        public static string HashPath(ReadOnlySpan<char> path, byte hashShardingCharCount = 2)
-        {
-            return StringFLibUtility.XxHash(path, hashShardingCharCount: hashShardingCharCount);
-        }
-
         /// <summary>
         /// 
         /// </summary>

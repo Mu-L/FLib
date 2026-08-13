@@ -5,7 +5,6 @@ using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Hashing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -264,35 +263,6 @@ namespace FLib
             {
                 return (int)hash;
             }
-        }
-
-        /// <summary> 将字符串转换为hash字符串 </summary>
-        public static string XxHash(ReadOnlySpan<char> text, int seed = 9, byte hashShardingCharCount = 0)
-        {
-            Span<byte> buf = stackalloc byte[16];
-            XxHash128.Hash(MemoryMarshal.AsBytes(text), buf, seed);
-
-            if (hashShardingCharCount > 0)
-                hashShardingCharCount += 1;
-
-            Span<char> chars = stackalloc char[buf.Length * 2 + hashShardingCharCount];
-
-            for (var i = 0; i < buf.Length; i++)
-            {
-                var b = buf[i];
-                chars[hashShardingCharCount + i * 2] = GetHexChar(b >> 4);
-                chars[hashShardingCharCount + i * 2 + 1] = GetHexChar(b & 0xF);
-            }
-
-            if (hashShardingCharCount > 0)
-            {
-                chars[hashShardingCharCount - 1] = '/';
-                for (var i = 0; i < hashShardingCharCount - 1; i++)
-                    chars[i] = chars[i + hashShardingCharCount];
-            }
-
-            return new string(chars);
-            static char GetHexChar(int val) => (char)(val < 10 ? '0' + val : 'a' + val - 10);
         }
 
         /// <summary>
