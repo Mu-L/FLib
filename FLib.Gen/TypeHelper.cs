@@ -65,11 +65,30 @@ namespace FLib.Gen
             return 0;
         }
 
-        /// <summary>char ~ uint 范围的整数类型用变长编码(VInt)写入</summary>
-        public static bool IsVInt(ITypeSymbol t)
+        /// <summary>1 字节整型直接按原始字节写入</summary>
+        public static bool IsRawByteInt(ITypeSymbol t)
         {
             var s = t.SpecialType;
-            return s >= SpecialType.System_Char && s <= SpecialType.System_UInt32;
+            return s == SpecialType.System_SByte || s == SpecialType.System_Byte;
+        }
+
+        /// <summary>有符号整数类型使用 VInt 编码</summary>
+        public static bool IsSignedVInt(ITypeSymbol t)
+        {
+            var s = t.SpecialType;
+            return s == SpecialType.System_Int16 ||
+                   s == SpecialType.System_Int32 ||
+                   s == SpecialType.System_Int64;
+        }
+
+        /// <summary>无符号整数类型使用 UVInt 编码</summary>
+        public static bool IsUnsignedVInt(ITypeSymbol t)
+        {
+            var s = t.SpecialType;
+            return s == SpecialType.System_Char ||
+                   s == SpecialType.System_UInt16 ||
+                   s == SpecialType.System_UInt32 ||
+                   s == SpecialType.System_UInt64;
         }
 
         public static bool IsFNum(ITypeSymbol t)

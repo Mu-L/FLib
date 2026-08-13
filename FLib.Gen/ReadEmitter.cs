@@ -6,7 +6,7 @@ namespace FLib.Gen
 {
     /// <summary>
     /// 生成字段的反序列化(Read)代码。
-    /// 分派逻辑与 WriteEmitter 对称：VInt > CustomCode > List/Dict > BytesPack > Array > BytesSerializable > Relocate > 基础类型
+    /// 分派逻辑与 WriteEmitter 对称：RawByte/VInt/UVInt > CustomCode > List/Dict > BytesPack > Array > BytesSerializable > Relocate > 基础类型
     /// </summary>
     internal static class ReadEmitter
     {
@@ -16,9 +16,21 @@ namespace FLib.Gen
             if (CustomCodeEmitter.TryEmit(type, field, sb, ref uid, isRead: true))
                 goto additional;
 
-            if (TypeHelper.IsVInt(type) || (options & FieldOption.VInt) != 0)
+            if (TypeHelper.IsRawByteInt(type))
+            {
+                sb.Append(field).Append(" = reader.Read<").Append(TypeHelper.ToTypeString(type, true)).Append(">();");
+                goto additional;
+            }
+
+            if ((options & FieldOption.VInt) != 0 || TypeHelper.IsSignedVInt(type))
             {
                 sb.Append(field).Append(" = (").Append(type.Name).Append(")reader.ReadVInt();");
+                goto additional;
+            }
+
+            if (TypeHelper.IsUnsignedVInt(type))
+            {
+                sb.Append(field).Append(" = (").Append(type.Name).Append(")reader.ReadUVInt();");
                 goto additional;
             }
 

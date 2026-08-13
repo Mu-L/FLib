@@ -5,7 +5,7 @@ namespace FLib.Gen
 {
     /// <summary>
     /// 生成字段的序列化(Write)代码。
-    /// 按类型分派：VInt > CustomCode > List/Dict > BytesPack > Array > BytesSerializable > Relocate > 基础类型
+    /// 按类型分派：RawByte/VInt/UVInt > CustomCode > List/Dict > BytesPack > Array > BytesSerializable > Relocate > 基础类型
     /// </summary>
     internal static class WriteEmitter
     {
@@ -15,9 +15,21 @@ namespace FLib.Gen
             if (CustomCodeEmitter.TryEmit(type, field, sb, ref uid, isRead: false))
                 goto additional;
 
-            if (TypeHelper.IsVInt(type) || (options & FieldOption.VInt) != 0)
+            if (TypeHelper.IsRawByteInt(type))
+            {
+                sb.Append("writer.Push(").Append(field).Append(");");
+                goto additional;
+            }
+
+            if ((options & FieldOption.VInt) != 0 || TypeHelper.IsSignedVInt(type))
             {
                 sb.Append("writer.PushVInt(").Append(field).Append(");");
+                goto additional;
+            }
+
+            if (TypeHelper.IsUnsignedVInt(type))
+            {
+                sb.Append("writer.PushUVInt(").Append(field).Append(");");
                 goto additional;
             }
 
