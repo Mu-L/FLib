@@ -23,8 +23,8 @@ public class TestWorldEffect
 
     public TestWorldEffect()
     {
-        WorldGlobalSetting.CreateEffectHandler = (in _, in _, _, _) => new AEffect { MaxStackCount = 1, Duration = 1, Flags = 1 };
-        WorldGlobalSetting.DestroyEffectHandler = (in _, _) => { };
+        WorldSetting.CreateEffectHandler = (in _, in _, _, _) => new AEffect { MaxStackCount = 1, Duration = 1, Flags = 1 };
+        WorldSetting.DestroyEffectHandler = (in _, _) => { };
     }
 
     [Fact]
@@ -37,10 +37,10 @@ public class TestWorldEffect
         Assert.NotNull(fx);
         Assert.True(fxSys.HasEffect(1));
         Assert.True(fxSys.HasFlags(1));
-        for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
+        for (var i = 0; i < WorldSetting.FrameRate / 2; i++)
             world.Update();
         Assert.Equal(FNum.Round((FNum)0.5 * 100), FNum.Round(fxSys.Get(1)!.Time.Remaining * 100));
-        for (var i = 0; i < WorldGlobalSetting.FrameRate / 2; i++)
+        for (var i = 0; i < WorldSetting.FrameRate / 2; i++)
             world.Update();
 
         Assert.False(fxSys.HasEffect(1));

@@ -45,7 +45,7 @@ public class TestWorldBehavior
 {
     public TestWorldBehavior()
     {
-        WorldGlobalSetting.DoDefaultBehaviorHandler = (ref system) => system.Do(typeof(IdleBehavior));
+        WorldSetting.DoDefaultBehaviorHandler = (ref system) => system.Do(typeof(IdleBehavior));
         WorldBehaviorPool.EnsureCapacity([(typeof(IdleBehavior), 1), (typeof(MoveBehavior), 1)]);
     }
 

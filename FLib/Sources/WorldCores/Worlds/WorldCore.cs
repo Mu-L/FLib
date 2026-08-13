@@ -60,7 +60,7 @@ namespace FLib.WorldCores
         /// <summary>
         /// 动态组件的稀疏表示列表。
         /// </summary>
-        internal StableIndexList<PooledList<int>> DynamicComponentSparse;
+        public StableIndexList<PooledList<int>> DynamicComponentSparse;
 
         /// <summary>
         /// 第一个更新器，用于处理第一阶段的逻辑更新。

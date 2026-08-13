@@ -156,16 +156,16 @@ public class TestWorldCore
         Assert.Equal("aaa", world.GetDyn<Buff>(player1).Name);
         world.Remove<Buff>(player1);
         Assert.False(world.Has<Buff>(player1));
-        Assert.Equal(0, world.Soa.GetGroup<Buff>().Count);
+        Assert.Equal(0, world.DynComponentGroups.Get<Buff>().Count);
         world.SetDyn(player1, new Buff { Name = "abc2" });
-        Assert.Equal(1, world.Soa.GetGroup<Buff>().Count);
+        Assert.Equal(1, world.DynComponentGroups.Get<Buff>().Count);
 
         // get all
         Assert.Equal([typeof(Mng<Player>), typeof(Team), typeof(Actor), typeof(Buff)], ((List<object>)world.GetAll(player1)).Select(vv => vv.GetType()));
 
         // dispose
         world.RemoveEntity(player1);
-        Assert.Equal(0, world.Soa.GetGroup<Buff>().Count);
+        Assert.Equal(0, world.DynComponentGroups.Get<Buff>().Count);
         world.Dispose();
         // Assert.True(WorldGlobalSetting.ChunkAllocator.FreePagesCount >= 2);
         // Assert.Empty((IEnumerable)typeof(Mng<Player>).GetField("_objects", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!);
@@ -221,13 +221,13 @@ public class TestWorldCore
         Assert.Equal(2u, world.Get<Managed>(et).StartFrame);
         Assert.Equal(3u, world.Get<Managed>(et).UpdateFrame);
 
-        Assert.Equal("abc", world.Soa.GetGroup<Player>()[0].Name);
+        Assert.Equal("abc", world.DynComponentGroups.Get<Player>()[0].Name);
         world.RemoveEntity(et);
 
         Assert.Equal([nameof(IWorldAwake.OnComponentAwake), nameof(IWorldStart.OnComponentStart), nameof(IWorldUpdate.OnComponentUpdate), nameof(IWorldUpdate.OnComponentUpdate), nameof(IWorldDestroy.OnComponentDestroy)],
-            world.Soa.GetGroup<Managed>()[0].Values);
+            world.DynComponentGroups.Get<Managed>()[0].Values);
 
-        Assert.Null(world.Soa.GetGroup<Player>()[0].Name);
+        Assert.Null(world.DynComponentGroups.Get<Player>()[0].Name);
     }
 
     [Fact]
