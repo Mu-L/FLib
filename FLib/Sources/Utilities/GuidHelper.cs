@@ -8,7 +8,7 @@ namespace FLib
     public static class GuidHelper
     {
         private static int _step;
-        public static readonly TimeHelper BaseDate = new(new DateTime(2025, 8, 1));
+        public static readonly TimeHelper BaseDate = new(new DateTime(2026, 8, 1));
 
         /// <summary>
         /// 

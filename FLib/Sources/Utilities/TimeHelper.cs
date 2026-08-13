@@ -7,7 +7,7 @@ namespace FLib
 {
     public readonly struct TimeHelper
     {
-        public static TimeHelper Default = new(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        public static readonly TimeHelper Default = new(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
         public static uint Timestamp => Default.GetTimestamp();
         public static long TimestampMs => Default.GetTimestampMs();
 
