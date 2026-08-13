@@ -8,8 +8,8 @@ namespace FLib
     public readonly struct TimeHelper
     {
         public static TimeHelper Default = new(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-        public static uint Timestamp => GetTimestamp();
-        public static long TimestampMs => GetTimestampMs();
+        public static uint Timestamp => Default.GetTimestamp();
+        public static long TimestampMs => Default.GetTimestampMs();
 
 
         public readonly DateTime BaseDate;
@@ -18,6 +18,9 @@ namespace FLib
         {
             BaseDate = baseDate;
         }
+
+        public uint GetTimestamp() => DateToTimestamp(DateTime.UtcNow);
+        public long GetTimestampMs() => DateToTimestampMs(DateTime.UtcNow);
 
         /// <summary>
         /// 时间戳转换c#时间
@@ -29,13 +32,10 @@ namespace FLib
         /// </summary>
         public DateTime TimestampMSToDate(long timestamp) => BaseDate.AddMilliseconds(timestamp).ToLocalTime();
 
-        public static uint GetTimestamp() => DateToTimestamp(DateTime.UtcNow);
-        public static long GetTimestampMs() => DateToTimestampMs(DateTime.UtcNow);
-
         /// <summary>
         /// c#时间转换为时间戳
         /// </summary>
-        public static uint DateToTimestamp(DateTime date)
+        public uint DateToTimestamp(DateTime date)
         {
             if (date.Kind != DateTimeKind.Utc)
                 date = date.ToUniversalTime();
@@ -45,7 +45,7 @@ namespace FLib
         /// <summary>
         /// c#时间转换为时间戳(毫秒)
         /// </summary>
-        public static long DateToTimestampMs(DateTime date)
+        public long DateToTimestampMs(DateTime date)
         {
             if (date.Kind != DateTimeKind.Utc)
                 date = date.ToUniversalTime();

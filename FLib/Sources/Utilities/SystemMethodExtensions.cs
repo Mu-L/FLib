@@ -175,23 +175,5 @@ namespace FLib
         }
 
         #endregion
-
-        #region time
-
-        public static string ToFormatString(this TimeSpan time, string ms = "ms", string s = "s", string m = "m", string h = "h", string d = "d")
-        {
-            var combiner = StringBufferCombiner.Create();
-            if (time.TotalSeconds < 1)
-                return combiner.Append(Math.Max(1, (long)time.TotalMilliseconds)).Append(ms).Result();
-            if (time.TotalMinutes < 1)
-                return combiner.Append((long)time.TotalSeconds).Append(s);
-            if (time.TotalHours < 1)
-                return combiner.Append((int)time.TotalMinutes).Append(m).Append(time.Seconds).Append(s).Result();
-            return time.TotalDays < 1
-                ? combiner.Append((int)time.TotalHours).Append(h).Append(time.Minutes).Append(m).Append(time.Seconds).Append(s).Result()
-                : combiner.Append((int)time.TotalDays).Append(d).Append(time.Hours).Append(h).Append(time.Minutes).Append(m).Append(time.Seconds).Append(s).Result();
-        }
-
-        #endregion
     }
 }

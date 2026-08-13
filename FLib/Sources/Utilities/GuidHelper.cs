@@ -35,36 +35,36 @@ namespace FLib
         /// per milliseconds 32768
         /// year 69
         /// </summary>
-        public static long Create64(byte deviceId) => Create(64, deviceId, 8, TimeHelper.GetTimestampMs(), 41);
+        public static long Create64(byte deviceId) => Create(64, deviceId, 8, BaseDate.GetTimestampMs(), 41);
 
         /// <summary>
         /// per milliseconds 127
         /// year 69
         /// </summary>
-        public static long Create64(ushort deviceId) => Create(64, deviceId, 16, TimeHelper.GetTimestampMs(), 41);
+        public static long Create64(ushort deviceId) => Create(64, deviceId, 16, BaseDate.GetTimestampMs(), 41);
 
         /// <summary>
         /// per milliseconds 8388607
         /// year 69
         /// </summary>
-        public static long Create64() => Create(64, 0, 0, TimeHelper.GetTimestampMs(), 41);
+        public static long Create64() => Create(64, 0, 0, BaseDate.GetTimestampMs(), 41);
 
         /// <summary>
         /// per seconds 8
         /// year 17
         /// </summary>
-        public static int Create32() => (int)Create(32, 0, 0, TimeHelper.GetTimestamp(), 29);
+        public static int Create32() => (int)Create(32, 0, 0, BaseDate.GetTimestamp(), 29);
 
         /// <summary>
         /// per seconds 15
         /// year 8
         /// </summary>
-        public static int Create32_15() => (int)Create(32, 0, 0, TimeHelper.GetTimestamp(), 28);
+        public static int Create32_15() => (int)Create(32, 0, 0, BaseDate.GetTimestamp(), 28);
 
         /// <summary>
         /// per seconds 32767
         /// day 1.5
         /// </summary>
-        public static int Create32_32767() => (int)Create(32, 0, 0, TimeHelper.GetTimestamp(), 17);
+        public static int Create32_32767() => (int)Create(32, 0, 0, BaseDate.GetTimestamp(), 17);
     }
 }
