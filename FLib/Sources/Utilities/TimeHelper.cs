@@ -1,55 +1,56 @@
 ﻿// =================================================={By Qcbf|qcbf@qq.com|2024-10-22}==================================================
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace FLib
 {
     public readonly struct TimeHelper
     {
-        public static readonly TimeHelper Default = new(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-        public static uint Timestamp => Default.GetTimestamp();
-        public static long TimestampMs => Default.GetTimestampMs();
+        private const long UnixEpochTicks = 621355968000000000L; // 1970-01-01 00:00:00 UTC
 
+        public static readonly TimeHelper Default = new(new DateTime(UnixEpochTicks, DateTimeKind.Utc));
 
-        public readonly DateTime BaseDate;
+        public static uint Timestamp
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (uint)((DateTime.UtcNow.Ticks - UnixEpochTicks) / TimeSpan.TicksPerSecond);
+        }
+
+        public static long TimestampMs
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => (DateTime.UtcNow.Ticks - UnixEpochTicks) / TimeSpan.TicksPerMillisecond;
+        }
+
+        public readonly long BaseTicks; // 存raw ticks(UTC), 避免DateTime.Ticks的间接访问, 也避开Kind语义歧义
 
         public TimeHelper(DateTime baseDate)
         {
-            BaseDate = baseDate;
+            BaseTicks = baseDate.Kind == DateTimeKind.Utc ? baseDate.Ticks : baseDate.ToUniversalTime().Ticks;
         }
 
-        public uint GetTimestamp() => DateToTimestamp(DateTime.UtcNow);
-        public long GetTimestampMs() => DateToTimestampMs(DateTime.UtcNow);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public uint GetTimestamp() => (uint)((DateTime.UtcNow.Ticks - BaseTicks) / TimeSpan.TicksPerSecond);
 
-        /// <summary>
-        /// 时间戳转换c#时间
-        /// </summary>
-        public DateTime TimestampToDate(long timestamp) => BaseDate.AddSeconds(timestamp).ToLocalTime();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public long GetTimestampMs() => (DateTime.UtcNow.Ticks - BaseTicks) / TimeSpan.TicksPerMillisecond;
 
-        /// <summary>
-        /// 时间戳转换c#时间
-        /// </summary>
-        public DateTime TimestampMSToDate(long timestamp) => BaseDate.AddMilliseconds(timestamp).ToLocalTime();
+        public DateTime TimestampToDateUtc(long timestamp) => new(BaseTicks + timestamp * TimeSpan.TicksPerSecond, DateTimeKind.Utc);
+        public DateTime TimestampToDate(long timestamp) => TimestampToDateUtc(timestamp).ToLocalTime();
 
-        /// <summary>
-        /// c#时间转换为时间戳
-        /// </summary>
+        public DateTime TimestampMsToDateUtc(long timestampMs) => new(BaseTicks + timestampMs * TimeSpan.TicksPerMillisecond, DateTimeKind.Utc);
+        public DateTime TimestampMSToDate(long timestamp) => TimestampMsToDateUtc(timestamp).ToLocalTime();
+
         public uint DateToTimestamp(DateTime date)
         {
-            if (date.Kind != DateTimeKind.Utc)
-                date = date.ToUniversalTime();
-            return (uint)((date.Ticks - Default.BaseDate.Ticks) / TimeSpan.TicksPerSecond);
+            var utcTicks = date.Kind == DateTimeKind.Utc ? date.Ticks : date.ToUniversalTime().Ticks;
+            return (uint)((utcTicks - BaseTicks) / TimeSpan.TicksPerSecond);
         }
 
-        /// <summary>
-        /// c#时间转换为时间戳(毫秒)
-        /// </summary>
         public long DateToTimestampMs(DateTime date)
         {
-            if (date.Kind != DateTimeKind.Utc)
-                date = date.ToUniversalTime();
-            return (date.Ticks - Default.BaseDate.Ticks) / TimeSpan.TicksPerMillisecond;
+            var utcTicks = date.Kind == DateTimeKind.Utc ? date.Ticks : date.ToUniversalTime().Ticks;
+            return (utcTicks - BaseTicks) / TimeSpan.TicksPerMillisecond;
         }
 
         /// <summary> 格式化时间 </summary>
