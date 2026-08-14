@@ -75,7 +75,7 @@ namespace FLib
     {
         None,
         DisableTrim = 0x1,
-        VInt = 0x2,
+        DisableVInt = 0x2,
     }
 
 

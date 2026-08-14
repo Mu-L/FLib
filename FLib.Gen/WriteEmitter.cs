@@ -21,16 +21,19 @@ namespace FLib.Gen
                 goto additional;
             }
 
-            if ((options & FieldOption.VInt) != 0 || TypeHelper.IsSignedVInt(type))
+            if ((options & FieldOption.DisableVInt) == 0)
             {
-                sb.Append("writer.PushVInt(").Append(field).Append(");");
-                goto additional;
-            }
+                if (TypeHelper.IsSignedVInt(type))
+                {
+                    sb.Append("writer.PushVInt(").Append(field).Append(");");
+                    goto additional;
+                }
 
-            if (TypeHelper.IsUnsignedVInt(type))
-            {
-                sb.Append("writer.PushUVInt(").Append(field).Append(");");
-                goto additional;
+                if (TypeHelper.IsUnsignedVInt(type))
+                {
+                    sb.Append("writer.PushUVInt(").Append(field).Append(");");
+                    goto additional;
+                }
             }
 
             ++uid;

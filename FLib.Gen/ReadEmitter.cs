@@ -22,16 +22,19 @@ namespace FLib.Gen
                 goto additional;
             }
 
-            if ((options & FieldOption.VInt) != 0 || TypeHelper.IsSignedVInt(type))
+            if ((options & FieldOption.DisableVInt) == 0)
             {
-                sb.Append(field).Append(" = (").Append(type.Name).Append(")reader.ReadVInt();");
-                goto additional;
-            }
+                if (TypeHelper.IsSignedVInt(type))
+                {
+                    sb.Append(field).Append(" = (").Append(type.Name).Append(")reader.ReadVInt();");
+                    goto additional;
+                }
 
-            if (TypeHelper.IsUnsignedVInt(type))
-            {
-                sb.Append(field).Append(" = (").Append(type.Name).Append(")reader.ReadUVInt();");
-                goto additional;
+                if (TypeHelper.IsUnsignedVInt(type))
+                {
+                    sb.Append(field).Append(" = (").Append(type.Name).Append(")reader.ReadUVInt();");
+                    goto additional;
+                }
             }
 
             ++uid;

@@ -506,6 +506,6 @@ namespace FLib.Gen
     internal static class FieldOption
     {
         public const int DisableTrim = 0x1;
-        public const int VInt = 0x2;
+        public const int DisableVInt = 0x2;
     }
 }
