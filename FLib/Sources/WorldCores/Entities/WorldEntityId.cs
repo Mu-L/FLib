@@ -27,6 +27,12 @@ namespace FLib.WorldCores.Entities
             Version = version;
         }
 
+        public WorldEntityId(uint val)
+        {
+            Id = (ushort)(val >> 16);
+            Version = (ushort)(val & 0xFFFF);
+        }
+
         bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
         {
             jsonText.Append(ToString());
