@@ -10,7 +10,8 @@ namespace FLib.WorldCores.SoaComponents
 {
     public class WorldUpdateSoaComponentGroup<T> : WorldSoaComponentGroup<T>
     {
-        public HashSet<int> StartComponentIndexes;
+        public HashSet2<int> StartComponentIndexes;
+        internal HashSet2<int> ProcessingStartComponentIndexes;
         public PauseCounter PauseUpdate;
 
         public WorldUpdateSoaComponentGroup(WorldCore world) : base(world)
@@ -20,7 +21,8 @@ namespace FLib.WorldCores.SoaComponents
                 world.Update2.Register(WorldUpdateSoaComponentGroupHelper.UpdateMethodDefine.MakeGenericMethod(typeof(T)), order, this);
             if (typeof(IWorldStart).IsAssignableFrom(typeof(T)))
             {
-                StartComponentIndexes = new HashSet<int>();
+                StartComponentIndexes = new HashSet2<int>();
+                ProcessingStartComponentIndexes = new HashSet2<int>();
                 world.Update1.Register(WorldUpdateSoaComponentGroupHelper.UpdateStartMethodDefine.MakeGenericMethod(typeof(T)), order, this);
             }
         }
@@ -36,6 +38,7 @@ namespace FLib.WorldCores.SoaComponents
         {
             base.Free(et, index, onEntityDestroyed);
             StartComponentIndexes?.Remove(index);
+            ProcessingStartComponentIndexes?.Remove(index);
         }
     }
 }

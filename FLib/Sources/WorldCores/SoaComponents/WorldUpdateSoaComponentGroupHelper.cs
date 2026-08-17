@@ -39,23 +39,34 @@ namespace FLib.WorldCores.SoaComponents
         public static void UpdateStart<T>(WorldCore world, object arg) where T : IWorldStart
         {
             var group = (WorldUpdateSoaComponentGroup<T>)arg;
-            foreach (var i in group.StartComponentIndexes)
+            // Keep additions made by callbacks in the next batch; only removals touch the current batch.
+            var processingIndexes = group.StartComponentIndexes;
+            group.StartComponentIndexes = group.ProcessingStartComponentIndexes;
+            group.ProcessingStartComponentIndexes = processingIndexes;
+            group.StartComponentIndexes.Clear();
+
+            try
             {
-                var et = group.ComponentEntities[i];
-                ref var comp = ref group.Components[i];
-                try
+                foreach (var i in processingIndexes)
                 {
-                    WorldComponentEvents.OnStart?.Invoke(world, et, typeof(T), ref Unsafe.As<T, byte>(ref comp));
-                    WorldComponentEvents<T>.OnStart?.Invoke(world, et, ref comp);
-                    comp.OnComponentStart(world, et);
-                }
-                catch (Exception e)
-                {
-                    Log.Error?.Write($"{et} {comp} {e}");
+                    var et = group.ComponentEntities[i];
+                    ref var comp = ref group.Components[i];
+                    try
+                    {
+                        WorldComponentEvents.OnStart?.Invoke(world, et, typeof(T), ref Unsafe.As<T, byte>(ref comp));
+                        WorldComponentEvents<T>.OnStart?.Invoke(world, et, ref comp);
+                        comp.OnComponentStart(world, et);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error?.Write($"{et} {comp} {e}");
+                    }
                 }
             }
-
-            group.StartComponentIndexes.Clear();
+            finally
+            {
+                processingIndexes.Clear();
+            }
         }
     }
 }
