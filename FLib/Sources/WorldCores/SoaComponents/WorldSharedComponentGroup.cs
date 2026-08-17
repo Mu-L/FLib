@@ -21,7 +21,7 @@ namespace FLib.WorldCores.SoaComponents
 
     public class WorldSharedComponentGroup<T> : WorldSoaComponentGroup<T>, IWorldSharedComponentGroupable where T : IWorldSharedComponent
     {
-        public SlimDictionary<int, WorldSharedComponentGroupRef> Groups = new();
+        public Dictionary2<int, WorldSharedComponentGroupRef> Groups = new();
 
         public int Version { get; private set; }
 

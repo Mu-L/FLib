@@ -25,7 +25,7 @@ namespace FLib.Unity
         public static string PersistentAssetPath = Path.Combine(Application.persistentDataPath, GAME_RES_NAME);
 
         public static readonly Dictionary<string, AssetLoaded> ConstAssetLoadeds = new(16);
-        public static readonly SlimDictionary<string, AssetLoaded> AssetLoadeds = new(4096);
+        public static readonly Dictionary2<string, AssetLoaded> AssetLoadeds = new(4096);
         public static ValueLinkedList<AssetLoading> AssetLoadings = new(4096);
         public static readonly Dictionary<string, int> AssetLoadingDict = new(4096);
 
@@ -108,7 +108,7 @@ namespace FLib.Unity
                         Path = loading.Path,
                         MainAsset = loading.MainAsset,
                     }.Initialize();
-                    AssetLoadeds.GetOrAddValueRef(loaded.Path) = loaded;
+                    AssetLoadeds.GetValueOrAdd(loaded.Path) = loaded;
                     CallLoadComplete(loaded, loading);
                 }
 

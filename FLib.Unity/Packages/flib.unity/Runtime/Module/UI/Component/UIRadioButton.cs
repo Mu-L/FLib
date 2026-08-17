@@ -11,7 +11,7 @@ namespace FLib.Unity
     public class UIRadioButton : UIClickable
     {
         [Header("单选组"), Tooltip("相同的组只能选中一个")] public byte Group;
-        public static readonly SlimDictionary<byte, UIRadioButton> GroupActives = new SlimDictionary<byte, UIRadioButton>(16);
+        public static readonly Dictionary2<byte, UIRadioButton> GroupActives = new Dictionary2<byte, UIRadioButton>(16);
 
         [FormerlySerializedAs("IsDefaultSelection")] [Header("是否默认选中")]
         public bool IsDefaultSelection;
@@ -24,10 +24,10 @@ namespace FLib.Unity
 
         public bool IsSelected
         {
-            get => GroupActives.GetOrAddValueRef(Group) == this;
+            get => GroupActives.GetValueOrAdd(Group) == this;
             set
             {
-                ref var selected = ref GroupActives.GetOrAddValueRef(Group);
+                ref var selected = ref GroupActives.GetValueOrAdd(Group);
                 if (selected == this)
                 {
                     return;

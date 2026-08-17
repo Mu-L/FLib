@@ -125,8 +125,8 @@ namespace FLib.Unity.Editor.PackBuilder.Task.Script
             var loadablePaths = AssetDatabase.GetAssetPathsFromAssetBundle(Utility.LoadableFlag);
             var buildPaths = new HashSet<string>(loadablePaths);
             var builds = new List<AssetBundleBuild>(loadablePaths.Length);
-            var allDependencies = new SlimDictionary<string, int>();
-            var fileSizeCached = new SlimDictionary<string, long>();
+            var allDependencies = new Dictionary2<string, int>();
+            var fileSizeCached = new Dictionary2<string, long>();
             var tileToAtlasPaths = new Dictionary<string, string>();
             var atlasToTilePaths = new Dictionary<string, string[]>();
             var shaders = isCollectShaders ? new HashSet<string>(1024) : null;
@@ -188,11 +188,11 @@ namespace FLib.Unity.Editor.PackBuilder.Task.Script
                             continue;
                     }
 
-                    if (++allDependencies.GetOrAddValueRef(dependentPath) == 2)
+                    if (++allDependencies.GetValueOrAdd(dependentPath) == 2)
                     {
                         if (!isIgnoreSizeRule)
                         {
-                            ref var fileSize = ref fileSizeCached.GetOrAddValueRef(dependentPath);
+                            ref var fileSize = ref fileSizeCached.GetValueOrAdd(dependentPath);
                             if (fileSize == 0)
                             {
                                 if (ImageExtensions.Contains(pathExtension))

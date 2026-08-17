@@ -124,14 +124,14 @@ namespace Nets
 
     public static class NetHelper
     {
-        private static readonly SlimDictionary<int, string> CmdLogCache = new();
-        private static readonly SlimDictionary<int, string> ErrorCodeLogCache = new();
-        public static SlimDictionary<int, string> ErrorLangTextCache = new();
+        private static readonly Dictionary2<int, string> CmdLogCache = new();
+        private static readonly Dictionary2<int, string> ErrorCodeLogCache = new();
+        public static Dictionary2<int, string> ErrorLangTextCache = new();
 
         static NetHelper()
         {
-            FNetChannel.LogCmdHandler = i => CmdLogCache.GetOrAddValueRef(i) ??= ((ENetCmd)i).ToString();
-            FNetChannel.LogErrorCodeHandler = i => ErrorCodeLogCache.GetOrAddValueRef(i) ??= ((EErrorCode)i).ToString();
+            FNetChannel.LogCmdHandler = i => CmdLogCache.GetValueOrAdd(i) ??= ((ENetCmd)i).ToString();
+            FNetChannel.LogErrorCodeHandler = i => ErrorCodeLogCache.GetValueOrAdd(i) ??= ((EErrorCode)i).ToString();
         }
 
         public static Net.NetRequester Create(string name, string address, int port)
@@ -147,7 +147,7 @@ namespace Nets
 
         public static void OpenErrorDialog(EErrorCode error, string text = "")
         {
-            var errorText = ErrorLangTextCache.GetOrAddValueRef((int)error) ??= Lang.Get(error + "Error");
+            var errorText = ErrorLangTextCache.GetValueOrAdd((int)error) ??= Lang.Get(error + "Error");
             TextDialogUI.Open(Lang.Get("Failure"), $"{errorText}\n{text}");
         }
     }

@@ -170,7 +170,7 @@ namespace FLib.Unity
 #if !UNITY_EDITOR && HYBRIDCLR
         private async UniTask LoadDlls(string typeName, Action<byte[]> process)
         {
-            var hotDlls = AssetLoader.Info.AssetMetas.GetOrAddValueRef(typeName).Dependencies;
+            var hotDlls = AssetLoader.Info.AssetMetas.GetValueOrAdd(typeName).Dependencies;
             if (hotDlls != null)
             {
                 foreach (var item in hotDlls)

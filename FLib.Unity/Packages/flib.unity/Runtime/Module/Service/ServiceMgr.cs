@@ -37,7 +37,7 @@ namespace FLib.Unity
         /// </summary>
         public static void Initialize()
         {
-            var stages = new SlimDictionary<uint, List<IModuleStageable>>(64);
+            var stages = new Dictionary2<uint, List<IModuleStageable>>(64);
             for (var i = 0; i < AllServices.Length; i++)
             {
                 var s = AllServices[i].Service = TypeAssistant.New(AllServices[i].ServiceType);
@@ -49,7 +49,7 @@ namespace FLib.Unity
                     {
                         var stageId = stage.StageIdMask & idBit;
                         if (stageId != 0)
-                            (stages.GetOrAddValueRef(stageId) ??= new List<IModuleStageable>()).Add(stage);
+                            (stages.GetValueOrAdd(stageId) ??= new List<IModuleStageable>()).Add(stage);
                         mask >>= 1;
                         idBit <<= 1;
                     }

@@ -14,7 +14,7 @@ namespace Modules
 {
     public class UIMgr : UIRoot
     {
-        private static SlimDictionary<string, Type> _uiNameTypes;
+        private static Dictionary2<string, Type> _uiNameTypes;
 
         protected override void Awake()
         {
@@ -29,7 +29,7 @@ namespace Modules
         /// <summary>
         /// 
         /// </summary>
-        private static Type GetUIType(string name) => (_uiNameTypes ??= new SlimDictionary<string, Type>()).GetOrAddValueRef(name) ??= UIMeta.UITypeMetas.SingleOrDefault(v => v.Key.Name == name).Key ?? throw new KeyNotFoundException(name);
+        private static Type GetUIType(string name) => (_uiNameTypes ??= new Dictionary2<string, Type>()).GetValueOrAdd(name) ??= UIMeta.UITypeMetas.SingleOrDefault(v => v.Key.Name == name).Key ?? throw new KeyNotFoundException(name);
 
         /// <summary>
         /// 

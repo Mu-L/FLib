@@ -142,7 +142,7 @@ namespace FLib.Unity
     /// </summary>
     public struct SpriteWordRendererCache
     {
-        public static SlimDictionary<string, SpriteWordRendererCache> Caches = new();
+        public static Dictionary2<string, SpriteWordRendererCache> Caches = new();
         public int RefCount;
         public float PixelToWorldUnit;
         public ReadOnlyDictionary<char, Sprite> Sprites;
@@ -152,7 +152,7 @@ namespace FLib.Unity
         /// </summary>
         public static void Register(in SpriteWordRendererData data)
         {
-            ref var cache = ref Caches.GetOrAddValueRef(data.TemplateName);
+            ref var cache = ref Caches.GetValueOrAdd(data.TemplateName);
             cache.Sprites ??= new ReadOnlyDictionary<char, Sprite>(data.Sprites.ToDictionary(v => v.name[^1]));
             cache.PixelToWorldUnit = data.PixelToWorldUnit;
             ++cache.RefCount;

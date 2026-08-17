@@ -13,7 +13,7 @@ namespace FLib.Unity
     public partial struct AssetLoaderInfo
     {
         [BytesPackGenField] public uint Id;
-        [BytesPackGenField] public SlimDictionary<string, Meta> AssetMetas;
+        [BytesPackGenField] public Dictionary2<string, Meta> AssetMetas;
         public bool IsEmpty => Id == 0;
 
         [BytesPackGen]
@@ -63,7 +63,7 @@ namespace FLib.Unity
         public AssetLoaderInfo(uint id, int capacity)
         {
             Id = id;
-            AssetMetas = new SlimDictionary<string, Meta>(capacity);
+            AssetMetas = new Dictionary2<string, Meta>(capacity);
         }
 
         public static AssetLoaderInfo Unpack(Span<byte> bytes)

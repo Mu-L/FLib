@@ -29,7 +29,7 @@ namespace FLib.Unity.Editor.PackBuilder.Task
         /// </summary>
         public ref AssetLoaderInfo.Meta GetInfoAssetMeta(string path)
         {
-            return ref Info.AssetMetas.GetOrAddValueRef(path);
+            return ref Info.AssetMetas.GetValueOrAdd(path);
         }
     }
 }

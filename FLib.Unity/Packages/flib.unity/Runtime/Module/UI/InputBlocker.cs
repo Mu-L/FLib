@@ -23,7 +23,7 @@ namespace FLib.Unity
         public TMP_Text Label;
 
 
-        public static readonly SlimDictionary<int, Blocking> NamedBlockings = new(8);
+        public static readonly Dictionary2<int, Blocking> NamedBlockings = new(8);
         public static int AnonymousBlockings;
         private static float _lastActiveTime;
         private static string _defaultLabelText;
@@ -119,7 +119,7 @@ namespace FLib.Unity
                 Active();
 
             Inst.Label.text = text;
-            ref var blocking = ref NamedBlockings.GetOrAddValueRef(key);
+            ref var blocking = ref NamedBlockings.GetValueOrAdd(key);
             blocking.DisplayText = text;
             ++blocking.Count;
             return new BlockingRef(key);
