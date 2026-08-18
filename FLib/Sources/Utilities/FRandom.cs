@@ -154,7 +154,7 @@ namespace FLib
         /// <param name="max">不包含</param>
         /// <param name="weights">权重组</param>
         /// <param name="weightsSum">权重总和</param>
-        public int NextSegmentValue(int min, int max, Span<int> weights, int weightsSum = 1000)
+        public int NextSegmentValue(int min, int max, ReadOnlySpan<int> weights, int weightsSum = 1000)
         {
             if (max <= min) return min;
             var total = max - min;
@@ -165,9 +165,13 @@ namespace FLib
                 if (total == 2)
                     return Next(0, weights[0] + weights[1]) < weights[0] ? min : max - 1;
                 var skipCount = weights.Length - total;
-                for (var i = 0; i < skipCount; i++)
-                    weights[i + 1] += weights[i];
-                weights = weights[skipCount..];
+                Span<int> adjustedWeights = stackalloc int[total];
+                adjustedWeights[0] = weights[0];
+                for (var i = 1; i <= skipCount; i++)
+                    adjustedWeights[0] += weights[i];
+                weights[(skipCount + 1)..].CopyTo(adjustedWeights[1..]);
+                var adjustedSegmentValue = (FNum)total / adjustedWeights.Length;
+                return (int)(adjustedSegmentValue * NextWeightIndex(adjustedWeights, weightsSum) + NextNumber(0, adjustedSegmentValue) + min);
             }
 
             var segmentValue = (FNum)total / weights.Length;
@@ -178,7 +182,7 @@ namespace FLib
         /// weight random
         /// </summary>
         /// <returns>weight index</returns>
-        public int NextWeightIndex(in Span<int> weights, int weightsSum = 1000)
+        public int NextWeightIndex(in ReadOnlySpan<int> weights, int weightsSum = 1000)
         {
             if (weights.Length < 1) return 0;
 #if DEBUG
