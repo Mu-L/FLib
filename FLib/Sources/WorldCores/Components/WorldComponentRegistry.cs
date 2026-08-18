@@ -18,21 +18,19 @@ namespace FLib.WorldCores.Components
     {
         public static readonly Dictionary<Type, WorldComponentMeta> ComponentTypeMap = new(1024);
         public static ushort ComponentCount { get; private set; }
+
+        private static readonly Dictionary<Type, IBytesPackGenericWrapper> SerializationWrapperMap = new();
         private static WorldComponentInfo[] _componentInfos = new WorldComponentInfo[1024];
         private static readonly MethodInfo SizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf));
         private static SpinLock _locker = new(false);
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static WorldIncrementId GetId<T>()
         {
             return GetMeta<T>().Id;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static WorldComponentMeta GetMeta<T>()
         {
             // 考虑直接通过静态构造函数初始化, 避免这次的运行时判断开销是否需要?
@@ -41,57 +39,43 @@ namespace FLib.WorldCores.Components
                 : WorldComponentGenericMap<T>.Meta;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static WorldIncrementId GetId(Type type)
         {
             return GetMeta(type).Id;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static WorldComponentMeta GetMeta(Type type)
         {
             return ComponentTypeMap.TryGetValue(type, out var componentType) ? componentType : Register(type, SizeOf(type));
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static Type GetType(in WorldIncrementId id)
         {
             return _componentInfos[id].Type;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static ref readonly WorldComponentInfo GetInfo<T>()
         {
             return ref _componentInfos[GetMeta<T>().Id];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static ref readonly WorldComponentInfo GetInfo(Type type)
         {
             return ref _componentInfos[GetMeta(type).Id];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static ref readonly WorldComponentInfo GetInfo(in WorldIncrementId id)
         {
             return ref _componentInfos[id];
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static WorldComponentMeta Register(Type type, ushort size)
         {
             var locking = false;
@@ -113,9 +97,7 @@ namespace FLib.WorldCores.Components
             return meta;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public static int GetHash(in ReadOnlySpan<ulong> componentTypeMask)
         {
             var hash = new HashCode();
@@ -123,20 +105,43 @@ namespace FLib.WorldCores.Components
             return hash.ToHashCode();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         private static ushort SizeOf<T>()
         {
             return (ushort)(typeof(T).IsValueType ? Unsafe.SizeOf<T>() : IntPtr.Size);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         private static ushort SizeOf(Type type)
         {
             return (ushort)(type.IsValueType ? (int)SizeOfMethod.MakeGenericMethod(type).Invoke(null, null)! : IntPtr.Size);
+        }
+
+        /// <summary> </summary>
+        public static IBytesPackGenericWrapper GetSerializationWrapper(Type type)
+        {
+            var locking = false;
+            _locker.Enter(ref locking);
+            try
+            {
+                if (SerializationWrapperMap.TryGetValue(type, out var wrapper))
+                    return wrapper;
+                try
+                {
+                    SerializationWrapperMap.Add(type, wrapper = (IBytesPackGenericWrapper)TypeAssistant.New(typeof(BytesPackGenericWrapper<>).MakeGenericType(type)));
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"nonsupport serialization {TypeAssistant.GetTypeName(type)} {e}");
+                }
+
+                return wrapper;
+            }
+            finally
+            {
+                if (locking)
+                    _locker.Exit(false);
+            }
         }
     }
 }

@@ -17,7 +17,6 @@ namespace FLib.WorldCores.Components
         public readonly LifecycleDelegate Destroy;
         public readonly LifecycleDelegate DestroyWithComponentSelf;
         public readonly WorldComponentOptionAttribute? Options;
-        public readonly IBytesPackGenericWrapper? BytesPackWrapper;
         public readonly EComponentState States;
 
         public bool IsShared => (States & EComponentState.Shared) != 0;
@@ -54,9 +53,6 @@ namespace FLib.WorldCores.Components
             }
 
             States = flags;
-            BytesPackWrapper = (Options?.Flags & EComponentFlag.BytesPackWrapper) != 0 && typeof(IBytesPackable).IsAssignableFrom(type)
-                ? (IBytesPackGenericWrapper?)TypeAssistant.New(typeof(BytesPackGenericWrapper<>).MakeGenericType(type))
-                : null;
         }
 
         public bool Flags(EComponentFlag flags) => Options != null && (Options.Flags & flags) == flags;

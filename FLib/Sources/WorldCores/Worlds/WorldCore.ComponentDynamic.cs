@@ -103,10 +103,10 @@ namespace FLib.WorldCores
             var id = WorldComponentRegistry.GetId(componentType);
             ref var eti = ref GetEntityInfo(et);
             ref var slot = ref EnsureDynamicComponentIndex(id, ref eti);
-            var group = DynComponentGroups.Get(componentType);
+            var group = DynComponentGroups.Get(id);
             if (slot < 0)
             {
-                TryAddRequiredComponents(et, WorldComponentRegistry.GetInfo(componentType));
+                TryAddRequiredComponents(et, WorldComponentRegistry.GetInfo(id));
                 slot = group.Alloc(et, component);
             }
             else
@@ -122,10 +122,26 @@ namespace FLib.WorldCores
         /// </summary>
         public int SetDynScript(WorldEntityId et, in ScriptPackBytes script)
         {
-            // 后续考虑改为无GC实现方式
-            var index = SetDynObject(et, script.CreateInstance());
-            // WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
-            return index;
+            ref readonly var compInfo = ref WorldComponentRegistry.GetInfo(script.ScriptType);
+            Assert(!compInfo.IsShared, et);
+            ref var eti = ref GetEntityInfo(et);
+            ref var slot = ref EnsureDynamicComponentIndex(compInfo.Meta.Id, ref eti);
+            var group = DynComponentGroups.Get(compInfo.Meta.Id);
+            if (slot < 0)
+            {
+                TryAddRequiredComponents(et, compInfo);
+                slot = group.AllocWithoutAwake(et);
+                if (compInfo.Type.IsClass)
+                    group.Components.SetValue(TypeAssistant.New(compInfo.Type), slot);
+                WorldComponentRegistry.GetSerializationWrapper(compInfo.Type).Deserialize(ref group.GetPointer(slot), script.InstanceBytes.Span);
+                group.InvokeAwake(et, slot);
+            }
+            else
+            {
+                WorldComponentRegistry.GetSerializationWrapper(compInfo.Type).Deserialize(ref group.GetPointer(slot), script.InstanceBytes.Span);
+            }
+
+            return slot;
         }
 
 
@@ -134,10 +150,7 @@ namespace FLib.WorldCores
         /// </summary>
         public int SetDynScript<T>(WorldEntityId et, in ScriptPackBytes<T> script) where T : IBytesPackable
         {
-            // 后续考虑改为无GC实现方式
-            var index = SetDynObject(et, script.CreateInstance());
-            // WorldComponentRegistry.GetInfo(type).BytesPackWrapper!.Deserialize(ref Soa.GetGroup(type).GetPointer(index), script.InstanceBytes.Span);
-            return index;
+            return SetDynScript(et, (ScriptPackBytes)script);
         }
 
         /// <summary>

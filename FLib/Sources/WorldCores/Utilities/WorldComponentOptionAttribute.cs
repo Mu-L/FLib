@@ -46,6 +46,5 @@ namespace FLib.WorldCores
         RejectSoa = 0x2,
         RejectChunk = 0x4,
         AlwaysReceiveDestroy = 0x8,
-        BytesPackWrapper = 0x10,
     }
 }

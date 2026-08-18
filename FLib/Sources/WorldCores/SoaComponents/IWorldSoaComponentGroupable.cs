@@ -17,6 +17,11 @@ namespace FLib.WorldCores.SoaComponents
         int Alloc(in WorldEntityId et, object component);
 
         /// <summary>
+        /// 
+        /// </summary>
+        int AllocWithoutAwake(in WorldEntityId et);
+        
+        /// <summary>
         /// 释放动态组件
         /// </summary>
         void Free(in WorldEntityId et, int index, bool onEntityDestroyed);

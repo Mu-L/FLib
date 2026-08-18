@@ -17,7 +17,6 @@ namespace FLib.WorldCores.SoaComponents
         public WorldEntityId[] ComponentEntities = Array.Empty<WorldEntityId>();
         internal T[] Components = Array.Empty<T>();
 
-
         public WorldCore World { get; set; }
         public int Count => IndexAllocator.Count;
         Array IWorldSoaComponentGroupable.Components => Components;
@@ -40,9 +39,7 @@ namespace FLib.WorldCores.SoaComponents
             World = world;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public virtual bool EnsureCapacity(int capacity)
         {
             if (Components.Length >= capacity) return false;
@@ -54,22 +51,16 @@ namespace FLib.WorldCores.SoaComponents
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public ref byte GetPointer(int index)
         {
             return ref Unsafe.As<T, byte>(ref Components[index]);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         int IWorldSoaComponentGroupable.Alloc(in WorldEntityId et, object component) => Alloc(et, (T)component);
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public virtual int Alloc(in WorldEntityId et, in T component)
         {
             var index = AllocWithoutAwake(et, component);
@@ -77,31 +68,33 @@ namespace FLib.WorldCores.SoaComponents
             return index;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void InvokeAwake(WorldEntityId et, int componentIndex)
         {
             WorldComponentRegistry.GetInfo<T>().Awake.Invoke(ref Unsafe.As<T, byte>(ref Components[componentIndex]), World, et);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        internal int AllocWithoutAwake(in WorldEntityId et, in T component)
+        /// <summary> </summary>
+        public int AllocWithoutAwake(in WorldEntityId et, in T component)
+        {
+            var index = AllocWithoutAwake(et);
+            Components[index] = component;
+            return index;
+        }
+
+        /// <summary> </summary>
+        public int AllocWithoutAwake(in WorldEntityId et)
         {
             var index = IndexAllocator.Alloc();
             if (index >= Components.Length)
                 EnsureCapacity(MathEx.GetNextCapacityLength(index));
-            Components[index] = component;
+            Components[index] = default;
             ComponentEntities[index] = et;
             return index;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
+        /// <summary> </summary>
         public virtual void Free(in WorldEntityId et, int index, bool onEntityDestroyed)
         {
             try

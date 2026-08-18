@@ -162,6 +162,7 @@ namespace FLib
         public readonly T? CreateInstance() => (T?)new ScriptPackBytes(Bytes).CreateInstance();
         public void SetInstance(IBytesPackable? instance) => Bytes = new ScriptPackBytes(instance).Bytes;
         public override string ToString() => $"{ScriptTypeName}[{IOUtility.FormatSize((Bytes?.Length).GetValueOrDefault())}]";
+        public static implicit operator ScriptPackBytes(ScriptPackBytes<T> v) => new(v.Bytes);
 
         #region serialization
 
