@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace FLib
 {
-    public class MathEx
+    public static class MathEx
     {
         public static readonly FNum Epsilon = FNum.Epsilon;
         public static readonly FNum Pi = FNum.PI;
@@ -60,6 +60,9 @@ namespace FLib
                 value = max;
             return value;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum Lerp(FNum from, FNum to, FNum t) => from + (to - from) * t;
 
         /// <summary>
         /// 
