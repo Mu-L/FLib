@@ -27,11 +27,10 @@ namespace FLib.WorldCores.SoaComponents
             }
         }
 
-        public override int Alloc(in WorldEntityId et, in T component)
+        public override void InvokeAwake(WorldEntityId et, int componentIndex)
         {
-            var index = base.Alloc(et, component);
-            StartComponentIndexes?.Add(index);
-            return index;
+            base.InvokeAwake(et, componentIndex);
+            StartComponentIndexes?.Add(componentIndex);
         }
 
         public override void Free(in WorldEntityId et, int index, bool onEntityDestroyed)

@@ -70,7 +70,7 @@ namespace FLib.WorldCores.SoaComponents
 
         /// <summary> </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void InvokeAwake(WorldEntityId et, int componentIndex)
+        public virtual void InvokeAwake(WorldEntityId et, int componentIndex)
         {
             WorldComponentRegistry.GetInfo<T>().Awake.Invoke(ref Unsafe.As<T, byte>(ref Components[componentIndex]), World, et);
         }
