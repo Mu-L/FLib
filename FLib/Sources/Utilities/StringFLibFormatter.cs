@@ -7,7 +7,7 @@ namespace FLib
 {
     public class StringFLibFormatter : IFormatProvider, ICustomFormatter
     {
-        public static StringFLibFormatter Main = new();
+        public static StringFLibFormatter Default = new();
 
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
@@ -27,8 +27,21 @@ namespace FLib
         }
 
         public object GetFormat(Type formatType)
-        {
-            return formatType == typeof(ICustomFormatter) ? this : null;
-        }
+            => formatType == typeof(ICustomFormatter) ? this : null;
+
+        public static string Format(string format)
+            => string.Format(Default, format);
+
+        public static string Format(string format, object arg1)
+            => string.Format(Default, format, arg1);
+
+        public static string Format(string format, object arg1, object arg2)
+            => string.Format(Default, format, arg1, arg2);
+
+        public static string Format(string format, object arg1, object arg2, object arg3)
+            => string.Format(Default, format, arg1, arg2, arg3);
+
+        public static string Format(string format, params object[] args)
+            => string.Format(Default, format, args);
     }
 }

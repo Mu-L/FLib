@@ -68,14 +68,17 @@ namespace FLib
         public static readonly FNum Ten = One * 10;
         public static readonly FNum Hundred = One * 100;
         public static readonly FNum Thousand = One * 1000;
+        public static readonly FNum TenThousand = One * 10000;
         public static readonly FNum OneHalf = One / 2;
         public static readonly FNum Tenth = One / Ten;
         public static readonly FNum Hundredth = One / Hundred;
         public static readonly FNum Thousandth = One / Thousand;
+        public static readonly FNum TenThousandth = One / TenThousand;
         public static readonly FNum SqrtMaxValue = Sqrt(MaxValue);
 
 
         #region Math
+
         /// <summary>
         /// Returns a number indicating the sign of a Fix64 number.
         /// Returns 1 if the value is positive, 0 if is 0, and -1 if it is negative.
@@ -197,7 +200,8 @@ namespace FLib
 #endif
 #endif
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum FastAdd(in FNum x, in FNum y) => new(x.RawValue + y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum FastAdd(in FNum x, in FNum y) => new(x.RawValue + y.RawValue);
 
 #if FIXED_POINT_NUMBER
 #if FIXED_POINT_NUMBER_FAST
@@ -217,7 +221,8 @@ namespace FLib
         }
 #endif
 #endif
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum FastSub(FNum x, FNum y) => new(x.RawValue - y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum FastSub(FNum x, FNum y) => new(x.RawValue - y.RawValue);
 
 #if FIXED_POINT_NUMBER
         private static long AddOverflowHelper(long x, long y, ref bool overflow)
@@ -421,7 +426,8 @@ namespace FLib
         /// Performs modulo as fast as possible; throws if x == MinValue and y == -1.
         /// Use the operator (%) for a more reliable but slower modulo.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum FastMod(FNum x, FNum y) => new(x.RawValue % y.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum FastMod(FNum x, FNum y) => new(x.RawValue % y.RawValue);
 
         /// <summary>
         /// Returns 2 raised to the specified power.
@@ -964,21 +970,32 @@ namespace FLib
 
         public static FNum Max(FNum a, FNum b) => new(Math.Max(a.RawValue, b.RawValue));
         public static FNum Min(FNum a, FNum b) => new(Math.Min(a.RawValue, b.RawValue));
+
         #endregion
 
         public readonly void Z_BytesWrite(ref BytesWriter writer) => writer.Push((float)this);
         public void Z_BytesRead(ref BytesReader reader) => this = (FNum)reader.Read<float>();
-        readonly Json5CustomDeserializeResult IJson5Deserializable.JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options) => nodes.TryMoveNextValueOrCloseToken(out var node) ? new Json5CustomDeserializeResult(new FNum(node.ContentSpan)) : false;
+
+        readonly Json5CustomDeserializeResult IJson5Deserializable.JsonDeserialize(ref Json5SyntaxNodes nodes, object otherData, in Json5DeserializeOptionData options) =>
+            nodes.TryMoveNextValueOrCloseToken(out var node) ? new Json5CustomDeserializeResult(new FNum(node.ContentSpan)) : false;
+
         readonly bool IJson5Serializable.JsonSerialize(StringBuilder jsonText, object serializeObject, object customData, int indent, Json5SerializeOptionData opData)
         {
             jsonText.Append(ToString("0.####"));
             return true;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly override bool Equals(object obj) => obj is FNum num && num.RawValue == RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly bool Equals(FNum other) => RawValue == other.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly override int GetHashCode() => RawValue.GetHashCode();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public readonly int CompareTo(FNum other) => RawValue.CompareTo(other.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly override bool Equals(object obj) => obj is FNum num && num.RawValue == RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly bool Equals(FNum other) => RawValue == other.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly override int GetHashCode() => RawValue.GetHashCode();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CompareTo(FNum other) => RawValue.CompareTo(other.RawValue);
 #if FIXED_POINT_NUMBER
         public readonly string ToString(string format, IFormatProvider formatProvider) => ((decimal)this).ToString(format ?? "0.#####", formatProvider);
         public readonly string ToString(string format) => ((decimal)this).ToString(format ?? "0.#####");
@@ -988,10 +1005,17 @@ namespace FLib
         public readonly string ToString(string format) => ((float)this).ToString(format);
         public readonly override string ToString() => ((float)this).ToString("0.#####");
 #endif
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator ==(FNum x, FNum y) => x.RawValue == y.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator ==(FNum x, int y) => x == (FNum)y;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator !=(FNum x, int y) => x != (FNum)y;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator !=(FNum x, FNum y) => x.RawValue != y.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(FNum x, FNum y) => x.RawValue == y.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(FNum x, int y) => x == (FNum)y;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(FNum x, int y) => x != (FNum)y;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(FNum x, FNum y) => x.RawValue != y.RawValue;
 
 #if FIXED_POINT_NUMBER
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator %(FNum x, FNum y) => new(x.RawValue == MIN_VALUE & y.RawValue == -1 ? 0 : x.RawValue % y.RawValue);
@@ -1020,55 +1044,145 @@ namespace FLib
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator decimal(FNum value) => (decimal)value.RawValue / ONE;
 
 #else
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator +(FNum x, FNum y) => new(x.RawValue + y.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator -(FNum x, FNum y) => new(x.RawValue - y.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator *(FNum x, FNum y) => new(x.RawValue * y.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator /(FNum x, FNum y) => new(x.RawValue / y.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator %(FNum x, FNum y) => new(x.RawValue % y.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static FNum operator -(FNum x) => new(-x.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator >(FNum x, FNum y) => x.RawValue > y.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator <(FNum x, FNum y) => x.RawValue < y.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator >=(FNum x, FNum y) => x.RawValue >= y.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static bool operator <=(FNum x, FNum y) => x.RawValue <= y.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(long value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator long(FNum value) => (long)value.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(int value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator int(FNum value) => (int)(value.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(uint value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator uint(FNum value) => (uint)value.RawValue;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(short value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator short(FNum value) => (short)(value.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(ushort value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator ushort(FNum value) => (ushort)(value.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(byte value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator byte(FNum value) => (byte)(value.RawValue);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(float value) => new(value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator float(FNum value) => value.RawValue ;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static explicit operator FNum(double value) => new((float)value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator double(FNum value) => value.RawValue ;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator FNum(in decimal value) => new((float)value);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public static implicit operator decimal(FNum value) => (decimal)value.RawValue ;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum operator +(FNum x, FNum y) => new(x.RawValue + y.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum operator -(FNum x, FNum y) => new(x.RawValue - y.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum operator *(FNum x, FNum y) => new(x.RawValue * y.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum operator /(FNum x, FNum y) => new(x.RawValue / y.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum operator %(FNum x, FNum y) => new(x.RawValue % y.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FNum operator -(FNum x) => new(-x.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >(FNum x, FNum y) => x.RawValue > y.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <(FNum x, FNum y) => x.RawValue < y.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >=(FNum x, FNum y) => x.RawValue >= y.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <=(FNum x, FNum y) => x.RawValue <= y.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FNum(long value) => new(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator long(FNum value) => (long)value.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FNum(int value) => new(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator int(FNum value) => (int)(value.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FNum(uint value) => new(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator uint(FNum value) => (uint)value.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FNum(short value) => new(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator short(FNum value) => (short)(value.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FNum(ushort value) => new(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator ushort(FNum value) => (ushort)(value.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FNum(byte value) => new(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator byte(FNum value) => (byte)(value.RawValue);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator FNum(float value) => new(value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator float(FNum value) => value.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static explicit operator FNum(double value) => new((float)value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator double(FNum value) => value.RawValue;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator FNum(in decimal value) => new((float)value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator decimal(FNum value) => (decimal)value.RawValue;
 #endif
 
 
         #region IConvertible
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly TypeCode IConvertible.GetTypeCode() => TypeCode.Single;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly bool IConvertible.ToBoolean(IFormatProvider provider) => this == 1;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly byte IConvertible.ToByte(IFormatProvider provider) => (byte)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly char IConvertible.ToChar(IFormatProvider provider) => (char)(byte)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly DateTime IConvertible.ToDateTime(IFormatProvider provider) => TimeHelper.Default.TimestampToDate((uint)this);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly decimal IConvertible.ToDecimal(IFormatProvider provider) => this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly double IConvertible.ToDouble(IFormatProvider provider) => this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly short IConvertible.ToInt16(IFormatProvider provider) => (short)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly int IConvertible.ToInt32(IFormatProvider provider) => (int)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly long IConvertible.ToInt64(IFormatProvider provider) => (long)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly sbyte IConvertible.ToSByte(IFormatProvider provider) => (sbyte)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly float IConvertible.ToSingle(IFormatProvider provider) => this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly string IConvertible.ToString(IFormatProvider provider) => ToString("", provider);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly object IConvertible.ToType(Type conversionType, IFormatProvider provider) => typeof(FNum);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly ushort IConvertible.ToUInt16(IFormatProvider provider) => (ushort)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly uint IConvertible.ToUInt32(IFormatProvider provider) => (uint)this;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly ulong IConvertible.ToUInt64(IFormatProvider provider) => (ulong)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly TypeCode IConvertible.GetTypeCode() => TypeCode.Single;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly bool IConvertible.ToBoolean(IFormatProvider provider) => this == 1;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly byte IConvertible.ToByte(IFormatProvider provider) => (byte)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly char IConvertible.ToChar(IFormatProvider provider) => (char)(byte)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly DateTime IConvertible.ToDateTime(IFormatProvider provider) => TimeHelper.Default.TimestampToDate((uint)this);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly decimal IConvertible.ToDecimal(IFormatProvider provider) => this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly double IConvertible.ToDouble(IFormatProvider provider) => this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly short IConvertible.ToInt16(IFormatProvider provider) => (short)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly int IConvertible.ToInt32(IFormatProvider provider) => (int)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly long IConvertible.ToInt64(IFormatProvider provider) => (long)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly sbyte IConvertible.ToSByte(IFormatProvider provider) => (sbyte)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly float IConvertible.ToSingle(IFormatProvider provider) => this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly string IConvertible.ToString(IFormatProvider provider) => ToString("", provider);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly object IConvertible.ToType(Type conversionType, IFormatProvider provider) => typeof(FNum);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly ushort IConvertible.ToUInt16(IFormatProvider provider) => (ushort)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly uint IConvertible.ToUInt32(IFormatProvider provider) => (uint)this;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly ulong IConvertible.ToUInt64(IFormatProvider provider) => (ulong)this;
+
         #endregion
     }
 }

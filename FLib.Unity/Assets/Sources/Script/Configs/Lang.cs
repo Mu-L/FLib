@@ -56,7 +56,7 @@ namespace Configs
         /// </summary>
         public static string Get(string key, object arg0)
         {
-            return string.Format(StringFLibFormatter.Main, Get(key), arg0);
+            return StringFLibFormatter.F(Get(key), arg0);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Configs
         /// </summary>
         public static string Get(string key, object arg0, object arg1)
         {
-            return string.Format(StringFLibFormatter.Main, Get(key), arg0, arg1);
+            return StringFLibFormatter.F(Get(key), arg0, arg1);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Configs
         /// </summary>
         public static string Get(string key, object arg0, object arg1, object arg2)
         {
-            return string.Format(StringFLibFormatter.Main, Get(key), arg0, arg1, arg2);
+            return StringFLibFormatter.F(Get(key), arg0, arg1, arg2);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Configs
         /// </summary>
         public static string Get(string key, object arg0, object arg1, object arg2, object arg3)
         {
-            return string.Format(StringFLibFormatter.Main, Get(key), arg0, arg1, arg2, arg3);
+            return StringFLibFormatter.F(Get(key), arg0, arg1, arg2, arg3);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Configs
         /// </summary>
         public static string Get(string key, object arg0, object arg1, object arg2, object arg3, object arg4)
         {
-            return string.Format(StringFLibFormatter.Main, Get(key), arg0, arg1, arg2, arg3, arg4);
+            return StringFLibFormatter.F(Get(key), arg0, arg1, arg2, arg3, arg4);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Configs
         /// </summary>
         public static string Get(string key, object arg0, object arg1, object arg2, object arg3, object arg4, object arg5)
         {
-            return string.Format(StringFLibFormatter.Main, Get(key), arg0, arg1, arg2, arg3, arg4, arg5);
+            return StringFLibFormatter.F(Get(key), arg0, arg1, arg2, arg3, arg4, arg5);
         }
 
         /// <summary>
