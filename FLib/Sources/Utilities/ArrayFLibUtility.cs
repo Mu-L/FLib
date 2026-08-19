@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace FLib
 {
-    public class ArrayFLibUtility
+    public static class ArrayFLibUtility
     {
         /// <summary>
         /// 创建一个被元素实例填满的数组
