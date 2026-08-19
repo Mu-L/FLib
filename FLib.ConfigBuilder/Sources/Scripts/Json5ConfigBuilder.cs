@@ -51,6 +51,8 @@ namespace FLib
         public void Build(ConfigBuilderTable table, ConfigBuilderFile file)
         {
             var parsedTable = Json5.Deserialize<Table<Value>>(File.ReadAllText(file.Path), new Json5DeserializeOptionData { UserData = table });
+            if (parsedTable.Values == null)
+                return;
             foreach (var value in parsedTable.Values)
                 table.AddConfig(value.Id, value.CfgData, parsedTable.Fields);
         }
