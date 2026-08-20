@@ -138,7 +138,7 @@ namespace FLib
             return ref value;
         }
 
-        public ref TValue GetValueOrAdd(TKey key)
+        public ref TValue GetValueRefOrAdd(TKey key)
         {
             var hashCode = GetHashCode(key);
             if (_buckets == null)
@@ -151,7 +151,7 @@ namespace FLib
             return ref AddEntry(key, hashCode, bucketIndex);
         }
 
-        public ref TValue GetValueRefOrAddDefault(TKey key, out bool exists)
+        public ref TValue GetValueRefOrAdd(TKey key, out bool exists)
         {
             var hashCode = GetHashCode(key);
             if (_buckets == null)
@@ -701,7 +701,7 @@ namespace FLib
         TValue IDictionary<TKey, TValue>.this[TKey key]
         {
             get => GetValueRef(key);
-            set => GetValueOrAdd(key) = value;
+            set => GetValueRefOrAdd(key) = value;
         }
 
         object IDictionary.this[object key]
@@ -719,9 +719,9 @@ namespace FLib
                 if (!(key is TKey typedKey))
                     throw new ArgumentException("The key type is invalid.", nameof(key));
                 if (value == null && default(TValue) == null)
-                    GetValueOrAdd(typedKey) = default;
+                    GetValueRefOrAdd(typedKey) = default;
                 else
-                    GetValueOrAdd(typedKey) = (TValue)value;
+                    GetValueRefOrAdd(typedKey) = (TValue)value;
             }
         }
 
