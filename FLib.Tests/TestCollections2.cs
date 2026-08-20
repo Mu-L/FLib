@@ -98,7 +98,7 @@ public class TestCollections2
         var set = new HashSet2<int>(16);
         set.Add(1);
         set.Add(2);
-        ref var existing = ref set.GetValueOrAdd(2);
+        ref readonly var existing = ref set.GetValueOrAdd(2);
 
         Assert.Equal(2, existing);
         Assert.True(set.Contains(2));
