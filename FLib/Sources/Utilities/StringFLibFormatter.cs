@@ -12,7 +12,7 @@ namespace FLib
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
             if (string.IsNullOrEmpty(format))
-                return string.Format(formatProvider, format!, arg);
+                return arg.ToString();
             return format[0] switch
             {
                 '%' => (Convert.ToDouble(arg) * 0.01).ToString("0.##") + "%",
