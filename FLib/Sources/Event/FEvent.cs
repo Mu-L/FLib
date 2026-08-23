@@ -355,6 +355,11 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public void ClearListenEvents() => AllListens?.Clear();
+        public void ClearListenEvents()
+        {
+            AllListens?.Clear();
+            Modifies?.Clear();
+            _isDispatching = 0;
+        }
     }
 }

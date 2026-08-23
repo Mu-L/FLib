@@ -61,6 +61,7 @@ namespace FLib.WorldCores
         {
             IndexAllocator.Free(id);
             EntityInfos[id] = default;
+            Events[id]?.ClearListenEvents();
         }
 
         /// <summary>
