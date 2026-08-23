@@ -10,13 +10,13 @@ public class TestCollections2
     public void Dictionary2RefApisWork()
     {
         var dictionary = new Dictionary2<string, int>(3);
-        dictionary.GetValueOrAdd("value") = 1;
+        dictionary.GetValueRefOrAdd("value") = 1;
 
         ref var value = ref dictionary.GetValueRef("value");
         value++;
         Assert.Equal(2, dictionary.GetValueOrDefault("value"));
 
-        ref var existing = ref dictionary.GetValueRefOrAddDefault("value", out var exists);
+        ref var existing = ref dictionary.GetValueRefOrAdd("value", out var exists);
         Assert.True(exists);
         existing = 3;
 
