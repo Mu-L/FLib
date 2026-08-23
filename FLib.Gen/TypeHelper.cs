@@ -142,7 +142,7 @@ namespace FLib.Gen
 
         /// <summary>
         /// 判断是否为 List 或 Dictionary。
-        /// 注意：Dictionary 也实现了 IEnumerable，所以遇到 IDictionary 立即返回，避免误判为 List。
+        /// 使用 AllInterfaces 识别间接实现的 IEnumerable，且 Dictionary 优先于 IEnumerable，避免误判。
         /// </summary>
         public static bool IsListOrDict(ITypeSymbol t, out ImmutableArray<ITypeSymbol> args, out bool isList)
         {
@@ -152,7 +152,7 @@ namespace FLib.Gen
             if (t is not INamedTypeSymbol named || !named.IsGenericType) return false;
 
             args = named.TypeArguments;
-            foreach (var iface in named.Interfaces)
+            foreach (var iface in named.AllInterfaces)
             {
                 switch (iface.Name)
                 {
