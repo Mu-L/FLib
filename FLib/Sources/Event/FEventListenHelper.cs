@@ -1,19 +1,20 @@
 ﻿// ==================== qcbf@qq.com | 2025-07-25 ====================
 
+using System;
 using FLib;
 
 namespace FLib
 {
     /// <summary>
-    /// 事件监听后续辅助处理
+    /// 事件监听辅助处理
     /// </summary>
-    public readonly ref struct FEventListenHelper<T>
+    public readonly ref struct FEventListenHelper
     {
         public readonly int EvtId;
         public readonly FEvent Evt;
-        public readonly FEvent.PostEventHandler<T> Handler;
+        public readonly Delegate Handler;
 
-        public FEventListenHelper(FEvent evt, int evtId, FEvent.PostEventHandler<T> handler)
+        public FEventListenHelper(FEvent evt, int evtId, Delegate handler)
         {
             Evt = evt;
             EvtId = evtId;
@@ -23,13 +24,20 @@ namespace FLib
 
     public static class FEventExtension
     {
-        public static FEventListenHelper<T> Immediate<T>(this in FEventListenHelper<T> helper, in T evtData = default, object dispatcher = null)
+        /// <summary>
+        /// 立即执行监听处理。
+        /// </summary>
+        /// <remarks>仅适用于通过 <see cref="FEvent.PostEventHandler{T}"/> 注册的后处理监听。</remarks>
+        public static FEventListenHelper Immediate<T>(this in FEventListenHelper helper, in T evtData = default, object dispatcher = null)
         {
-            helper.Handler(dispatcher ?? helper.Evt, evtData);
+            ((FEvent.PostEventHandler<T>)helper.Handler)(dispatcher ?? helper.Evt, evtData);
             return helper;
         }
 
-        public static FEventListenHelper<T> Managed<T>(this in FEventListenHelper<T> helper, ref FEventListenManaged managed)
+        /// <summary>
+        /// 注册事件监听生命周期管理。
+        /// </summary>
+        public static FEventListenHelper Managed(this in FEventListenHelper helper, ref FEventListenManaged managed)
         {
             managed.Add(helper.Evt, helper.EvtId, helper.Handler);
             return helper;

@@ -203,45 +203,58 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public FEventListenHelper<object> ListenEvent(int evtId, PostEventHandler<object> handler, short priority = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenEvent(int evtId, PostEventHandler<object> handler, short priority = 0, bool isListenOnce = false)
         {
             ListenEventImpl(evtId, handler, priority, isListenOnce);
-            return new FEventListenHelper<object>(this, evtId, handler);
+            return new FEventListenHelper(this, evtId, handler);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public FEventListenHelper<T> ListenEvent<T>(PostEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenEvent<T>(PostEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
         {
             var id = TypeId<T>.Id;
             ListenEventImpl(id, handler, priority, isListenOnce);
-            return new FEventListenHelper<T>(this, id, handler);
+            return new FEventListenHelper(this, id, handler);
         }
 
         /// <summary>
         ///
         /// </summary>
-        public FEventListenHelper<T> ListenEvent<T>(int evtId, PostEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenEvent<T>(int evtId, PostEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
         {
             ListenEventImpl(evtId, handler, priority, isListenOnce);
-            return new FEventListenHelper<T>(this, evtId, handler);
+            return new FEventListenHelper(this, evtId, handler);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void ListenPreEvent(int evtId, PreEventHandler<object> handler, short priority = 0, bool isListenOnce = false) => ListenEventImpl(evtId, handler, priority, isListenOnce);
+        public FEventListenHelper ListenPreEvent(int evtId, PreEventHandler<object> handler, short priority = 0, bool isListenOnce = false)
+        {
+            ListenEventImpl(evtId, handler, priority, isListenOnce);
+            return new FEventListenHelper(this, evtId, handler);
+        }
 
         /// <summary>
         ///
         /// </summary>
-        public void ListenPreEvent<T>(PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false) => ListenEventImpl(TypeId<T>.Id, handler, priority, isListenOnce);
+        public FEventListenHelper ListenPreEvent<T>(PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+        {
+            var id = TypeId<T>.Id;
+            ListenEventImpl(id, handler, priority, isListenOnce);
+            return new FEventListenHelper(this, id, handler);
+        }
 
         /// <summary>
         ///
         /// </summary>
-        public void ListenPreEvent<T>(int evtId, PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false) => ListenEventImpl(evtId, handler, priority, isListenOnce);
+        public FEventListenHelper ListenPreEvent<T>(int evtId, PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
+        {
+            ListenEventImpl(evtId, handler, priority, isListenOnce);
+            return new FEventListenHelper(this, evtId, handler);
+        }
 
         /// <summary>
         ///
@@ -291,14 +304,6 @@ namespace FLib
         ///
         /// </summary>
         public void UnlistenEvent<T>(int evtId, PreEventHandler<T> handler) => UnlistenEventImpl(evtId, handler);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual void UnlistenEvents()
-        {
-            throw new NotImplementedException();
-        }
 
         /// <summary>
         ///
