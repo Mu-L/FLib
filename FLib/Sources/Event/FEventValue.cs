@@ -52,13 +52,13 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public FEventListenHelper<ChangeEvent> ListenEvent(FEvent.PostEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenEvent(FEvent.PostEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
             => (Event ??= new FEvent()).ListenEvent(handler, level, isListenOnce);
 
         /// <summary>
         ///
         /// </summary>
-        public void ListenPreEvent(FEvent.PreEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenPreEvent(FEvent.PreEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
             => (Event ??= new FEvent()).ListenPreEvent(handler, level, isListenOnce);
 
         /// <summary>
@@ -126,13 +126,13 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public FEventListenHelper<ChangeEvent> ListenEvent(FEvent.PostEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenEvent(FEvent.PostEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
             => (Event ??= new FEvent()).ListenEvent(handler, level, isListenOnce);
 
         /// <summary>
         ///
         /// </summary>
-        public void ListenPreEvent(FEvent.PreEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenPreEvent(FEvent.PreEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
             => (Event ??= new FEvent()).ListenPreEvent(handler, level, isListenOnce);
 
         /// <summary>
@@ -229,13 +229,13 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public FEventListenHelper<ChangeEvent> ListenEvent(FEvent.PostEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenEvent(FEvent.PostEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
             => (Event ??= new FEvent()).ListenEvent(handler, level, isListenOnce);
 
         /// <summary>
         ///
         /// </summary>
-        public void ListenPreEvent(FEvent.PreEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
+        public FEventListenHelper ListenPreEvent(FEvent.PreEventHandler<ChangeEvent> handler, short level = 0, bool isListenOnce = false)
             => (Event ??= new FEvent()).ListenPreEvent(handler, level, isListenOnce);
 
         /// <summary>

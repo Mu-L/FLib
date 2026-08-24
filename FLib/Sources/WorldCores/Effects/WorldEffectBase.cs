@@ -18,6 +18,7 @@ namespace FLib.WorldCores.Effects
         [NonSerialized] public ushort StackCount;
         [NonSerialized] public WorldEntityId SourceEntityId;
         [NonSerialized] public WorldSoaComponentManaged ComponentManaged;
+        [NonSerialized] public FEventListenManaged EventManaged;
         internal WorldEffectSystem* SystemPtr;
         internal int TimeComponentId = -1;
 
@@ -82,6 +83,7 @@ namespace FLib.WorldCores.Effects
         {
             TimeComponentId = -1;
             ComponentManaged.Dispose();
+            EventManaged.Dispose();
             MaxStackCount = StackCount = 0;
             Duration = default;
             AddOption = default;

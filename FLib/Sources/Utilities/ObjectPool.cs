@@ -38,15 +38,14 @@ namespace FLib
     {
         public Type ObjectType;
         public Func<Type, object> NewInstanceHook;
-        public int LeastStrongReferenceCount = 4096;
-        public readonly Stack<object> Frees = new();
+        public int MaxRetainedCount;
+        public readonly Stack<object> Frees;
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public ObjectPool(Type objectType)
+        /// <summary>  </summary>
+        public ObjectPool(Type objectType, int maxRetainedCount = 128)
         {
+            MaxRetainedCount = maxRetainedCount;
+            Frees = new Stack<object>(Math.Max(8, maxRetainedCount >> 2));
             ObjectType = objectType;
         }
 
@@ -63,23 +62,8 @@ namespace FLib
         /// </summary>
         public object Create()
         {
-            object inst = null;
-            while (Frees != null && Frees.TryPop(out var tempInst))
-            {
-                if (tempInst is WeakReference weakRef)
-                {
-                    if (!weakRef.IsAlive) continue;
-                    inst = weakRef.Target;
-                }
-                else
-                {
-                    inst = tempInst;
-                }
-
-                break;
-            }
-
-            inst ??= NewInstance();
+            if (!Frees.TryPop(out var inst))
+                inst = NewInstance();
             (inst as IObjectPoolActivatable)?.ObjectPoolActivate();
             (inst as IObjectPoolParamActivatable)?.ObjectPoolActivate(this);
             return inst;
@@ -88,29 +72,39 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public object Release(object obj)
+        public void Release(object obj)
         {
             if (obj is IObjectPoolDeactivatable deactivatable)
                 deactivatable.ObjectPoolDeactivatable();
-            if (Frees.Count > LeastStrongReferenceCount)
-                obj = new WeakReference(obj);
-            Frees.Push(obj);
-            return obj;
+            if (Frees.Count < MaxRetainedCount)
+                Frees.Push(obj);
         }
 
         /// <summary>
-        ///
+        /// 预分配对象，默认忽略缓存上限；传入 false 时遵守缓存上限。
         /// </summary>
-        public void PreAllocate(int count, bool isDeactivate = true)
+        public void PreAllocate(int count, bool invokeDeactivate = true, bool withResetMaxRetainedCount = true)
         {
-            count -= Frees.Count;
+            if (count <= Frees.Count)
+                return;
+            if (count > MaxRetainedCount)
+            {
+                if (withResetMaxRetainedCount)
+                    MaxRetainedCount = count;
+                else
+                    count = MaxRetainedCount;
+            }
+
+            var allocateCount = count - Frees.Count;
+            if (allocateCount <= 0)
+                return;
 #if NET6_0_OR_GREATER
             Frees.EnsureCapacity(count);
 #endif
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < allocateCount; i++)
             {
                 var inst = NewInstance();
-                if (isDeactivate && inst is IObjectPoolDeactivatable deactivatable)
+                if (invokeDeactivate && inst is IObjectPoolDeactivatable deactivatable)
                     deactivatable.ObjectPoolDeactivatable();
                 Frees.Push(inst);
             }
@@ -128,7 +122,7 @@ namespace FLib
 
         public Dictionary<Type, ObjectPool> Pools = new();
         public Dictionary<Type, Func<Type, object>> NewInstanceHooks;
-        public int LeastStrongReferenceCount = 4096;
+        public int MaxRetainedCount = 128;
 
         /// <summary>
         ///
@@ -149,7 +143,7 @@ namespace FLib
         public object Create(Type t)
         {
             if (!Pools.TryGetValue(t, out var pool))
-                Pools.Add(t, pool = new ObjectPool(t) { NewInstanceHook = NewInstance, LeastStrongReferenceCount = LeastStrongReferenceCount });
+                Pools.Add(t, pool = new ObjectPool(t, MaxRetainedCount) { NewInstanceHook = NewInstance });
             return pool.Create();
         }
 
@@ -181,11 +175,11 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        public void PreAllocate(Type t, int count, bool isDeativate = true)
+        public void PreAllocate(Type t, int count, bool invokeDeactivate = true, bool ignoreMaxRetainedCount = true)
         {
             if (!Pools.TryGetValue(t, out var pool))
-                Pools.Add(t, pool = new ObjectPool(t) { NewInstanceHook = NewInstance, LeastStrongReferenceCount = LeastStrongReferenceCount });
-            pool.PreAllocate(count, isDeativate);
+                Pools.Add(t, pool = new ObjectPool(t) { NewInstanceHook = NewInstance, MaxRetainedCount = MaxRetainedCount });
+            pool.PreAllocate(count, invokeDeactivate, ignoreMaxRetainedCount);
         }
     }
 
@@ -194,12 +188,20 @@ namespace FLib
     /// </summary>
     public static class GlobalObjectPool<T> where T : new()
     {
+        // ReSharper disable once StaticMemberInGenericType
         [ThreadStatic] private static ObjectPool _instance;
         public static ObjectPool Instance => _instance ??= new ObjectPool(typeof(T));
+
+        public static int MaxRetainedCount
+        {
+            get => Instance.MaxRetainedCount;
+            set => Instance.MaxRetainedCount = value;
+        }
+
         public static T NewInstance() => (T)Instance.NewInstance();
         public static T Create() => (T)Instance.Create();
         public static void Release(in T obj) => Instance.Release(obj);
-        public static void PreAllocate(int count, bool isDeactivate = true) => Instance.PreAllocate(count, isDeactivate);
+        public static void PreAllocate(int count, bool invokeDeactivate = true, bool ignoreMaxRetainedCount = true) => Instance.PreAllocate(count, invokeDeactivate, ignoreMaxRetainedCount);
     }
 
     /// <summary>
@@ -214,7 +216,10 @@ namespace FLib
         public void Dispose()
         {
             if (_val != null)
+            {
                 GlobalObjectPool<T>.Release(_val);
+                _val = default;
+            }
         }
     }
 }
