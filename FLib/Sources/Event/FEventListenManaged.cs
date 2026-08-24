@@ -10,10 +10,10 @@ namespace FLib
     /// </summary>
     public struct FEventListenManaged : IDisposable
     {
-        public ListenData One;
-        public PooledList<ListenData> More;
+        private ListenData _one;
+        private PooledList<ListenData> _more;
 
-        public readonly bool IsEmpty => One.IsEmpty && More.IsEmpty;
+        public readonly bool IsEmpty => _one.IsEmpty && _more.IsEmpty;
 
         /// <summary>
         /// 
@@ -38,13 +38,13 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public void Push(FEvent evt, int evtId, Delegate handler)
+        public void Add(FEvent evt, int evtId, Delegate handler)
         {
             var data = new ListenData(evt, evtId, handler);
-            if (One.IsEmpty)
-                One = data;
+            if (_one.IsEmpty)
+                _one = data;
             else
-                More.Add(data);
+                _more.Add(data);
         }
 
         /// <summary>
@@ -52,18 +52,22 @@ namespace FLib
         /// </summary>
         public void Dispose()
         {
-            One.Unlisten();
-            One = default;
-            if (!More.IsInitialized) return;
+            if (_one.IsEmpty)
+                return;
+
+            _one.Unlisten();
+            _one = default;
+
+            if (!_more.IsInitialized) return;
             try
             {
-                for (var i = 0; i < More.Count; i++)
-                    More[i].Unlisten();
+                for (var i = 0; i < _more.Count; i++)
+                    _more[i].Unlisten();
             }
             finally
             {
-                More.Dispose();
-                More = default;
+                _more.Dispose();
+                _more = default;
             }
         }
     }

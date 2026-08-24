@@ -155,6 +155,7 @@ namespace FLib
             {
                 ProcessDispatchComplete();
             }
+
             return true;
         }
 
@@ -247,7 +248,7 @@ namespace FLib
         /// </summary>
         protected virtual void ListenEventImpl(int evtId, Delegate handler, short priority, bool isListenOnce)
         {
-            var listenData = new FEventListenData() { Handler = handler, IsListenOnce = isListenOnce, Priority = priority };
+            var listenData = new FEventListenData { Handler = handler, IsListenOnce = isListenOnce, Priority = priority };
             if (_isDispatching > 0)
             {
                 (Modifies ??= new List<(bool, int, FEventListenData)>()).Add((true, evtId, listenData));
@@ -262,6 +263,7 @@ namespace FLib
                 if (list[index - 1].Priority >= priority)
                     break;
             }
+
             list.Insert(index, listenData);
         }
 
@@ -305,7 +307,7 @@ namespace FLib
         {
             if (_isDispatching > 0)
             {
-                (Modifies ??= new List<(bool, int, FEventListenData)>()).Add((false, evtId, new FEventListenData() { Handler = handler }));
+                (Modifies ??= new List<(bool, int, FEventListenData)>()).Add((false, evtId, new FEventListenData { Handler = handler }));
                 return;
             }
 
@@ -350,7 +352,7 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        protected internal virtual bool IsListenEventImpl(int evtId, Delegate handler) => AllListens != null && AllListens.TryGetValue(evtId, out var list) && list.Contains(new FEventListenData() { Handler = handler });
+        protected internal virtual bool IsListenEventImpl(int evtId, Delegate handler) => AllListens != null && AllListens.TryGetValue(evtId, out var list) && list.Contains(new FEventListenData { Handler = handler });
 
         /// <summary>
         ///

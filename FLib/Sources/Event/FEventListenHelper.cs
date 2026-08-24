@@ -28,5 +28,11 @@ namespace FLib
             helper.Handler(dispatcher ?? helper.Evt, evtData);
             return helper;
         }
+
+        public static FEventListenHelper<T> Managed<T>(this in FEventListenHelper<T> helper, ref FEventListenManaged managed)
+        {
+            managed.Add(helper.Evt, helper.EvtId, helper.Handler);
+            return helper;
+        }
     }
 }

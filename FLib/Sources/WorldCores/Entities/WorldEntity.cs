@@ -342,18 +342,21 @@ namespace FLib.WorldCores.Entities
 
         /// <summary>
         /// 监听前置事件。
+        /// <remarks>回调方法返回值: 是否继续执行事件</remarks>
         /// </summary>
         public void ListenPreEvent<T>(FEvent.PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
             => World.Entities.GetEvent(Id.Id).ListenPreEvent(handler, priority, isListenOnce);
 
         /// <summary>
         /// 监听前置事件，指定事件 ID。
+        /// <remarks>回调方法返回值: 是否继续执行事件</remarks>
         /// </summary>
         public void ListenPreEvent<T>(int evtId, FEvent.PreEventHandler<T> handler, short priority = 0, bool isListenOnce = false)
             => World.Entities.GetEvent(Id.Id).ListenPreEvent(evtId, handler, priority, isListenOnce);
 
         /// <summary>
         /// 监听空前置事件。
+        /// <remarks>回调方法返回值: 是否继续执行事件</remarks>
         /// </summary>
         public void ListenPreEvent(int evtId, FEvent.PreEventHandler<object> handler, short priority = 0, bool isListenOnce = false)
             => World.Entities.GetEvent(Id.Id).ListenPreEvent(evtId, handler, priority, isListenOnce);
