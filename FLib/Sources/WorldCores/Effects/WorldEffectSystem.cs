@@ -32,7 +32,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 获取系统是否已释放
         /// </summary>
-        public readonly bool IsDisposed => (FlagMask & int.MaxValue) == 0x80000000;
+        public readonly bool IsDisposed => (FlagMask & 0x80000000u) != 0;
 
 
         /// <summary>
