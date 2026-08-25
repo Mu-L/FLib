@@ -18,7 +18,7 @@ namespace FLib.WorldCores.SoaComponents
         internal T[] Components = Array.Empty<T>();
 
         public WorldCore World { get; set; }
-        public int Count => IndexAllocator.Count;
+        public int ValidCount => IndexAllocator.ValidCount;
         public int EndCount => IndexAllocator.EndCount;
         Array IWorldSoaComponentGroupable.Components => Components;
 

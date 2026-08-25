@@ -11,7 +11,8 @@ namespace FLib
     {
         public T[] Values;
         public StableIndexAllocator IndexAllocator;
-        public int Count => IndexAllocator.Count;
+        int ICollection<T>.Count => ValidCount;
+        public int ValidCount => IndexAllocator.ValidCount;
         public int EndCount => IndexAllocator.EndCount;
         bool ICollection<T>.IsReadOnly => false;
 
@@ -48,7 +49,7 @@ namespace FLib
         {
             var index = IndexAllocator.Alloc();
             if (Values == null || Values.Length <= index)
-                Array.Resize(ref Values, MathEx.GetNextCapacityLength(Count));
+                Array.Resize(ref Values, MathEx.GetNextCapacityLength(ValidCount));
             return index;
         }
 
@@ -95,7 +96,7 @@ namespace FLib
         }
 
         int IList<T>.IndexOf(T item) => IndexOf(item);
-        public int IndexOf(in T item) => Count == 0 ? -1 : Array.IndexOf(Values, item, 0, IndexAllocator.EndCount);
+        public int IndexOf(in T item) => ValidCount == 0 ? -1 : Array.IndexOf(Values, item, 0, IndexAllocator.EndCount);
         public bool Contains(in T item) => IndexOf(item) >= 0;
         public void CopyTo(T[] array, int arrayIndex) => throw new NotSupportedException();
 
@@ -149,18 +150,18 @@ namespace FLib
 #endif
         public Stack<int> Frees;
         public int EndCount;
-        public int Count;
+        public int ValidCount;
 
         /// <summary> 分配索引 </summary>
         public int Alloc()
         {
             if (Frees?.TryPop(out var index) == true)
             {
-                ++Count;
+                ++ValidCount;
             }
             else
             {
-                ++Count;
+                ++ValidCount;
                 index = EndCount++;
             }
 #if DEBUG
@@ -173,8 +174,8 @@ namespace FLib
         /// <summary> 释放索引 </summary>
         public void Free(int index, bool cleanIndex = true)
         {
-            System.Diagnostics.Debug.Assert(Count > 0 && index < EndCount && index >= 0);
-            --Count;
+            System.Diagnostics.Debug.Assert(ValidCount > 0 && index < EndCount && index >= 0);
+            --ValidCount;
             if (index == EndCount - 1)
             {
                 --EndCount;
@@ -200,7 +201,7 @@ namespace FLib
         /// <summary> 清空索引分配器 </summary>
         public void Clear()
         {
-            Count = EndCount = 0;
+            ValidCount = EndCount = 0;
             Frees?.Clear();
 #if DEBUG
             Uses?.Clear();
@@ -208,7 +209,7 @@ namespace FLib
         }
 
         public static implicit operator Stack<int>(in StableIndexAllocator allocator) => allocator.Frees;
-        public static implicit operator int(in StableIndexAllocator allocator) => allocator.Count;
+        public static implicit operator int(in StableIndexAllocator allocator) => allocator.ValidCount;
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public IEnumerator<int> GetEnumerator() => Frees.GetEnumerator();
     }

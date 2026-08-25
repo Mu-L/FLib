@@ -15,7 +15,7 @@ namespace FLib.WorldCores
         public EntityEvent?[] Events;
         public StableIndexAllocator IndexAllocator;
 
-        public int Count => IndexAllocator.Count;
+        public int ValidCount => IndexAllocator.ValidCount;
         public int EndCount => IndexAllocator.EndCount;
         public readonly ref WorldEntityInfo this[ushort index] => ref EntityInfos[index];
         public readonly ref WorldEntityInfo this[int index] => ref EntityInfos[index];
@@ -48,7 +48,7 @@ namespace FLib.WorldCores
         {
             var id = (ushort)IndexAllocator.Alloc();
             if (EntityInfos.Length <= id)
-                EnsureCapacity(MathEx.GetNextCapacityLength(Count));
+                EnsureCapacity(MathEx.GetNextCapacityLength(ValidCount));
             EntityInfos[id] = entityInfo;
             if (Events[id] != null)
                 Events[id]!.Entity = new WorldEntity(World, new WorldEntityId(id, entityInfo.Version));

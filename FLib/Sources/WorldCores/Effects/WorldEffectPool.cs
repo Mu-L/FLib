@@ -40,7 +40,7 @@ namespace FLib.WorldCores.Effects
         public static void EnsureCapacity(int entityCapacities)
         {
             Containers.EnsureCapacity(entityCapacities);
-            for (var i = Containers.Count; i < entityCapacities; i++)
+            for (var i = Containers.ValidCount; i < entityCapacities; i++)
                 Containers.Add(new WorldEffectContainer());
         }
 

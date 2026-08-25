@@ -210,7 +210,7 @@ namespace FLib.WorldCores
         /// </summary>
         public override string ToString() =>
             StringFLibUtility.ReleaseStrBufAndResult(StringFLibUtility.GetStrBuf()
-                .Append('(').Append(Frame).Append('f').Append(',').Append(Time.ToString("0.0")).Append('s').Append(',').Append(Entities.Count).Append(')'));
+                .Append('(').Append(Frame).Append('f').Append(',').Append(Time.ToString("0.0")).Append('s').Append(',').Append(Entities.ValidCount).Append(')'));
 
         // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>

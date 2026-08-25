@@ -157,16 +157,16 @@ public class TestWorldCore
         Assert.Equal("aaa", world.GetDyn<Buff>(player1).Name);
         world.Remove<Buff>(player1);
         Assert.False(world.Has<Buff>(player1));
-        Assert.Equal(0, world.DynComponentGroups.Get<Buff>().Count);
+        Assert.Equal(0, world.DynComponentGroups.Get<Buff>().ValidCount);
         world.SetDyn(player1, new Buff { Name = "abc2" });
-        Assert.Equal(1, world.DynComponentGroups.Get<Buff>().Count);
+        Assert.Equal(1, world.DynComponentGroups.Get<Buff>().ValidCount);
 
         // get all
         Assert.Equal([typeof(Mng<Player>), typeof(Team), typeof(Actor), typeof(Buff)], ((List<object>)world.GetAll(player1)).Select(vv => vv.GetType()));
 
         // dispose
         world.RemoveEntity(player1);
-        Assert.Equal(0, world.DynComponentGroups.Get<Buff>().Count);
+        Assert.Equal(0, world.DynComponentGroups.Get<Buff>().ValidCount);
         world.Dispose();
         // Assert.True(WorldGlobalSetting.ChunkAllocator.FreePagesCount >= 2);
         // Assert.Empty((IEnumerable)typeof(Mng<Player>).GetField("_objects", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!);
@@ -238,17 +238,17 @@ public class TestWorldCore
         var count = 3000;
         for (var i = 0; i < count; i++)
             w.CreateEntityBuilder().With<Team>().BuildAsEntity();
-        Assert.Equal(count, w.Entities.Count);
+        Assert.Equal(count, w.Entities.ValidCount);
         foreach (var etId in w.CreateQueryBuilder().WithNone<Actor>().Query())
         {
             if (count <= 661)
                 Log.Info?.Write("", nameof(TestWorldCore), nameof(ManyEntities));
             w.RemoveEntity(etId);
-            Assert.Equal(--count, w.Entities.Count);
+            Assert.Equal(--count, w.Entities.ValidCount);
         }
 
         Assert.Equal(0, count);
-        Assert.Equal(0, w.Entities.Count);
+        Assert.Equal(0, w.Entities.ValidCount);
     }
 
     [Fact]
@@ -271,9 +271,8 @@ public class TestWorldCore
     {
         using var first = new WorldCore();
         using var second = new WorldCore();
-
+        // ReSharper disable once DisposeOnUsingVariable
         first.Dispose();
-
         Assert.False(second.Handle.IsEmpty);
         Assert.Same(second, second.Handle.World);
     }
@@ -293,7 +292,7 @@ public class TestWorldCore
         group.AllocWithoutAwake(third, new Buff { Name = "third" });
         group.Free(first, firstIndex, false);
 
-        var enumerator = group.GetEnumerator();
+        using var enumerator = group.GetEnumerator();
         var entities = new List<WorldEntityId>();
         while (enumerator.MoveNext())
             entities.Add(enumerator.Entity);
