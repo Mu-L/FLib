@@ -11,8 +11,8 @@ namespace FLib
     /// </summary>
     public class FEvent
     {
-        public IDictionary<int, List<FEventListenData>> AllListens;
-        public List<(bool, int, FEventListenData)> Modifies;
+        public IDictionary<int, List2<FEventListenData>> AllListens;
+        public List2<(bool, int, FEventListenData)> Modifies;
         private byte _isDispatching;
 
         /// <summary>
@@ -67,21 +67,30 @@ namespace FLib
                 var finalDispatcher = dispatcher ?? this;
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
-                    var listenData = list[i];
+                    ref var listenData = ref list.GetValueRef(i);
+                    var handler = listenData.Handler;
+                    var isListenOnce = listenData.IsListenOnce;
+                    var removedListenData = default(FEventListenData);
+                    if (isListenOnce)
+                    {
+                        removedListenData = listenData;
+                        list.RemoveAt(i);
+                    }
+
                     try
                     {
-                        if (listenData.Handler is PostEventHandler<T> func)
+                        if (handler is PostEventHandler<T> func)
                             func(finalDispatcher, evtData);
 #if DEBUG
-                        else if (listenData.Handler.GetType().GetGenericTypeDefinition() == typeof(PostEventHandler<>))
+                        else if (handler.GetType().GetGenericTypeDefinition() == typeof(PostEventHandler<>))
                         {
-                            Log.Error?.Write($"event handler type error {listenData.Handler.Target?.GetType().Name}.{listenData.Handler.Method.Name} {typeof(T)}");
+                            Log.Error?.Write($"event handler type error {handler.Target?.GetType().Name}.{handler.Method.Name} {typeof(T)}");
                         }
 #endif
                     }
                     catch (Exception ex)
                     {
-                        ThrowEventError(ex, listenData);
+                        ThrowEventError(ex, isListenOnce ? removedListenData : listenData);
                     }
                 }
             }
@@ -129,7 +138,17 @@ namespace FLib
                 var finalDispatcher = dispatcher ?? this;
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
-                    if (list[i].Handler is PreEventHandler<T> func)
+                    ref var listenData = ref list.GetValueRef(i);
+                    var handler = listenData.Handler;
+                    var isListenOnce = listenData.IsListenOnce;
+                    var removedListenData = default(FEventListenData);
+                    if (isListenOnce)
+                    {
+                        removedListenData = listenData;
+                        list.RemoveAt(i);
+                    }
+
+                    if (handler is PreEventHandler<T> func)
                     {
                         try
                         {
@@ -140,13 +159,13 @@ namespace FLib
                         }
                         catch (Exception ex)
                         {
-                            ThrowEventError(ex, list[i]);
+                            ThrowEventError(ex, isListenOnce ? removedListenData : listenData);
                         }
                     }
 #if DEBUG
-                    else if (list[i].Handler.GetType().GetGenericTypeDefinition() == typeof(PreEventHandler<>))
+                    else if (handler.GetType().GetGenericTypeDefinition() == typeof(PreEventHandler<>))
                     {
-                        Log.Error?.Write($"event handler type error {list[i].Handler.Target?.GetType().Name}.{list[i].Handler.Method.Name} {typeof(T)}");
+                        Log.Error?.Write($"event handler type error {handler.Target?.GetType().Name}.{handler.Method.Name} {typeof(T)}");
                     }
 #endif
                 }
@@ -165,38 +184,42 @@ namespace FLib
         /// </summary>
         protected virtual void ProcessDispatchComplete()
         {
-            if (Modifies?.Count > 0 && --_isDispatching == 0)
+            if (_isDispatching > 0)
+                --_isDispatching;
+            if (_isDispatching != 0 || Modifies == null || Modifies.Count == 0)
+                return;
+
+            try
             {
-                try
+                for (var i = 0; i < Modifies.Count; i++)
                 {
-                    foreach (var (isListen, eventType, listenData) in Modifies)
-                    {
-                        var handler = listenData.Handler;
-                        if (isListen)
-                            ListenEventImpl(eventType, handler, listenData.Priority, listenData.IsListenOnce);
-                        else
-                            UnlistenEventImpl(eventType, handler);
-                    }
+                    ref var modify = ref Modifies.GetValueRef(i);
+                    ref var listenData = ref modify.Item3;
+                    var handler = listenData.Handler;
+                    if (modify.Item1)
+                        ListenEventImpl(modify.Item2, handler, listenData.Priority, listenData.IsListenOnce);
+                    else
+                        UnlistenEventImpl(modify.Item2, handler);
                 }
-                finally
-                {
-                    Modifies?.Clear();
-                }
+            }
+            finally
+            {
+                Modifies.Clear();
             }
         }
 
         /// <summary>
         ///
         /// </summary>
-        protected virtual List<FEventListenData> GetListenEventList(Type t) => GetListenEventList(t.GetHashCode());
+        protected virtual List2<FEventListenData> GetListenEventList(Type t) => GetListenEventList(t.GetHashCode());
 
         /// <summary>
         ///
         /// </summary>
-        protected virtual List<FEventListenData> GetListenEventList(int evtId)
+        protected virtual List2<FEventListenData> GetListenEventList(int evtId)
         {
             if (!AllListens.TryGetValue(evtId, out var list))
-                AllListens.Add(evtId, list = new List<FEventListenData>());
+                AllListens.Add(evtId, list = new List2<FEventListenData>());
             return list;
         }
 
@@ -264,16 +287,16 @@ namespace FLib
             var listenData = new FEventListenData { Handler = handler, IsListenOnce = isListenOnce, Priority = priority };
             if (_isDispatching > 0)
             {
-                (Modifies ??= new List<(bool, int, FEventListenData)>()).Add((true, evtId, listenData));
+                (Modifies ??= new List2<(bool, int, FEventListenData)>()).Add((true, evtId, listenData));
                 return;
             }
 
-            AllListens ??= new Dictionary<int, List<FEventListenData>>();
+            AllListens ??= new Dictionary<int, List2<FEventListenData>>();
             var list = GetListenEventList(evtId);
             var index = list.Count;
             for (; index > 0; index--)
             {
-                if (list[index - 1].Priority >= priority)
+                if (list.GetValueRef(index - 1).Priority >= priority)
                     break;
             }
 
@@ -312,7 +335,7 @@ namespace FLib
         {
             if (_isDispatching > 0)
             {
-                (Modifies ??= new List<(bool, int, FEventListenData)>()).Add((false, evtId, new FEventListenData { Handler = handler }));
+                (Modifies ??= new List2<(bool, int, FEventListenData)>()).Add((false, evtId, new FEventListenData { Handler = handler }));
                 return;
             }
 
@@ -320,7 +343,7 @@ namespace FLib
             {
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
-                    if (list[i].Handler == handler)
+                    if (list.GetValueRef(i).Handler == handler)
                     {
                         list.RemoveAt(i);
                         break;
@@ -357,7 +380,19 @@ namespace FLib
         /// <summary>
         ///
         /// </summary>
-        protected internal virtual bool IsListenEventImpl(int evtId, Delegate handler) => AllListens != null && AllListens.TryGetValue(evtId, out var list) && list.Contains(new FEventListenData { Handler = handler });
+        protected internal virtual bool IsListenEventImpl(int evtId, Delegate handler)
+        {
+            if (AllListens == null || !AllListens.TryGetValue(evtId, out var list))
+                return false;
+
+            for (var i = list.Count - 1; i >= 0; i--)
+            {
+                if (list.GetValueRef(i).Handler == handler)
+                    return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         ///
