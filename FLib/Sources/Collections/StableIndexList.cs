@@ -12,6 +12,7 @@ namespace FLib
         public T[] Values;
         public StableIndexAllocator IndexAllocator;
         public int Count => IndexAllocator.Count;
+        public int EndCount => IndexAllocator.EndCount;
         bool ICollection<T>.IsReadOnly => false;
 
         public T this[int index]

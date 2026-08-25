@@ -28,11 +28,12 @@ namespace FLib.WorldCores.SoaComponents
         {
             if (Group == null)
                 return false;
-            while (++_index < Group.Count && !Group.ComponentEntities[_index].IsEmpty)
+            var endCount = Group.EndCount;
+            while (++_index < endCount && Group.ComponentEntities[_index].IsEmpty)
             {
             }
 
-            return _index < Group.Count;
+            return _index < endCount;
         }
 
         public void Reset() => _index = -1;

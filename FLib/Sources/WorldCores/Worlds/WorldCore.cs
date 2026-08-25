@@ -123,12 +123,11 @@ namespace FLib.WorldCores
         /// <returns>实体的枚举器</returns>
         public IEnumerator<WorldEntityId> GetEnumerator()
         {
-            var count = Entities.Count;
-            for (ushort i = 0; count > 0; i++)
+            var endCount = Entities.EndCount;
+            for (var i = 0; i < endCount; i++)
             {
                 if (Entities[i].IsEmpty) continue;
-                --count;
-                yield return new WorldEntityId(i, Entities[i].Version);
+                yield return new WorldEntityId((ushort)i, Entities[i].Version);
             }
         }
 

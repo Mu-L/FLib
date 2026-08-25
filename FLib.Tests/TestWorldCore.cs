@@ -1,6 +1,7 @@
 // ==================== qcbf@qq.com | 2026-01-03 ====================
 
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -248,5 +249,55 @@ public class TestWorldCore
 
         Assert.Equal(0, count);
         Assert.Equal(0, w.Entities.Count);
+    }
+
+    [Fact]
+    public void StableEntityIndicesRemainQueryableAfterLowerSlotRemoval()
+    {
+        using var world = new WorldCore();
+        var first = world.CreateEntityBuilder().Build();
+        var second = world.CreateEntityBuilder().Build();
+        var third = world.CreateEntityBuilder().Build();
+
+        world.RemoveEntity(first);
+
+        Assert.True(world.HasEntityAndNotDestroying(third));
+        Assert.Equal([second, third], world.GetAllEntities());
+        Assert.Equal([second, third], world.ToArray());
+    }
+
+    [Fact]
+    public void WorldHandleRemainsValidAfterLowerWorldRemoval()
+    {
+        using var first = new WorldCore();
+        using var second = new WorldCore();
+
+        first.Dispose();
+
+        Assert.False(second.Handle.IsEmpty);
+        Assert.Same(second, second.Handle.World);
+    }
+
+    [Fact]
+    public void SoaEnumeratorSkipsRemovedLowerSlot()
+    {
+        using var world = new WorldCore();
+        var first = world.CreateEntityBuilder().Build();
+        var second = world.CreateEntityBuilder().Build();
+        var third = world.CreateEntityBuilder().Build();
+        WorldComponentRegistry.GetMeta<Buff>();
+
+        var group = world.DynComponentGroups.Get<Buff>();
+        var firstIndex = group.AllocWithoutAwake(first, new Buff { Name = "first" });
+        group.AllocWithoutAwake(second, new Buff { Name = "second" });
+        group.AllocWithoutAwake(third, new Buff { Name = "third" });
+        group.Free(first, firstIndex, false);
+
+        var enumerator = group.GetEnumerator();
+        var entities = new List<WorldEntityId>();
+        while (enumerator.MoveNext())
+            entities.Add(enumerator.Entity);
+
+        Assert.Equal([second, third], entities);
     }
 }

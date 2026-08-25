@@ -16,6 +16,7 @@ namespace FLib.WorldCores
         public StableIndexAllocator IndexAllocator;
 
         public int Count => IndexAllocator.Count;
+        public int EndCount => IndexAllocator.EndCount;
         public readonly ref WorldEntityInfo this[ushort index] => ref EntityInfos[index];
         public readonly ref WorldEntityInfo this[int index] => ref EntityInfos[index];
 

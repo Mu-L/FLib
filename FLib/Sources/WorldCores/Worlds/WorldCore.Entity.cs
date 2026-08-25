@@ -97,7 +97,7 @@ namespace FLib.WorldCores
         /// <returns>如果实体存在返回 true，否则返回 false</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasEntity(WorldEntityId et)
-            => !et.IsEmpty && Entities.EntityInfos.Length > et.Id && Entities[et.Id].Version == et.Version;
+            => !et.IsEmpty && Entities.EndCount > et.Id && Entities[et.Id].Version == et.Version;
 
         /// <summary>
         /// 检查实体是否存在且未处于销毁中。
@@ -107,7 +107,7 @@ namespace FLib.WorldCores
         public bool HasEntityAndNotDestroying(WorldEntityId et)
         {
             if (et.IsEmpty) return false;
-            if (Entities.Count <= et.Id) return false;
+            if (Entities.EndCount <= et.Id) return false;
             ref readonly var eti = ref Entities[et.Id];
             return eti.Version == et.Version && !eti.IsDestroying;
         }
@@ -121,10 +121,10 @@ namespace FLib.WorldCores
         public IList<WorldEntityId> GetAllEntities(IList<WorldEntityId> list = null)
         {
             list ??= new List<WorldEntityId>();
-            for (ushort i = 0; i < Entities.Count; i++)
+            for (var i = 0; i < Entities.EndCount; i++)
             {
                 if (!Entities[i].IsEmpty)
-                    list.Add(new WorldEntityId(i, Entities[i].Version));
+                    list.Add(new WorldEntityId((ushort)i, Entities[i].Version));
             }
 
             return list;

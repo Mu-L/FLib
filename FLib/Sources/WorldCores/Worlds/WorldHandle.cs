@@ -18,7 +18,7 @@ namespace FLib.WorldCores
 
         public bool IsEmpty
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Version == 0 || WorldCore.AllWorlds.Count <= Index || WorldCore.AllWorlds[Index]?.Handle.Version != Version;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Version == 0 || WorldCore.AllWorlds.EndCount <= Index || WorldCore.AllWorlds[Index]?.Handle.Version != Version;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -19,6 +19,7 @@ namespace FLib.WorldCores.SoaComponents
 
         public WorldCore World { get; set; }
         public int Count => IndexAllocator.Count;
+        public int EndCount => IndexAllocator.EndCount;
         Array IWorldSoaComponentGroupable.Components => Components;
 
         public virtual ref T this[int index]
