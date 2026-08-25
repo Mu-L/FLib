@@ -57,8 +57,7 @@ namespace FLib.WorldCores
         /// <param name="et">要移除的实体</param>
         public void RemoveEntity(WorldEntityId et)
         {
-            ref var eti = ref GetEntityInfo(et);
-            eti.SetDestroying();
+            GetEntityInfo(et).SetDestroying();
 
             try
             {
@@ -69,17 +68,18 @@ namespace FLib.WorldCores
                 Log.Error?.Write(e.ToString(), nameof(WorldCore));
             }
 
+            ref var eti = ref GetEntityInfo(et);
             if (eti.HasDynamicComponent)
             {
                 var sparseIndex = eti.DynamicComponentSparseIndex;
                 ref var sparse = ref DynamicComponentSparse.GetRef(sparseIndex);
                 for (var i = 0; i < sparse.Count; i++)
                 {
-                    ref var denseIndex = ref sparse[i];
+                    var denseIndex = sparse[i];
                     if (denseIndex < 0) continue;
                     var type = WorldComponentRegistry.GetType(new WorldIncrementId(i + 1));
                     DynComponentGroups.Get(type).Free(et, denseIndex, true);
-                    denseIndex = -1;
+                    sparse[i] = -1;
                 }
 
                 DynamicComponentSparse.RemoveAt(sparseIndex, false);
