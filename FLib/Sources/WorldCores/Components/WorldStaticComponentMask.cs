@@ -30,7 +30,7 @@ namespace FLib.WorldCores.Components
         /// 
         /// </summary>
         /// <param name="id"></param>
-        public static bool Get(WorldIncrementId id) => id.Raw <= _buffer.Length && BitArrayOperator.GetBit(_buffer, id);
+        public static bool Get(WorldIncrementId id) => !id.IsEmpty && _buffer != null && BitArrayOperator.GetBitsLength(id.Raw) <= _buffer.Length && BitArrayOperator.GetBit(_buffer, id);
 
         /// <summary>
         /// 
