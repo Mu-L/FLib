@@ -165,7 +165,7 @@ namespace FLib
         /// </summary>
         protected virtual void ProcessDispatchComplete()
         {
-            if (--_isDispatching == 0 && Modifies?.Count > 0)
+            if (Modifies?.Count > 0 && --_isDispatching == 0)
             {
                 try
                 {
