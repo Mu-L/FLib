@@ -52,4 +52,28 @@ public class TestWorldEffect
         Assert.Null(WorldEffectPool.Containers.IndexAllocator.Frees);
         Assert.Empty(WorldEffectPool.Containers);
     }
+
+    [Fact]
+    public void ReplaceReinsertsEffectAfterRemovingLastInstance()
+    {
+        WorldSetting.CreateEffectHandler = (in _, in _, _, _) => new AEffect
+        {
+            AddOption = EWorldEffectAddOption.Replace,
+            MaxStackCount = 1,
+            Duration = 1,
+            Flags = 1,
+        };
+
+        using var world = new WorldCore();
+        var et = world.CreateEntityBuilder().With<WorldEffectSystem>().BuildAsEntity();
+        ref var fxSys = ref et.GetStaRef<WorldEffectSystem>();
+        var oldEffect = fxSys.Add(default, 1);
+        var newEffect = fxSys.Add(default, 1);
+
+        Assert.NotSame(oldEffect, newEffect);
+        Assert.Same(newEffect, fxSys.Get(1));
+        Assert.True(fxSys.HasEffect(1));
+
+        et.RemoveSelf();
+    }
 }

@@ -139,7 +139,8 @@ namespace FLib.WorldCores.Effects
                         break;
                     case EWorldEffectAddOption.Replace:
                         Remove(effect);
-                        effect = item.Single = CreateEffect(evt);
+                        ref var replaceItem = ref effects.GetValueRefOrAdd(id);
+                        effect = replaceItem.Single = CreateEffect(evt);
                         break;
                 }
             }
