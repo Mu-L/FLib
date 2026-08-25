@@ -128,6 +128,9 @@ namespace FLib.WorldCores.Archetypes
                 (info.Flags(EComponentFlag.AlwaysReceiveDestroy) ? info.DestroyWithComponentSelf : info.Destroy).Invoke(ref *(byte*)chunk.Get(eti.IndexInChunk, info.Meta), World, et);
             }
 
+            foreach (var sharedComponent in chunk.AllSharedComponents)
+                World.DynComponentGroups[sharedComponent.ComponentId].Free(et, sharedComponent.Hash, true);
+
             RemoveEntity(chunk, eti.IndexInChunk);
         }
 
