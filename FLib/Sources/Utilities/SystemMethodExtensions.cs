@@ -174,6 +174,12 @@ namespace FLib
             list.RemoveAt(theLastIndex);
         }
 
+        /// <summary> 获取指定索引最接近的元素 </summary>
+        public static T GetAtClampedIndex<T>(this IList<T> list, int index)
+        {
+            return list[Math.Clamp(index, 0, list.Count - 1)];
+        }
+
         #endregion
     }
 }
