@@ -18,6 +18,7 @@ namespace FLib.WorldCores.TimeLogics
         public int CurrentClipFrame => Root.CurrentFrame - BeginFrame;
         public FNum CurrentClipTime => (FNum)CurrentClipFrame / Root.FrameRate;
         public virtual int FrameCount => EndFrame - BeginFrame + 1;
+        public bool IsPlaying => !IsDisable && Root.CurrentFrame >= BeginFrame && Root.CurrentFrame <= EndFrame;
 
         /// <summary>
         /// 
