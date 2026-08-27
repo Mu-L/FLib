@@ -4,7 +4,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 
 #pragma warning disable CA1806
 
@@ -178,6 +180,18 @@ namespace FLib
         public static T GetAtClampedIndex<T>(this IList<T> list, int index)
         {
             return list[Math.Clamp(index, 0, list.Count - 1)];
+        }
+
+        #endregion
+
+        #region CancellationTokenSource
+
+        /// <summary> 获取指定索引最接近的元素 </summary>
+        public static void CancelAndDispose(this CancellationTokenSource v)
+        {
+            if (!v.IsCancellationRequested)
+                v.Cancel();
+            v.Dispose();
         }
 
         #endregion
