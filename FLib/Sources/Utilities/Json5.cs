@@ -187,10 +187,16 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData) => PushValue(obj, strbuf, indent, opData, false);
+        public static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        {
+            return PushValue(obj, strbuf, indent, opData, false);
+        }
 
         private static StringBuilder PushValue(object? obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, bool prettyForceMultiLine)
         {
+#if DEBUG
+            using var debugSerialize = EnterDebugSerialize(obj);
+#endif
             // IDictionary 必须排在 IEnumerable 前面，否则字典会被当成普通枚举序列化。
             switch (obj)
             {
@@ -265,7 +271,13 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData) => PushArray(array, strbuf, indent, opData, false);
+        public static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        {
+#if DEBUG
+            using var debugSerialize = EnterDebugSerialize(array);
+#endif
+            PushArray(array, strbuf, indent, opData, false);
+        }
 
         private static void PushArray(IEnumerable array, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, bool prettyForceMultiLine)
         {
@@ -345,7 +357,13 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData) => PushDict(dict, strbuf, indent, opData, false);
+        public static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData)
+        {
+#if DEBUG
+            using var debugSerialize = EnterDebugSerialize(dict);
+#endif
+            PushDict(dict, strbuf, indent, opData, false);
+        }
 
         private static void PushDict(IDictionary dict, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, bool prettyForceMultiLine)
         {
@@ -408,8 +426,13 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData = null) =>
+        public static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData = null)
+        {
+#if DEBUG
+            using var debugSerialize = EnterDebugSerialize(obj);
+#endif
             PushObject(obj, strbuf, indent, opData, customData, false);
+        }
 
         private static void PushObject(object obj, StringBuilder strbuf, int indent, Json5SerializeOptionData opData, object? customData, bool prettyForceMultiLine)
         {
@@ -619,6 +642,43 @@ namespace FLib
                 HasCustomToString = declaringType != null && declaringType != typeof(object) && declaringType != typeof(ValueType);
             }
         }
+
+
+#if DEBUG
+        private const int DebugMaxSerializeDepth = 128;
+        [ThreadStatic] private static int _debugSerializeDepth;
+
+        private static DebugSerializeScope EnterDebugSerialize(object? value)
+        {
+            if (value == null || value is string)
+                return default;
+
+            var type = value.GetType();
+            if (!type.IsClass && Json5.CustomSerializers?.ContainsKey(type) != true && value is not IJson5Serializable)
+                return default;
+
+            if (++_debugSerializeDepth > DebugMaxSerializeDepth)
+            {
+                _debugSerializeDepth--;
+                throw new InvalidOperationException($"Json5 serialization recursion exceeded {DebugMaxSerializeDepth} at {type.FullName}. Check circular references or custom JsonSerialize calls.");
+            }
+
+            return new DebugSerializeScope(true);
+        }
+
+        private readonly struct DebugSerializeScope : IDisposable
+        {
+            private readonly bool _entered;
+
+            public DebugSerializeScope(bool entered) => _entered = entered;
+
+            public void Dispose()
+            {
+                if (_entered)
+                    _debugSerializeDepth--;
+            }
+        }
+#endif
     }
 
     #endregion
@@ -1475,7 +1535,7 @@ namespace FLib
         public bool Has(int index) => AsArray?.Length > index;
         public bool Has(string key) => AsDict?.ContainsKey(key) == true;
         public override string ToString() => Raw.ToString()!;
-        public static implicit operator string(Json5AnyValue val) => Convert.ToString(val.Raw)!;
+        public static implicit operator string(Json5AnyValue val) => Convert.ToString(val.Raw);
         public static implicit operator bool(Json5AnyValue val) => Convert.ToBoolean(val.Raw);
         public static implicit operator byte(Json5AnyValue val) => Convert.ToByte(val.Raw);
         public static implicit operator sbyte(Json5AnyValue val) => Convert.ToSByte(val.Raw);

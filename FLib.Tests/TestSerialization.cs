@@ -1,5 +1,8 @@
 // ==================== qcbf@qq.com | 2026-03-26 ====================
 
+#if DEBUG
+using System.Text;
+#endif
 using FLib.WorldCores.TimeLogics;
 
 namespace FLib.Tests;
@@ -20,6 +23,34 @@ public class TestSerialization
     {
         public int Value;
     }
+
+#if DEBUG
+    private sealed class DebugCycleNode
+    {
+        public string Name = string.Empty;
+        public DebugCycleNode? Next;
+    }
+
+    private sealed class DebugSharedRoot
+    {
+        public DebugSharedNode? Left;
+        public DebugSharedNode? Right;
+    }
+
+    private sealed class DebugSharedNode
+    {
+        public int Value;
+    }
+
+    private sealed class DebugReentrantSerializable : IJson5Serializable
+    {
+        public bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
+        {
+            jsonText.Append(Json5.Serialize(serializeObject));
+            return true;
+        }
+    }
+#endif
 
     [Fact]
     public void TimeLogic()
@@ -107,4 +138,41 @@ public class TestSerialization
         Assert.Same(list, result);
         Assert.Equal([1, 2, 3], list);
     }
+
+#if DEBUG
+    [Fact]
+    public void DebugSerializerReportsCircularReference()
+    {
+        var root = new DebugCycleNode { Name = "root" };
+        root.Next = root;
+
+        var exception = Assert.Throws<InvalidOperationException>(() => Json5.Serialize(root));
+
+        Assert.Contains("Json5 serialization recursion exceeded", exception.Message);
+        Assert.Contains(nameof(DebugCycleNode), exception.Message);
+    }
+
+    [Fact]
+    public void DebugSerializerAllowsSharedNonCircularValue()
+    {
+        var shared = new DebugSharedNode { Value = 1 };
+        var root = new DebugSharedRoot { Left = shared, Right = shared };
+
+        var json = Json5.Serialize(root);
+
+        Assert.Contains("Left", json);
+        Assert.Contains("Right", json);
+    }
+
+    [Fact]
+    public void DebugSerializerReportsCustomSerializerReentry()
+    {
+        var value = new DebugReentrantSerializable();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => Json5.Serialize(value));
+
+        Assert.Contains("Json5 serialization recursion exceeded", exception.Message);
+        Assert.Contains(nameof(DebugReentrantSerializable), exception.Message);
+    }
+#endif
 }
