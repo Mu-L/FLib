@@ -254,7 +254,7 @@ namespace FLib.Gen
                 if (t.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                     t = ((INamedTypeSymbol)t).TypeArguments[0];
             }
-            return t.ToString();
+            return t.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         }
 
         /// <summary>替换模板中的 ${FieldName} 和 ${FieldType} 占位符</summary>

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 
 #pragma warning disable CA1806
 
