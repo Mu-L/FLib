@@ -44,13 +44,13 @@ namespace FLib.WorldCores.TimeLogics
                 return;
             var temp = CurrentClip;
             CurrentClip = null;
-            temp.End();
+            temp.OnStop();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Update()
+        public virtual void OnUpdate()
         {
             var frame = Root.CurrentFrame;
             if (CurrentClip != null)
@@ -59,11 +59,11 @@ namespace FLib.WorldCores.TimeLogics
                 {
                     if (CurrentClip.CheckFrame(frame))
                     {
-                        CurrentClip.Update();
+                        CurrentClip.OnUpdate();
                         return;
                     }
 
-                    CurrentClip.End();
+                    CurrentClip.OnStop();
                     CurrentClip = null;
                 }
                 catch (Exception e)
@@ -80,8 +80,8 @@ namespace FLib.WorldCores.TimeLogics
                     try
                     {
                         CurrentClip = clip;
-                        CurrentClip.Begin();
-                        CurrentClip.Update();
+                        CurrentClip.OnPlay();
+                        CurrentClip.OnUpdate();
                     }
                     catch (Exception e)
                     {
@@ -94,8 +94,8 @@ namespace FLib.WorldCores.TimeLogics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void LateUpdate()
-            => CurrentClip?.LateUpdate();
+        public virtual void OnLateUpdate()
+            => CurrentClip?.OnLateUpdate();
 
 #if UNITY_PROJ
         public T GetExternalReference<T>(in ExternalReferenceField<T> field) where T : class => field.Index < 0 ? null : Root.ExternalReferences[field.Index] as T;
