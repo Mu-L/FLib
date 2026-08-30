@@ -68,15 +68,15 @@ namespace FLib.WorldCores.TimeLogics
             return Root.UserData as T;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual bool CheckFrame(int frame) => BeginFrame <= frame && EndFrame >= frame;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual bool CheckFrame() => CheckFrame(CurrentFrame);
+        // /// <summary>
+        // /// 
+        // /// </summary>
+        // public virtual bool CheckFrame(int frame) => BeginFrame <= frame && EndFrame >= frame;
+        //
+        // /// <summary>
+        // /// 
+        // /// </summary>
+        // public virtual bool CheckFrame() => CheckFrame(CurrentFrame);
 
         public virtual void Z_BytesPackWrite(ref BytesPack.KeyHelper key, ref BytesWriter writer)
         {

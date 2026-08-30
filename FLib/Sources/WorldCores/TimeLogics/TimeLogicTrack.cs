@@ -52,12 +52,11 @@ namespace FLib.WorldCores.TimeLogics
         /// </summary>
         public virtual void Update()
         {
-            var frame = Root.CurrentFrame;
             if (CurrentClip != null)
             {
                 try
                 {
-                    if (CurrentClip.CheckFrame(frame))
+                    if (CurrentClip.IsPlaying)
                     {
                         CurrentClip.Update();
                         return;
@@ -75,7 +74,7 @@ namespace FLib.WorldCores.TimeLogics
             foreach (var pack in Clips)
             {
                 var clip = (TimeLogicClip)pack.Instance;
-                if (!clip.IsDisable && Root.ExecuteVerifyHandler?.Invoke(clip) != false && clip.CheckFrame(frame))
+                if (!clip.IsDisable && Root.ExecuteVerifyHandler?.Invoke(clip) != false && clip.IsPlaying)
                 {
                     try
                     {
