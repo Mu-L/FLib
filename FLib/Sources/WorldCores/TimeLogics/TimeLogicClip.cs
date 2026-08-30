@@ -31,28 +31,28 @@ namespace FLib.WorldCores.TimeLogics
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Begin()
+        public virtual void OnPlay()
         {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void End()
+        public virtual void OnStop()
         {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void Update()
+        public virtual void OnUpdate()
         {
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public virtual void LateUpdate()
+        public virtual void OnLateUpdate()
         {
         }
 

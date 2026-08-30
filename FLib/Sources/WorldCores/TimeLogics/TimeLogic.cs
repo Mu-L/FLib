@@ -128,14 +128,14 @@ namespace FLib.WorldCores.TimeLogics
             {
                 var track = (TimeLogicTrack)pack.Instance;
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
-                    track.Update();
+                    track.OnUpdate();
             }
 
             foreach (var pack in Tracks)
             {
                 var track = (TimeLogicTrack)pack.Instance;
                 if (!track.IsDisable && ExecuteVerifyHandler?.Invoke(track) != false)
-                    track.LateUpdate();
+                    track.OnLateUpdate();
             }
         }
 
