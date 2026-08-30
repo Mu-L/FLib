@@ -12,7 +12,8 @@ namespace FLib
     public class FEvent
     {
         public IDictionary<int, List2<FEventListenData>> AllListens;
-        public List2<(bool, int, FEventListenData)> Modifies;
+        public List2<(int, FEventListenData)> PendingAddListens;
+        private bool _dirtyRemoved;
         private byte _isDispatching;
 
         /// <summary>
@@ -65,16 +66,17 @@ namespace FLib
             try
             {
                 var finalDispatcher = dispatcher ?? this;
-                for (var i = list.Count - 1; i >= 0; i--)
+                for (var i = 0; i < list.Count; i++)
                 {
                     ref var listenData = ref list.GetValueRef(i);
                     var handler = listenData.Handler;
-                    var isListenOnce = listenData.IsListenOnce;
-                    var removedListenData = default(FEventListenData);
-                    if (isListenOnce)
+                    if (handler == null) // removed
+                        continue;
+
+                    if (listenData.IsListenOnce)
                     {
-                        removedListenData = listenData;
-                        list.RemoveAt(i);
+                        listenData.Handler = null;
+                        _dirtyRemoved = true;
                     }
 
                     try
@@ -83,14 +85,12 @@ namespace FLib
                             func(finalDispatcher, evtData);
 #if DEBUG
                         else if (handler.GetType().GetGenericTypeDefinition() == typeof(PostEventHandler<>))
-                        {
                             Log.Error?.Write($"event handler type error {handler.Target?.GetType().Name}.{handler.Method.Name} {typeof(T)}");
-                        }
 #endif
                     }
                     catch (Exception ex)
                     {
-                        ThrowEventError(ex, isListenOnce ? removedListenData : listenData);
+                        ThrowEventError(ex, new FEventListenData { Handler = handler, IsListenOnce = listenData.IsListenOnce, Priority = listenData.Priority });
                     }
                 }
             }
@@ -136,16 +136,17 @@ namespace FLib
             try
             {
                 var finalDispatcher = dispatcher ?? this;
-                for (var i = list.Count - 1; i >= 0; i--)
+                for (var i = 0; i < list.Count; i++)
                 {
                     ref var listenData = ref list.GetValueRef(i);
                     var handler = listenData.Handler;
-                    var isListenOnce = listenData.IsListenOnce;
-                    var removedListenData = default(FEventListenData);
-                    if (isListenOnce)
+                    if (handler == null) // removed
+                        continue;
+
+                    if (listenData.IsListenOnce)
                     {
-                        removedListenData = listenData;
-                        list.RemoveAt(i);
+                        listenData.Handler = null;
+                        _dirtyRemoved = true;
                     }
 
                     if (handler is PreEventHandler<T> func)
@@ -153,13 +154,11 @@ namespace FLib
                         try
                         {
                             if (!func(finalDispatcher, ref evtData))
-                            {
                                 return false;
-                            }
                         }
                         catch (Exception ex)
                         {
-                            ThrowEventError(ex, isListenOnce ? removedListenData : listenData);
+                            ThrowEventError(ex, new FEventListenData { Handler = handler, IsListenOnce = listenData.IsListenOnce, Priority = listenData.Priority });
                         }
                     }
 #if DEBUG
@@ -184,27 +183,30 @@ namespace FLib
         /// </summary>
         protected virtual void ProcessDispatchComplete()
         {
-            if (_isDispatching > 0)
-                --_isDispatching;
-            if (_isDispatching != 0 || Modifies == null || Modifies.Count == 0)
+            if (--_isDispatching > 0)
                 return;
 
-            try
+            if (_dirtyRemoved)
             {
-                for (var i = 0; i < Modifies.Count; i++)
-                {
-                    ref var modify = ref Modifies.GetValueRef(i);
-                    ref var listenData = ref modify.Item3;
-                    var handler = listenData.Handler;
-                    if (modify.Item1)
-                        ListenEventImpl(modify.Item2, handler, listenData.Priority, listenData.IsListenOnce);
-                    else
-                        UnlistenEventImpl(modify.Item2, handler);
-                }
+                foreach (var item in AllListens)
+                    item.Value.RemoveAll(static v => v.Handler == null);
+                _dirtyRemoved = false;
             }
-            finally
+
+            if (PendingAddListens != null)
             {
-                Modifies.Clear();
+                try
+                {
+                    for (var i = 0; i < PendingAddListens.Count; i++)
+                    {
+                        ref readonly var item = ref PendingAddListens.GetValueRef(i);
+                        ListenEventImpl(item.Item1, item.Item2.Handler, item.Item2.Priority, item.Item2.IsListenOnce);
+                    }
+                }
+                finally
+                {
+                    PendingAddListens.Clear();
+                }
             }
         }
 
@@ -287,7 +289,7 @@ namespace FLib
             var listenData = new FEventListenData { Handler = handler, IsListenOnce = isListenOnce, Priority = priority };
             if (_isDispatching > 0)
             {
-                (Modifies ??= new List2<(bool, int, FEventListenData)>()).Add((true, evtId, listenData));
+                (PendingAddListens ??= new List2<( int, FEventListenData)>()).Add((evtId, listenData));
                 return;
             }
 
@@ -333,20 +335,36 @@ namespace FLib
         /// </summary>
         public virtual void UnlistenEventImpl(int evtId, in Delegate handler)
         {
-            if (_isDispatching > 0)
-            {
-                (Modifies ??= new List2<(bool, int, FEventListenData)>()).Add((false, evtId, new FEventListenData { Handler = handler }));
-                return;
-            }
-
             if (AllListens != null && AllListens.TryGetValue(evtId, out var list))
             {
                 for (var i = list.Count - 1; i >= 0; i--)
                 {
                     if (list.GetValueRef(i).Handler == handler)
                     {
-                        list.RemoveAt(i);
-                        break;
+                        if (_isDispatching > 0)
+                        {
+                            list.GetValueRef(i).Handler = null;
+                            _dirtyRemoved = true;
+                        }
+                        else
+                        {
+                            list.RemoveAt(i);
+                        }
+
+                        return;
+                    }
+                }
+            }
+
+            if (PendingAddListens != null)
+            {
+                for (var i = 0; i < PendingAddListens.Count; i++)
+                {
+                    ref readonly var item = ref PendingAddListens.GetValueRef(i);
+                    if (item.Item1 == evtId && item.Item2.Handler == handler)
+                    {
+                        PendingAddListens.RemoveAt(i);
+                        return;
                     }
                 }
             }
@@ -382,13 +400,23 @@ namespace FLib
         /// </summary>
         protected internal virtual bool IsListenEventImpl(int evtId, Delegate handler)
         {
-            if (AllListens == null || !AllListens.TryGetValue(evtId, out var list))
-                return false;
-
-            for (var i = list.Count - 1; i >= 0; i--)
+            if (AllListens != null && AllListens.TryGetValue(evtId, out var list))
             {
-                if (list.GetValueRef(i).Handler == handler)
-                    return true;
+                for (var i = 0; i < list.Count; i++)
+                {
+                    if (list.GetValueRef(i).Handler == handler)
+                        return true;
+                }
+            }
+
+            if (PendingAddListens != null)
+            {
+                for (var i = 0; i < PendingAddListens.Count; i++)
+                {
+                    ref readonly var item = ref PendingAddListens.GetValueRef(i);
+                    if (item.Item1 == evtId && item.Item2.Handler == handler)
+                        return true;
+                }
             }
 
             return false;
@@ -399,9 +427,21 @@ namespace FLib
         /// </summary>
         public void ClearListenEvents()
         {
-            AllListens?.Clear();
-            Modifies?.Clear();
-            _isDispatching = 0;
+            if (_isDispatching > 0)
+            {
+                foreach (var list in AllListens)
+                {
+                    _dirtyRemoved = true;
+                    for (var i = 0; i < list.Value.Count; i++)
+                        list.Value.GetValueRef(i).Handler = null;
+                }
+            }
+            else
+            {
+                AllListens?.Clear();
+            }
+
+            PendingAddListens?.Clear();
         }
     }
 }
