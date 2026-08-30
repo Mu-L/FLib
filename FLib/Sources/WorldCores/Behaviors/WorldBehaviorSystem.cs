@@ -118,7 +118,7 @@ namespace FLib.WorldCores.Behaviors
                 return false;
             }
 
-            bhv.CurrentPriority = bhv.InitialPriority;
+            bhv.RunningPriority = bhv.Priority;
             ref var slot = ref PrimaryId;
             WorldBehavior? stopBhvPrimary = null;
             WorldBehavior? stopBhvSecondary = null;
