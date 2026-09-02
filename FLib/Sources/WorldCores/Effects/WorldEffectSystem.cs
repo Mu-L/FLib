@@ -50,6 +50,8 @@ namespace FLib.WorldCores.Effects
         public void OnComponentDestroy(WorldCore world, WorldEntityId entityId)
         {
             FlagMask |= 0x80000000;
+            if (Container.Effects.Count > 0)
+                Log.Info?.Write("", nameof(WorldEffectSystem), nameof(OnComponentDestroy));
             Clear();
             world.Assert(Container.Effects.Count == 0);
             WorldEffectPool.FreeContainer(_containerIndex);
@@ -211,7 +213,7 @@ namespace FLib.WorldCores.Effects
             using var effectsEnum = Container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
             {
-                if ((effectsEnum.Value.Single!.FlagsMask & flags) == 0)
+                if (flags != uint.MaxValue && (effectsEnum.Value.Single!.FlagsMask & flags) == 0)
                     continue;
                 idList?.Add(effectsEnum.Key);
                 if (!effectsEnum.Value.MoreList.IsEmpty)
