@@ -26,12 +26,13 @@ namespace FLib.WorldCores.TimeLogics
         public byte FrameRate = 30;
         private FNum _currentFrame;
         private FNum _frameDeltaCache;
-        public ScriptPackInstance[] Tracks;
+        public ScriptPackInstance[] Tracks = Array.Empty<ScriptPackInstance>();
 
         public bool IsEndFrame { get; private set; }
         public int FrameCount => EndFrame + 1;
         public FNum Duration => EndFrame * FrameDelta;
         public FNum FrameDelta => FNum.One / FrameRate;
+        public bool IsInitialized => Tracks != null;
         public ExternalReferenceStorer ExternalReferences;
         public TimeLogicTrack this[int index] => Tracks[index].Instance as TimeLogicTrack;
 
@@ -122,7 +123,7 @@ namespace FLib.WorldCores.TimeLogics
         /// </summary>
         public void UpdateCurrentFrame()
         {
-            System.Diagnostics.Debug.Assert(Tracks != null, "not initialized");
+            System.Diagnostics.Debug.Assert(IsInitialized, "not initialized");
             IsEndFrame = false;
             foreach (var pack in Tracks)
             {
