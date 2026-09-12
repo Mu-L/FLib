@@ -8,6 +8,7 @@ namespace FLib.WorldCores.Effects
     /// <summary>
     /// 
     /// </summary>
+    [WorldComponentOption(1)]
     public struct WorldEffectTime : IWorldUpdate
     {
         public readonly WorldEffectBase Effect;
