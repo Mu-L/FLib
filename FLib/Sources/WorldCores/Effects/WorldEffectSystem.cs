@@ -111,7 +111,7 @@ namespace FLib.WorldCores.Effects
                 item.Single = effect;
             }
             else if (effect.AddOption == EWorldEffectAddOption.IgnoreNew ||
-                     (effect.AddOption is EWorldEffectAddOption.AddStack or EWorldEffectAddOption.AddStackAndResetTime && effect.StackCount >= effect.MaxStackCount))
+                     (effect.IsStackable && effect.StackCount >= effect.MaxStackCount))
             {
                 return null;
             }
@@ -213,7 +213,8 @@ namespace FLib.WorldCores.Effects
             using var effectsEnum = Container.Effects.GetEnumerator();
             while (effectsEnum.MoveNext())
             {
-                if (flags != uint.MaxValue && (effectsEnum.Value.Single!.FlagsMask & flags) == 0)
+                var val = effectsEnum.Value.Single!;
+                if (flags != uint.MaxValue && (val.FlagsMask & flags) == 0)
                     continue;
                 idList?.Add(effectsEnum.Key);
                 if (!effectsEnum.Value.MoreList.IsEmpty)
@@ -222,7 +223,7 @@ namespace FLib.WorldCores.Effects
                         Remove(effectsEnum.Value.MoreList[i]);
                 }
 
-                Remove(effectsEnum.Value.Single);
+                Remove(val);
             }
         }
 

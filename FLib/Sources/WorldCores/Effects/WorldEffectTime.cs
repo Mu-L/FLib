@@ -25,7 +25,10 @@ namespace FLib.WorldCores.Effects
         public void OnComponentUpdate(WorldCore world, WorldEntityId entityId)
         {
             if (world.Time >= EndTime)
-                Effect.RemoveSelf();
+            {
+                ResetTime(world.Time);
+                Effect.RemoveSelf(1);
+            }
         }
 
         public void ResetTime(in FNum time)
