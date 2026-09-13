@@ -293,6 +293,15 @@ namespace FLib.WorldCores.Effects
             addCount = (ushort)(effect.StackCount - oldCount);
         }
 
+        public override string ToString()
+        {
+            var strbuf = new StringBuilder();
+            strbuf.Append(FlagMask.ToString()).Append(" effects:");
+            foreach (var effect in Container)
+                strbuf.Append(CommentAttribute.TryGetLabel(effect.GetType())).Append(':').Append(Json5.SerializeToLog(effect));
+            return strbuf.ToString();
+        }
+
         /// <summary>  </summary>
         public bool JsonSerialize(StringBuilder jsonText, object serializeObject, object? customData, int indent, Json5SerializeOptionData opData)
         {
