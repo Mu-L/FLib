@@ -46,7 +46,7 @@ namespace FLib.WorldCores.Effects
         /// <summary>
         /// 
         /// </summary>
-        public override string ToString() => Json5.Serialize(this);
+        public override string ToString() => $"Id:{Id} Stack:{StackCount}, Source:{SourceEntityId} {Json5.Serialize(this)}";
 
         /// <summary>
         /// 

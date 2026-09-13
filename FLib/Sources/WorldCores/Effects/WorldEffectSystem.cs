@@ -296,9 +296,9 @@ namespace FLib.WorldCores.Effects
         public override string ToString()
         {
             var strbuf = new StringBuilder();
-            strbuf.Append(FlagMask.ToString()).Append(" effects:");
+            strbuf.Append(FlagMask.ToString()).Append(" effects:").AppendLine();
             foreach (var effect in Container)
-                strbuf.Append(CommentAttribute.TryGetLabel(effect.GetType())).Append(':').Append(Json5.SerializeToLog(effect));
+                strbuf.Append(CommentAttribute.TryGetLabel(effect.GetType())).Append(':').Append(Json5.SerializeToLog(effect)).AppendLine();
             return strbuf.ToString();
         }
 
