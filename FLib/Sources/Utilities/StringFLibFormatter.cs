@@ -22,7 +22,8 @@ namespace FLib
                 '-' => (Convert.ToDouble(arg) - format.AsSpan(1).ToDouble()).ToString("0.##"),
                 '*' => (Convert.ToDouble(arg) * format.AsSpan(1).ToDouble()).ToString("0.##"),
                 '/' => (Convert.ToDouble(arg) / format.AsSpan(1).ToDouble()).ToString("0.##"),
-                _ => format == "abs" ? Math.Abs(Convert.ToDouble(arg)).ToString(CultureInfo.InvariantCulture) : string.Format(formatProvider, format, arg)
+                'p' => Convert.ToDouble(arg).ToString("0.#%"),
+                _ => format == "abs" ? Math.Abs(Convert.ToDouble(arg)).ToString(CultureInfo.InvariantCulture) : null
             };
         }
 
