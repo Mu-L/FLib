@@ -4,6 +4,7 @@ using System;
 
 namespace FLib
 {
+    /// <summary>在二进制数据与 Base91 文本之间进行编码和解码。</summary>
     public static class Base91
     {
         private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
@@ -17,11 +18,9 @@ namespace FLib
             return table;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        /// <summary>使用 Base91 编码指定的二进制数据。</summary>
+        /// <param name="data">要编码的二进制数据。</param>
+        /// <returns>Base91 编码后的字符串。</returns>
         public static string Encode(ReadOnlySpan<byte> data)
         {
             var output = new char[(data.Length * 16 + 12) / 13];
@@ -59,11 +58,9 @@ namespace FLib
             return new string(output, 0, outputCount);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns></returns>
+        /// <summary>将 Base91 文本解码为原始二进制数据，Base91 字符表之外的字符会被忽略。</summary>
+        /// <param name="text">要解码的 Base91 编码文本。</param>
+        /// <returns>解码后的二进制数据。</returns>
         public static byte[] Decode(ReadOnlySpan<char> text)
         {
             var result = new byte[text.Length * 14 / 16 + 2];
