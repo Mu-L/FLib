@@ -29,14 +29,14 @@ public class MoveBehavior : WorldBehavior<MoveBehavior.ParamData>
 
     public override bool CheckFriend(WorldBehavior targetBehavior, bool isFirst) => targetBehavior is IdleBehavior;
 
-    public override byte InitialPriority => NewParam.Priority;
+    public override byte Priority => NewParam.Priority;
 
     public override uint Mask => (uint)EBehaviors.Move;
 }
 
 public class ZBehavior : WorldBehavior
 {
-    public override byte InitialPriority => byte.MaxValue;
+    public override byte Priority => byte.MaxValue;
 
     public override uint Mask => (uint)EBehaviors.Idle;
 }
@@ -60,7 +60,7 @@ public class TestWorldBehavior
         Assert.True(bSys.Do(typeof(MoveBehavior), new MoveBehavior.ParamData { Priority = 10 }));
         Assert.Equal(typeof(MoveBehavior), bSys.Primary?.GetType());
         Assert.Equal(typeof(IdleBehavior), bSys.Secondary?.GetType());
-        Assert.Equal(10, ((MoveBehavior)bSys.Primary!).CurrentPriority);
+        Assert.Equal(10, ((MoveBehavior)bSys.Primary!).RunningPriority);
         Assert.ThrowsAny<Exception>(() => et.Get<WorldBehaviorSystem>().Do(typeof(IdleBehavior), new MoveBehavior.ParamData { Priority = 10 }));
         Assert.True(bSys.Do(typeof(ZBehavior)));
         Assert.False(bSys.Do(typeof(IdleBehavior)));
