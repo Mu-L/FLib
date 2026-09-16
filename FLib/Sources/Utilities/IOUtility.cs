@@ -37,10 +37,28 @@ namespace FLib
             else
             {
                 foreach (var item in Directory.EnumerateFiles(path, "*", SearchOption.TopDirectoryOnly))
-                    File.Delete(item);
+                {
+                    try
+                    {
+                        File.Delete(item);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error?.Write($"{item} {e}");
+                    }
+                }
 
                 foreach (var item in Directory.EnumerateDirectories(path, "*", SearchOption.TopDirectoryOnly))
-                    Directory.Delete(item, true);
+                {
+                    try
+                    {
+                        Directory.Delete(item, true);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error?.Write($"{item} {e}");
+                    }
+                }
             }
         }
 
