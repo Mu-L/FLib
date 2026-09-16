@@ -35,7 +35,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static ulong Encode(in string value)
+        public static long Encode(in string value)
         {
             var bytesCount = StringFLibUtility.Encoding.GetByteCount(value);
             if (bytesCount < 4096)
@@ -50,7 +50,7 @@ namespace FLib
         /// <summary>
         /// 
         /// </summary>
-        public static ulong Encode(ReadOnlySpan<byte> source, ulong crc = uint.MaxValue)
+        public static long Encode(ReadOnlySpan<byte> source, ulong crc = uint.MaxValue)
         {
             for (var i = 0; i < source.Length; i++)
             {
@@ -58,7 +58,7 @@ namespace FLib
                 idx ^= source[i];
                 crc = mLookup[idx] ^ (crc << 8);
             }
-            return crc;
+            return (long)crc;
         }
 
 
