@@ -22,7 +22,7 @@ namespace FLib
         /// <summary>计算编码指定长度数据所需的最大输出字符数。</summary>
         public static int GetMaxEncodedLength(int dataLength) => (dataLength * 16 + 12) / 13;
 
-        /// <summary>计算解码指定长度文本所需的最大输出字节数（上界，含非法字符时可能偏大）。</summary>
+        /// <summary>计算解码指定长度文本所需的最大输出字节数（上界）。</summary>
         public static int GetMaxDecodedLength(int textLength) => textLength * 14 / 16 + 2;
 
         /// <summary>使用 Base91 编码指定的二进制数据。</summary>
@@ -87,9 +87,10 @@ namespace FLib
             return outputCount;
         }
 
-        /// <summary>将 Base91 文本解码为原始二进制数据，Base91 字符表之外的字符会被忽略。</summary>
+        /// <summary>将 Base91 文本解码为原始二进制数据。遇到字母表之外的字符会抛出异常。</summary>
         /// <param name="text">要解码的 Base91 编码文本。</param>
         /// <returns>解码后的二进制数据。</returns>
+        /// <exception cref="FormatException">text 包含非 Base91 字母表字符。</exception>
         public static byte[] Decode(ReadOnlySpan<char> text)
         {
             var maxLen = GetMaxDecodedLength(text.Length);
@@ -105,11 +106,12 @@ namespace FLib
             }
         }
 
-        /// <summary>将 Base91 文本解码为原始二进制数据，写入调用方提供的缓冲区；字符表之外的字符会被忽略。</summary>
+        /// <summary>将 Base91 文本解码为原始二进制数据，写入调用方提供的缓冲区。遇到字母表之外的字符会抛出异常。</summary>
         /// <param name="text">要解码的 Base91 编码文本。</param>
         /// <param name="destination">输出缓冲区，长度至少为 <see cref="GetMaxDecodedLength"/>。</param>
         /// <returns>实际写入的字节数。</returns>
         /// <exception cref="ArgumentException">destination 容量不足。</exception>
+        /// <exception cref="FormatException">text 包含非 Base91 字母表字符。</exception>
         public static int Decode(ReadOnlySpan<char> text, Span<byte> destination)
         {
             if (destination.Length < GetMaxDecodedLength(text.Length))
@@ -120,10 +122,12 @@ namespace FLib
             var bitCount = 0;
             var value = -1;
 
-            foreach (var c in text)
+            for (var i = 0; i < text.Length; i++)
             {
+                var c = text[i];
                 var idx = c <= byte.MaxValue ? DecodeTable[c] : (sbyte)-1;
-                if (idx < 0) continue;
+                if (idx < 0)
+                    throw new FormatException($"Invalid Base91 character '{c}' at index {i}.");
 
                 if (value < 0)
                 {
@@ -149,25 +153,6 @@ namespace FLib
                 destination[resultCount++] = (byte)(bitQueue | (ulong)value << bitCount);
 
             return resultCount;
-        }
-
-        /// <summary>严格模式解码：遇到字母表之外的字符时返回 false，而非静默忽略。</summary>
-        /// <param name="text">要解码的 Base91 编码文本。</param>
-        /// <param name="result">成功时返回解码后的二进制数据；失败时为 null。</param>
-        /// <returns>是否解码成功（未遇到非法字符）。</returns>
-        public static bool TryDecodeStrict(ReadOnlySpan<char> text, out byte[] result)
-        {
-            foreach (var c in text)
-            {
-                if (c > byte.MaxValue || DecodeTable[c] < 0)
-                {
-                    result = null;
-                    return false;
-                }
-            }
-
-            result = Decode(text);
-            return true;
         }
     }
 }
