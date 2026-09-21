@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using FLib.WorldCores.Components;
@@ -130,7 +131,7 @@ namespace FLib.WorldCores.Entities
         /// <summary>
         /// 获取实体的动态组件并返回引用。
         /// </summary>
-        public bool TryGetDyn<T>(out T? component)
+        public bool TryGetDyn<T>([MaybeNullWhen(false)] out T component)
         {
             if (World.HasDyn<T>(Id))
             {
