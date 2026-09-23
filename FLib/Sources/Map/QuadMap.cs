@@ -99,6 +99,7 @@ namespace FLib
                 if (Terrain[i] == null || Terrain[i].Length != tileCount)
                     Array.Resize(ref Terrain[i], tileCount);
             }
+
             return this;
         }
 
@@ -171,7 +172,8 @@ namespace FLib
         }
 
         /// <summary> 在指定层查找邻近的单格目标位置。 </summary>
-        public bool TryFindNearPos(FVector2Int pos, out FVector2Int o, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, int layer = 0) => TryFindNearPos(pos, FVector2Int.One, out o, findMaxDist, value, checker, layer);
+        public bool TryFindNearPos(FVector2Int pos, out FVector2Int o, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, int layer = 0)
+            => TryFindNearPos(pos, FVector2Int.One, out o, findMaxDist, value, checker, layer);
 
         /// <summary> 在指定层查找邻近的矩形目标位置。 </summary>
         public bool TryFindNearPos(FVector2Int pos, FVector2Int size, out FVector2Int o, int findMaxDist = 0, bool value = false, Func<QuadMap, FVector2Int, bool> checker = null, int layer = 0)
@@ -281,6 +283,7 @@ namespace FLib
                         summary.Append(',');
                     summary.Append(Terrain[i].Length);
                 }
+
                 return summary.ToString();
             }
 
