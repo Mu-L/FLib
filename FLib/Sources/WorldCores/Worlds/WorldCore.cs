@@ -139,6 +139,10 @@ namespace FLib.WorldCores
 
         /// <summary>
         /// 使用指定的过滤器执行查询，返回匹配实体的枚举器。
+        /// 过滤器会捕获创建时匹配的 Archetype 集合，本次遍历不会自动纳入之后创建的新 Archetype。
+        /// 遍历期间删除实体会压缩 Chunk 并搬移末尾实体，因此可能跳过实体或 Chunk；如果下一帧继续查询且允许延后处理，通常没有问题。
+        /// 遍历期间新增实体、增删组件或修改 SharedComponent 的结果不保证在本次遍历中可见，也不应依赖其遍历稳定性。
+        /// 如果要求本次遍历处理所有命中的实体，应先缓存实体 ID，结束遍历后再进行结构变更。
         /// </summary>
         /// <param name="filter">查询过滤器条件</param>
         /// <returns>查询枚举器</returns>
