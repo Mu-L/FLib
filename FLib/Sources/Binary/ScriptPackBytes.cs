@@ -7,7 +7,7 @@ using System.Text;
 namespace FLib
 {
     /// <summary>
-    /// 
+    /// 配置方式: {$type: "Namespace.ScriptType", ...脚本字段}; 空值使用 {}。
     /// </summary>
     public struct ScriptPackBytes : IJson5Serializable, IJson5Deserializable, IBytesSerializable, IBytesPackable, IScriptPackable
     {
