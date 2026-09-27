@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using FLib.WorldCores.Entities;
 
@@ -265,7 +266,7 @@ namespace FLib.WorldCores.Behaviors
         /// <summary>
         /// 尝试获取指定类型的行为实例。
         /// </summary>
-        public bool TryGet<T>(out T? bhv) where T : WorldBehavior
+        public bool TryGet<T>([MaybeNullWhen(false)] out T bhv) where T : WorldBehavior
         {
             WorldCoreException.AssertNotCopied(Self, this);
             bhv = Primary as T ?? Secondary as T;
