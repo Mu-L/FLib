@@ -25,7 +25,7 @@ namespace FLib.WorldCores.Behaviors
 
         public WorldDoBehaviorEvent(ref WorldBehaviorSystem bhvSys) : this() => SystemPtr = (WorldBehaviorSystem*)Unsafe.AsPointer(ref bhvSys);
 
-        public readonly ref readonly T GetParam<T>()
+        public readonly ref T GetParam<T>()
         {
             Debug.Assert(Behavior is WorldBehavior<T>);
             return ref WorldBehavior<T>.NewParam;
